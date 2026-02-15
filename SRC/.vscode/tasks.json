@@ -1,0 +1,85 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "env": {
+            "PATH": "${env:PATH};${userHome}/.platformio/penv/Scripts"
+        }
+    },
+    "tasks": [
+        {
+            "label": "Build Firmware",
+            "type": "shell",
+            "command": "${userHome}/.platformio/penv/Scripts/pio",
+            "args": ["run"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Upload Firmware",
+            "type": "shell",
+            "command": "${userHome}/.platformio/penv/Scripts/pio",
+            "args": ["run", "-t", "upload"],
+            "group": "build",
+            "problemMatcher": ["$gcc"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Upload Webseite (LittleFS)",
+            "type": "shell",
+            "command": "${userHome}/.platformio/penv/Scripts/pio",
+            "args": ["run", "-t", "uploadfs"],
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Upload Alles (Firmware + Webseite)",
+            "dependsOrder": "sequence",
+            "dependsOn": ["Upload Firmware", "Upload Webseite (LittleFS)"],
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Serial Monitor",
+            "type": "shell",
+            "command": "${userHome}/.platformio/penv/Scripts/pio",
+            "args": ["device", "monitor"],
+            "group": "test",
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Clean Build",
+            "type": "shell",
+            "command": "${userHome}/.platformio/penv/Scripts/pio",
+            "args": ["run", "-t", "clean"],
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ]
+}

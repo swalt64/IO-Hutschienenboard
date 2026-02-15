@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IO-Hutschienenboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 16px; }
+        h1 { text-align: center; margin-bottom: 16px; color: #0f3460; background: #e0e0e0; padding: 12px; border-radius: 8px; }
+        .section { background: #16213e; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .section h2 { margin-bottom: 12px; color: #0ea5e9; font-size: 1.1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #1e3a5f; }
+        th { color: #94a3b8; font-size: 0.85rem; }
+        .led { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+        .led-off { background: #334155; }
+        .led-on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .led-input-on { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        select, input[type=number] { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 100%; }
+        button { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+        button:hover { background: #0284c7; }
+        .btn-on { background: #22c55e; }
+        .btn-off { background: #ef4444; }
+        .status { text-align: center; padding: 8px; font-size: 0.85rem; color: #94a3b8; }
+        .wifi-section input[type=text], .wifi-section input[type=password] {
+            background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 6px; width: 200px; margin: 4px;
+        }
+        #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; }
+        .connected { color: #22c55e; }
+        .disconnected { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>IO-Hutschienenboard</h1>
+    <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
+
+    <div class="section">
+        <h2>Kanal-Zuordnung &amp; Status</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Eingang</th>
+                    <th>Status</th>
+                    <th>&#8594; Ausgang</th>
+                    <th>Relais</th>
+                    <th>Auto-Aus (s)</th>
+                    <th>Manuell</th>
+                </tr>
+            </thead>
+            <tbody id="channel-table"></tbody>
+        </table>
+    </div>
+
+    <div class="section wifi-section">
+        <h2>WiFi-Konfiguration</h2>
+        <div>
+            <label>SSID: <input type="text" id="wifi-ssid"></label>
+            <label>Passwort: <input type="password" id="wifi-pass"></label>
+            <button onclick="saveWifi()">Speichern &amp; Neustart</button>
+        </div>
+        <div class="status" id="wifi-info"></div>
+    </div>
+
+<script>
+const NUM_CH = 12;
+let ws;
+let state = {
+    inputs: Array(NUM_CH).fill(false),
+    outputs: Array(NUM_CH).fill(false),
+    mappings: Array(NUM_CH).fill(-1),
+    timers: Array(NUM_CH).fill(0)
+};
+
+function initTable() {
+    const tbody = document.getElementById('channel-table');
+    for (let i = 0; i < NUM_CH; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>E${i+1}</td>
+            <td><span class="led led-off" id="in-${i}"></span></td>
+            <td>
+                <select id="map-${i}" onchange="setMapping(${i}, this.value)">
+                    <option value="-1">-- keine --</option>
+                    ${Array.from({length: NUM_CH}, (_, j) => `<option value="${j}">A${j+1}</option>`).join('')}
+                </select>
+            </td>
+            <td><span class="led led-off" id="out-${i}"></span></td>
+            <td><input type="number" id="timer-${i}" min="0" max="86400" value="0" onchange="setTimer(${i}, this.value)"></td>
+            <td><button id="btn-${i}" onclick="toggleRelay(${i})">Toggle</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+}
+
+function updateUI() {
+    for (let i = 0; i < NUM_CH; i++) {
+        const inLed = document.getElementById(`in-${i}`);
+        inLed.className = state.inputs[i] ? 'led led-input-on' : 'led led-off';
+
+        const outLed = document.getElementById(`out-${i}`);
+        outLed.className = state.outputs[i] ? 'led led-on' : 'led led-off';
+
+        document.getElementById(`map-${i}`).value = state.mappings[i];
+        document.getElementById(`timer-${i}`).value = state.timers[i];
+    }
+}
+
+function connectWS() {
+    const loc = window.location;
+    ws = new WebSocket(`ws://${loc.host}/ws`);
+
+    ws.onopen = () => {
+        document.getElementById('connection-status').textContent = 'Verbunden';
+        document.getElementById('connection-status').className = 'connected';
+    };
+
+    ws.onclose = () => {
+        document.getElementById('connection-status').textContent = 'Verbindung getrennt - Neuverbindung...';
+        document.getElementById('connection-status').className = 'disconnected';
+        setTimeout(connectWS, 2000);
+    };
+
+    ws.onmessage = (evt) => {
+        const data = JSON.parse(evt.data);
+        if (data.inputs) state.inputs = data.inputs;
+        if (data.outputs) state.outputs = data.outputs;
+        if (data.mappings) state.mappings = data.mappings;
+        if (data.timers) state.timers = data.timers;
+        updateUI();
+    };
+}
+
+function toggleRelay(ch) {
+    ws.send(JSON.stringify({cmd: 'toggle', ch: ch}));
+}
+
+function setMapping(input, output) {
+    ws.send(JSON.stringify({cmd: 'map', input: input, output: parseInt(output)}));
+}
+
+function setTimer(ch, secs) {
+    ws.send(JSON.stringify({cmd: 'timer', ch: ch, secs: parseInt(secs)}));
+}
+
+function saveWifi() {
+    const ssid = document.getElementById('wifi-ssid').value;
+    const pass = document.getElementById('wifi-pass').value;
+    if (confirm(`WiFi auf '${ssid}' setzen und ESP neu starten?`)) {
+        ws.send(JSON.stringify({cmd: 'wifi', ssid: ssid, pass: pass}));
+    }
+}
+
+// Load current WiFi info
+fetch('/api/state').then(r => r.json()).then(data => {
+    document.getElementById('wifi-ssid').value = data.sta_ssid || '';
+    document.getElementById('wifi-info').textContent =
+        `AP: ${data.ap_ip} | STA: ${data.sta_ip} (${data.sta_ssid || 'nicht konfiguriert'})`;
+});
+
+initTable();
+connectWS();
+</script>
+</body>
+</html>

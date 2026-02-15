@@ -1,4 +1,4 @@
-#include <Arduino.h>
+﻿#include <Arduino.h>
 #include <Wire.h>
 #include <WiFi.h>
 #include <esp_wifi.h>
@@ -23,6 +23,10 @@ using namespace dbg;
 // ============================================================
 const char* AP_SSID = "IO-Hutschiene";
 const char* AP_PASS = "12345678";
+const IPAddress AP_IP(192, 168, 50, 1);
+const IPAddress AP_GATEWAY(192, 168, 50, 1);
+const IPAddress AP_SUBNET(255, 255, 255, 0);
+const bool ENABLE_DHCP_DIAG = false;
 
 String sta_ssid = "";
 String sta_pass = "";
@@ -47,6 +51,20 @@ int8_t inputMapping[NUM_CHANNELS];
 
 uint32_t autoOffSeconds[NUM_CHANNELS] = {0};
 unsigned long relayOnTimestamp[NUM_CHANNELS] = {0};
+
+uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
+    if (ch >= NUM_CHANNELS) return 0;
+    if (!relayState[ch]) return 0;
+    if (autoOffSeconds[ch] == 0) return 0;
+    if (relayOnTimestamp[ch] == 0) return 0;
+
+    const unsigned long totalMs = (unsigned long)autoOffSeconds[ch] * 1000UL;
+    const unsigned long elapsedMs = nowMs - relayOnTimestamp[ch];
+    if (elapsedMs >= totalMs) return 0;
+
+    const unsigned long remainingMs = totalMs - elapsedMs;
+    return (remainingMs + 999UL) / 1000UL;
+}
 
 // ============================================================
 // Helper: determine correct LED state based on system status
@@ -180,13 +198,16 @@ String buildStateJson() {
     JsonArray outputs = doc["outputs"].to<JsonArray>();
     JsonArray mappings = doc["mappings"].to<JsonArray>();
     JsonArray timers = doc["timers"].to<JsonArray>();
+    JsonArray remaining = doc["remaining"].to<JsonArray>();
     JsonArray mcpStatus = doc["mcp"].to<JsonArray>();
+    unsigned long now = millis();
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         inputs.add(inputState[i]);
         outputs.add(relayState[i]);
         mappings.add(inputMapping[i]);
         timers.add(autoOffSeconds[i]);
+        remaining.add(getRemainingAutoOffSeconds(i, now));
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
@@ -271,10 +292,106 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
 // ============================================================
 // WiFi Setup
 // ============================================================
+void onDhcpLeaseAssigned(uint8_t client_ip[4]) {
+    dbg::info(CAT_WIFI, "DHCPS Callback: Lease vergeben -> %u.%u.%u.%u",
+              client_ip[0], client_ip[1], client_ip[2], client_ip[3]);
+}
+
+void setupWiFiEvents() {
+    WiFi.onEvent([](arduino_event_id_t event, arduino_event_info_t info) {
+        switch (event) {
+            case ARDUINO_EVENT_WIFI_AP_START:
+                dbg::info(CAT_WIFI, "WiFi Event: AP gestartet");
+                break;
+            case ARDUINO_EVENT_WIFI_AP_STOP:
+                dbg::warn(CAT_WIFI, "WiFi Event: AP gestoppt");
+                break;
+            case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
+                dbg::info(CAT_WIFI,
+                          "WiFi Event: Station verbunden (AID=%u, MAC=%02X:%02X:%02X:%02X:%02X:%02X)",
+                          info.wifi_ap_staconnected.aid,
+                          info.wifi_ap_staconnected.mac[0], info.wifi_ap_staconnected.mac[1],
+                          info.wifi_ap_staconnected.mac[2], info.wifi_ap_staconnected.mac[3],
+                          info.wifi_ap_staconnected.mac[4], info.wifi_ap_staconnected.mac[5]);
+                break;
+            case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+                dbg::warn(CAT_WIFI,
+                          "WiFi Event: Station getrennt (AID=%u, MAC=%02X:%02X:%02X:%02X:%02X:%02X)",
+                          info.wifi_ap_stadisconnected.aid,
+                          info.wifi_ap_stadisconnected.mac[0], info.wifi_ap_stadisconnected.mac[1],
+                          info.wifi_ap_stadisconnected.mac[2], info.wifi_ap_stadisconnected.mac[3],
+                          info.wifi_ap_stadisconnected.mac[4], info.wifi_ap_stadisconnected.mac[5]);
+                break;
+            case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:
+                dbg::info(CAT_WIFI, "WiFi Event: DHCP Lease vergeben -> " IPSTR,
+                          IP2STR(&info.wifi_ap_staipassigned.ip));
+                break;
+            case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+                dbg::info(CAT_WIFI, "WiFi Event: STA hat IP -> %s",
+                          IPAddress(info.got_ip.ip_info.ip.addr).toString().c_str());
+                break;
+            case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+                dbg::warn(CAT_WIFI, "WiFi Event: STA getrennt (Reason=%u)",
+                          info.wifi_sta_disconnected.reason);
+                break;
+            default:
+                break;
+        }
+    });
+}
+
+bool startAccessPoint() {
+    WiFi.softAPdisconnect(false);
+    delay(100);
+
+    bool cfgOk = WiFi.softAPConfig(AP_IP, AP_GATEWAY, AP_SUBNET);
+    dbg::info(CAT_WIFI, "softAPConfig(): %s", cfgOk ? "OK" : "FEHLER");
+    if (!cfgOk) {
+        return false;
+    }
+
+    bool apOk = WiFi.softAP(AP_SSID, AP_PASS, 1, 0, 4);
+    dbg::info(CAT_WIFI, "softAP(): %s", apOk ? "OK" : "FEHLER");
+    if (apOk) {
+        dhcps_set_new_lease_cb(onDhcpLeaseAssigned);
+        dbg::info(CAT_WIFI, "AP gestartet: %s -> %s", AP_SSID, WiFi.softAPIP().toString().c_str());
+    }
+    return apOk;
+}
+
+void ensureApDhcpServer() {
+    esp_netif_t* ap_netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+    if (!ap_netif) {
+        dbg::error(CAT_WIFI, "DHCP-Pruefung fehlgeschlagen: AP netif nicht gefunden");
+        return;
+    }
+
+    esp_netif_dhcp_status_t status = ESP_NETIF_DHCP_INIT;
+    esp_err_t statusErr = esp_netif_dhcps_get_status(ap_netif, &status);
+    if (statusErr != ESP_OK) {
+        dbg::error(CAT_WIFI, "DHCP-Status kann nicht gelesen werden: %d", statusErr);
+        return;
+    }
+
+    if (status == ESP_NETIF_DHCP_STARTED) {
+        return;
+    }
+
+    dbg::warn(CAT_WIFI, "DHCP Server nicht aktiv - starte manuell...");
+    esp_netif_dhcps_stop(ap_netif);
+    delay(100);
+    esp_err_t startErr = esp_netif_dhcps_start(ap_netif);
+    dbg::info(CAT_WIFI, "DHCP manueller Start: %s (err=%d)", startErr == ESP_OK ? "OK" : "FEHLER", startErr);
+}
+
 void diagnoseDHCP() {
+    if (!ENABLE_DHCP_DIAG) {
+        return;
+    }
+
     dbg::info(CAT_WIFI, "--- DHCP Server Diagnose ---");
 
-    // AP IP prüfen
+    // AP IP prÃ¼fen
     IPAddress apIP = WiFi.softAPIP();
     dbg::info(CAT_WIFI, "softAPIP(): %s", apIP.toString().c_str());
 
@@ -312,7 +429,7 @@ void diagnoseDHCP() {
         dbg::error(CAT_WIFI, "DHCP Status Fehler: %d", err);
     }
 
-    // DHCP Lease Range prüfen
+    // DHCP Lease Range prÃ¼fen
     dhcps_lease_t lease;
     lease.enable = true;
     err = esp_netif_dhcps_option(ap_netif, ESP_NETIF_OP_GET, ESP_NETIF_REQUESTED_IP_ADDRESS, &lease, sizeof(lease));
@@ -336,6 +453,8 @@ void diagnoseDHCP() {
 
 void setupWiFi() {
     // WiFi komplett initialisieren
+    WiFi.persistent(false);
+    WiFi.setSleep(false);
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     delay(100);
@@ -350,38 +469,17 @@ void setupWiFi() {
     }
     delay(100);
 
-    // AP-IP konfigurieren VOR softAP()-Aufruf
-    IPAddress apIP(192, 168, 4, 1);
-    IPAddress apGateway(192, 168, 4, 1);
-    IPAddress apSubnet(255, 255, 255, 0);
-    bool cfgOk = WiFi.softAPConfig(apIP, apGateway, apSubnet);
-    dbg::info(CAT_WIFI, "softAPConfig(): %s", cfgOk ? "OK" : "FEHLER");
-    delay(100);
-
     // AP starten
-    bool apOk = WiFi.softAP(AP_SSID, AP_PASS, 1, 0, 4);
-    dbg::info(CAT_WIFI, "softAP(): %s", apOk ? "OK" : "FEHLER");
+    bool apOk = startAccessPoint();
     delay(1000);
-
-    dbg::info(CAT_WIFI, "AP gestartet: %s -> %s", AP_SSID, WiFi.softAPIP().toString().c_str());
 
     // DHCP Server Diagnose
     diagnoseDHCP();
 
     // Falls DHCP nicht laeuft, manuell starten
-    esp_netif_t* ap_netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
-    if (ap_netif) {
-        esp_netif_dhcp_status_t status;
-        esp_netif_dhcps_get_status(ap_netif, &status);
-        if (status != ESP_NETIF_DHCP_STARTED) {
-            dbg::warn(CAT_WIFI, "DHCP Server nicht aktiv - starte manuell...");
-            esp_netif_dhcps_stop(ap_netif);
-            delay(100);
-            esp_err_t err = esp_netif_dhcps_start(ap_netif);
-            dbg::info(CAT_WIFI, "DHCP manueller Start: %s (err=%d)", err == ESP_OK ? "OK" : "FEHLER", err);
-            // Erneute Diagnose
-            diagnoseDHCP();
-        }
+    ensureApDhcpServer();
+    if (apOk) {
+        diagnoseDHCP();
     }
 
     // Optional STA-Verbindung
@@ -403,13 +501,21 @@ void setupWiFi() {
             dbg::ntpSync("CET-1CEST,M3.5.0,M10.5.0/3");
             statusled::setState(statusled::ST_WIFI_NO_NTP);
         } else {
-            dbg::warn(CAT_WIFI, "WiFi-Verbindung fehlgeschlagen, nur AP-Modus");
+            dbg::warn(CAT_WIFI, "WiFi-Verbindung fehlgeschlagen, wechsle auf stabilen AP-Modus");
+            WiFi.disconnect(false);
+            WiFi.mode(WIFI_AP);
+            delay(100);
+            startAccessPoint();
+            ensureApDhcpServer();
+            diagnoseDHCP();
             statusled::setState(statusled::ST_AP_ONLY);
         }
 
         // Nochmal DHCP-Status pruefen nach STA-Verbindungsversuch
-        dbg::info(CAT_WIFI, "DHCP Status nach STA-Versuch:");
-        diagnoseDHCP();
+        if (ENABLE_DHCP_DIAG) {
+            dbg::info(CAT_WIFI, "DHCP Status nach STA-Versuch:");
+            diagnoseDHCP();
+        }
     } else {
         dbg::info(CAT_WIFI, "Kein WiFi konfiguriert, nur AP-Modus");
         statusled::setState(statusled::ST_AP_ONLY);
@@ -420,22 +526,20 @@ void setupWiFi() {
 // Web Server
 // ============================================================
 void setupWebServer() {
-    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
-
-    ws.onEvent(onWebSocketEvent);
-    server.addHandler(&ws);
-
     server.on("/api/state", HTTP_GET, [](AsyncWebServerRequest* req) {
         JsonDocument doc;
         JsonArray inputs = doc["inputs"].to<JsonArray>();
         JsonArray outputs = doc["outputs"].to<JsonArray>();
         JsonArray mappings = doc["mappings"].to<JsonArray>();
         JsonArray timers = doc["timers"].to<JsonArray>();
+        JsonArray remaining = doc["remaining"].to<JsonArray>();
+        unsigned long now = millis();
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
             outputs.add(relayState[i]);
             mappings.add(inputMapping[i]);
             timers.add(autoOffSeconds[i]);
+            remaining.add(getRemainingAutoOffSeconds(i, now));
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
@@ -452,6 +556,14 @@ void setupWebServer() {
         serializeJson(doc, json);
         req->send(200, "application/json", json);
     });
+    server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest* req) {
+        req->send(204);
+    });
+
+    ws.onEvent(onWebSocketEvent);
+    server.addHandler(&ws);
+
+    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
     server.begin();
     dbg::info(CAT_WEB, "Webserver gestartet auf Port 80");
@@ -484,6 +596,7 @@ void setup() {
     setupInputPins();
     setupMCP();
     loadConfig();
+    setupWiFiEvents();
 
     if (!LittleFS.begin(true)) {
         dbg::error(CAT_SYSTEM, "LittleFS mount fehlgeschlagen!");
@@ -522,7 +635,7 @@ void loop() {
 
     bool stateChanged = false;
 
-    // Read inputs with rising edge detection (Stromstoßschalter-Logik)
+    // Read inputs with rising edge detection (StromstoÃŸschalter-Logik)
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         bool current = digitalRead(INPUT_PINS[i]);
         if (current && !inputStatePrev[i]) {
@@ -559,7 +672,7 @@ void loop() {
         lastNtpState = true;
     }
 
-    // Periodische AP-Station-Überwachung (alle 5 Sekunden)
+    // Periodische AP-Station-Ãœberwachung (alle 5 Sekunden)
     static unsigned long lastStaCheck = 0;
     static uint8_t lastStaCount = 255;
     if (now - lastStaCheck >= 5000) {
@@ -569,15 +682,28 @@ void loop() {
             dbg::info(CAT_WIFI, "AP Stationen: %d (vorher: %d)", staCount, lastStaCount);
             lastStaCount = staCount;
 
-            // Station-Details ausgeben
+            // Station-Details ausgeben (inkl. zugewiesener DHCP-IP)
             wifi_sta_list_t staList;
             if (esp_wifi_ap_get_sta_list(&staList) == ESP_OK) {
                 for (int i = 0; i < staList.num; i++) {
-                    dbg::info(CAT_WIFI, "  Station %d MAC: %02X:%02X:%02X:%02X:%02X:%02X",
-                        i + 1,
-                        staList.sta[i].mac[0], staList.sta[i].mac[1],
-                        staList.sta[i].mac[2], staList.sta[i].mac[3],
-                        staList.sta[i].mac[4], staList.sta[i].mac[5]);
+                    ip4_addr_t clientIp;
+                    bool hasIp = dhcp_search_ip_on_mac(staList.sta[i].mac, &clientIp);
+                    if (hasIp) {
+                        dbg::info(CAT_WIFI,
+                            "  Station %d MAC: %02X:%02X:%02X:%02X:%02X:%02X IP: " IPSTR,
+                            i + 1,
+                            staList.sta[i].mac[0], staList.sta[i].mac[1],
+                            staList.sta[i].mac[2], staList.sta[i].mac[3],
+                            staList.sta[i].mac[4], staList.sta[i].mac[5],
+                            IP2STR(&clientIp));
+                    } else {
+                        dbg::info(CAT_WIFI,
+                            "  Station %d MAC: %02X:%02X:%02X:%02X:%02X:%02X IP: (noch keine DHCP-Lease)",
+                            i + 1,
+                            staList.sta[i].mac[0], staList.sta[i].mac[1],
+                            staList.sta[i].mac[2], staList.sta[i].mac[3],
+                            staList.sta[i].mac[4], staList.sta[i].mac[5]);
+                    }
                 }
             }
         }
@@ -589,3 +715,7 @@ void loop() {
 
     delay(10);
 }
+
+
+
+

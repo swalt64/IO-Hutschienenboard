@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -23,6 +23,7 @@
         .btn-on { background: #22c55e; }
         .btn-off { background: #ef4444; }
         .status { text-align: center; padding: 8px; font-size: 0.85rem; color: #94a3b8; }
+        .remaining { margin-top: 4px; font-size: 0.75rem; color: #93c5fd; min-height: 1em; }
         .wifi-section input[type=text], .wifi-section input[type=password] {
             background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 6px; width: 200px; margin: 4px;
         }
@@ -69,7 +70,8 @@ let state = {
     inputs: Array(NUM_CH).fill(false),
     outputs: Array(NUM_CH).fill(false),
     mappings: Array(NUM_CH).fill(-1),
-    timers: Array(NUM_CH).fill(0)
+    timers: Array(NUM_CH).fill(0),
+    remaining: Array(NUM_CH).fill(0)
 };
 
 function initTable() {
@@ -86,11 +88,32 @@ function initTable() {
                 </select>
             </td>
             <td><span class="led led-off" id="out-${i}"></span></td>
-            <td><input type="number" id="timer-${i}" min="0" max="86400" value="0" onchange="setTimer(${i}, this.value)"></td>
+            <td>
+                <input type="number" id="timer-${i}" min="0" max="86400" value="0" onchange="setTimer(${i}, this.value)">
+                <div class="remaining" id="remaining-${i}">Zeit bis AUS: --</div>
+            </td>
             <td><button id="btn-${i}" onclick="toggleRelay(${i})">Toggle</button></td>
         `;
         tbody.appendChild(tr);
     }
+}
+
+function formatRemaining(seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) return '0s';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+function tickCountdown() {
+    let changed = false;
+    for (let i = 0; i < NUM_CH; i++) {
+        if (state.outputs[i] && state.timers[i] > 0 && state.remaining[i] > 0) {
+            state.remaining[i] -= 1;
+            changed = true;
+        }
+    }
+    if (changed) updateUI();
 }
 
 function updateUI() {
@@ -102,7 +125,18 @@ function updateUI() {
         outLed.className = state.outputs[i] ? 'led led-on' : 'led led-off';
 
         document.getElementById(`map-${i}`).value = state.mappings[i];
-        document.getElementById(`timer-${i}`).value = state.timers[i];
+
+        const timerInput = document.getElementById(`timer-${i}`);
+        if (document.activeElement !== timerInput) {
+            timerInput.value = state.timers[i];
+        }
+
+        const remainingEl = document.getElementById(`remaining-${i}`);
+        if (state.outputs[i] && state.timers[i] > 0) {
+            remainingEl.textContent = `Rest: ${formatRemaining(state.remaining[i])}`;
+        } else {
+            remainingEl.textContent = 'Rest: --';
+        }
     }
 }
 
@@ -127,6 +161,7 @@ function connectWS() {
         if (data.outputs) state.outputs = data.outputs;
         if (data.mappings) state.mappings = data.mappings;
         if (data.timers) state.timers = data.timers;
+        if (data.remaining) state.remaining = data.remaining;
         updateUI();
     };
 }
@@ -153,12 +188,21 @@ function saveWifi() {
 
 // Load current WiFi info
 fetch('/api/state').then(r => r.json()).then(data => {
+    if (data.inputs) state.inputs = data.inputs;
+    if (data.outputs) state.outputs = data.outputs;
+    if (data.mappings) state.mappings = data.mappings;
+    if (data.timers) state.timers = data.timers;
+    if (data.remaining) state.remaining = data.remaining;
+    updateUI();
+
     document.getElementById('wifi-ssid').value = data.sta_ssid || '';
     document.getElementById('wifi-info').textContent =
         `AP: ${data.ap_ip} | STA: ${data.sta_ip} (${data.sta_ssid || 'nicht konfiguriert'})`;
 });
 
 initTable();
+updateUI();
+setInterval(tickCountdown, 1000);
 connectWS();
 </script>
 </body>

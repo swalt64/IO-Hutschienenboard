@@ -1,0 +1,105 @@
+PARTS LIST
+
+TESTPUNKT_1       TESTPOINT       100
+SMD_0603_100n_1   CC1608-0603     C100
+SMD_0603_100n_1   CC1608-0603     C101
+875105142001      WCAP-PSLP_D5H5.5C102
+C-10N/50V_SMD-0603_X7R0603_SMD_T      C103
+SMD_0603_100n_1   CC1608-0603     C104
+C-10U/35V_SMD-1206_X7R1206C_H0175_SMD_TC105
+SMD_0603_100n_1   CC1608-0603     C106
+10u/10V           TA-C            C107
+SMD_0603_100n_1   CC1608-0603     C108
+C-10N/50V_SMD-0603_X7R0603_SMD_T      C109
+SMD_1206_4700p_1000VCR3216-1206     C110
+C-10U/10V_SMD-0603_X5RCC1608-0603     C111
+C-100N/50V_SMD-0603_X7R0603_SMD_T      C112
+Gnd               TESTPOINT       Gnd100
+Gnd               TESTPOINT       Gnd101
+Gnd               TESTPOINT       Gnd102
+BMC-Q1JY0600H     0603-Ferrit     L100
+BMC-Q1JY0600H     0603-Ferrit     L101
+ASPI-4020S-3R3M-T ASPI-4020S      L102
+742792651         0603-Ferrit     L103
+TESTPUNKT_1       TESTPOINT       P100
+TESTPUNKT_1       TESTPOINT       PGnd100
+31k6              CR1608-0603     R100
+47k               CR1608-0603     R101
+S0603_10k_1       CR1608-0603     R102
+S0603_4k7_1       CR1608-0603     R103
+4k7               CC1608-0603     R104
+4k7               CC1608-0603     R105
+430182050816      430182050816    S100
+ESP32-S3-WROOM-1-N16R8DIL-44-ESP32    U100
+AP62200WU-7       SOT95P280X100-6NU101
+SL4U-1205         SIP4_6mm        U102
+EOS
+NET LIST
+
+NODENAME 3V3p             $
+    100        1  C103       1  C111       1  C112       1  L100       2  R103       2  R104       2  R105       2  U100       1  U100       2
+NODENAME 12V              $
+    C104       1  C106       2  L101       1  U102       2
+NODENAME Gnd              $
+    C101       1  C102       2  C103       2  C104       2  C105       2  C106       1  C111       2  C112       2  Gnd100     1  Gnd101     1  Gnd102     1  R102       1  S100       2  S100       4  U100      22  U100      23  U100      24  U100      44  U101       1
+NODENAME I-5Vp            $
+    C109       1  L103       2  P100       1
+NODENAME I-GND            $
+    C107       2  C108       1  C109       2  C110       2  PGnd100    1  U102       3
+NODENAME NetC110-1        $
+    C110       1  U102       1
+NODENAME NetR104-1        $
+    R104       1  U100      17
+NODENAME NetR105-1        $
+    R105       1  U100      18
+NODENAME NetU100-4        $
+    U100       4
+NODENAME NetU100-5        $
+    U100       5
+NODENAME NetU100-6        $
+    U100       6
+NODENAME NetU100-7        $
+    U100       7
+NODENAME NetU100-8        $
+    U100       8
+NODENAME NetU100-9        $
+    U100       9
+NODENAME NetU100-10       $
+    U100      10
+NODENAME NetU100-11       $
+    U100      11
+NODENAME NetU100-12       $
+    U100      12
+NODENAME NetU100-13       $
+    U100      13
+NODENAME NetU100-15       $
+    U100      15
+NODENAME NetU100-16       $
+    U100      16
+NODENAME NetU100-19       $
+    U100      19
+NODENAME NetU100-20       $
+    U100      20
+NODENAME NetU100-27       $
+    U100      27
+NODENAME NetU100-35       $
+    U100      35
+NODENAME NetU100-40       $
+    U100      40
+NODENAME P5V              $
+    C107       1  C108       2  L103       1  U102       4
+NODENAME TASTER RESET     $
+    R103       1  S100       1  S100       3  U100       3
+NODENAME U304_BST         $
+    C100       1  U101       6
+NODENAME U304_EN          $
+    R101       1  U101       5
+NODENAME U304_FB          $
+    R100       1  R102       2  U101       4
+NODENAME U304_SW          $
+    C100       2  L102       1  U101       2
+NODENAME U304_Vin         $
+    C105       1  L101       2  R101       2  U101       3
+NODENAME Vout             $
+    C101       2  C102       1  L100       1  L102       2  R100       2
+EOS

@@ -1,0 +1,922 @@
+Change Footprint: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found TA-C
+Added Component: Designator=C200(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C201(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C202(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C203(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C204(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C205(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C206(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C207(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C208(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C209(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C210(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=C211(CC1608-0603)
+Add component (AddParameter): Name = "checked"; Value = "checked"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "https://www.kemet.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "https://www.mouser.de/datasheet/2/447/KEM_C1023_X7R_AUTO_SMD-3316698.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Design Item ID"; Value = "SMD_0603_470n_1"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E01_Value_1"; Value = "470n"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E02_Tolerance_Minus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E03_Tolerance_Plus"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E04_Value_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E05_Value_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E06_Value_4"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E07_Comment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E08_Description"; Value = "SMD0603, X7R, 15%, 50V, 470nF"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E10_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E11_Technology_1"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E12_Technology_2"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "E13_Technology_3"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Katalogseite"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Kommentar"; Value = "Kondensator aus mehreren Keramikschichten MLCC - SMD/SMT 50V 0.47uF X7R 0805 10% AEC-Q200"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L01_Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L02_Manufacturer_Part_Number"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L03_Price_Per_1000"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L04_Distributor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "L05_Distributor_Ordernumber"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M01_Package"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M02_Pin_Pitch"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M03_Pin_Count"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M04_Pin_Alignment"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M05_Mounting_Type"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M10_Length_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M11_Width_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "M12_Height_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "KEMET"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = "C0805C474K5RACAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Revision"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Source"; Value = "PQM PowerBoard.SCHLIB"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Spannung"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Order Number"; Value = "80-C0805C474K5RAUTO"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Supplier Price 100pcs"; Value = "0,084 €"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T01_Operating_Temp_Min"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "T02_Operating_Temp_Max"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Toleranz"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z01_Editor"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Z02_Controller"; Value = ""; VariantName = "[No Variations]"
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found SMB
+Add component: Footprint Not Found SOD323F
+Add component: Footprint Not Found ASPI-4020S
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found ARV241
+Add component: Footprint Not Found ARV241
+Add component: Footprint Not Found CR1608-0603
+Add component: Footprint Not Found ARV241
+Add component: Footprint Not Found SOT95P280X100-6N
+Add component: Footprint Not Found SIP4_6mm
+Add component: Footprint Not Found SO14
+Add component: Footprint Not Found SO14
+Add component: Footprint Not Found SOIC8
+Add component: Footprint Not Found SOIC8
+Add component: Footprint Not Found SOIC8
+Add component: Footprint Not Found SOIC8
+Add component: Footprint Not Found SOIC8
+Add component: Footprint Not Found SOIC8
+Add Pin To Net: Unknown Pin: Pin C107-1
+Add Pin To Net: Unknown Pin: Pin C107-2
+Added Pin To Net: NetName=NetC200_1 Pin=C200-1
+Added Pin To Net: NetName=Gnd Pin=C200-2
+Added Pin To Net: NetName=NetC201_1 Pin=C201-1
+Added Pin To Net: NetName=Gnd Pin=C201-2
+Added Pin To Net: NetName=NetC202_1 Pin=C202-1
+Added Pin To Net: NetName=Gnd Pin=C202-2
+Added Pin To Net: NetName=NetC203_1 Pin=C203-1
+Added Pin To Net: NetName=Gnd Pin=C203-2
+Added Pin To Net: NetName=NetC204_1 Pin=C204-1
+Added Pin To Net: NetName=Gnd Pin=C204-2
+Added Pin To Net: NetName=NetC205_1 Pin=C205-1
+Added Pin To Net: NetName=Gnd Pin=C205-2
+Added Pin To Net: NetName=NetC206_1 Pin=C206-1
+Added Pin To Net: NetName=Gnd Pin=C206-2
+Added Pin To Net: NetName=NetC207_1 Pin=C207-1
+Added Pin To Net: NetName=Gnd Pin=C207-2
+Added Pin To Net: NetName=NetC208_1 Pin=C208-1
+Added Pin To Net: NetName=Gnd Pin=C208-2
+Added Pin To Net: NetName=NetC209_1 Pin=C209-1
+Added Pin To Net: NetName=Gnd Pin=C209-2
+Added Pin To Net: NetName=NetC210_1 Pin=C210-1
+Added Pin To Net: NetName=Gnd Pin=C210-2
+Added Pin To Net: NetName=NetC211_1 Pin=C211-1
+Added Pin To Net: NetName=Gnd Pin=C211-2
+Add Pin To Net: Unknown Pin: Pin D200-1
+Add Pin To Net: Unknown Pin: Pin D200-2
+Add Pin To Net: Unknown Pin: Pin D201-1
+Add Pin To Net: Unknown Pin: Pin D201-2
+Add Pin To Net: Unknown Pin: Pin D202-1
+Add Pin To Net: Unknown Pin: Pin D202-2
+Add Pin To Net: Unknown Pin: Pin D203-1
+Add Pin To Net: Unknown Pin: Pin D203-2
+Add Pin To Net: Unknown Pin: Pin D204-1
+Add Pin To Net: Unknown Pin: Pin D204-2
+Add Pin To Net: Unknown Pin: Pin D205-1
+Add Pin To Net: Unknown Pin: Pin D205-2
+Add Pin To Net: Unknown Pin: Pin D206-1
+Add Pin To Net: Unknown Pin: Pin D206-2
+Add Pin To Net: Unknown Pin: Pin D207-1
+Add Pin To Net: Unknown Pin: Pin D207-2
+Add Pin To Net: Unknown Pin: Pin D208-1
+Add Pin To Net: Unknown Pin: Pin D208-2
+Add Pin To Net: Unknown Pin: Pin D209-1
+Add Pin To Net: Unknown Pin: Pin D209-2
+Add Pin To Net: Unknown Pin: Pin D210-1
+Add Pin To Net: Unknown Pin: Pin D210-2
+Add Pin To Net: Unknown Pin: Pin D211-1
+Add Pin To Net: Unknown Pin: Pin D211-2
+Add Pin To Net: Unknown Pin: Pin D212-1
+Add Pin To Net: Unknown Pin: Pin D212-2
+Add Pin To Net: Unknown Pin: Pin D213-1
+Add Pin To Net: Unknown Pin: Pin D213-2
+Add Pin To Net: Unknown Pin: Pin D214-1
+Add Pin To Net: Unknown Pin: Pin D214-2
+Add Pin To Net: Unknown Pin: Pin D215-1
+Add Pin To Net: Unknown Pin: Pin D215-2
+Add Pin To Net: Unknown Pin: Pin D216-1
+Add Pin To Net: Unknown Pin: Pin D216-2
+Add Pin To Net: Unknown Pin: Pin D217-1
+Add Pin To Net: Unknown Pin: Pin D217-2
+Add Pin To Net: Unknown Pin: Pin D218-1
+Add Pin To Net: Unknown Pin: Pin D218-2
+Add Pin To Net: Unknown Pin: Pin D219-1
+Add Pin To Net: Unknown Pin: Pin D219-2
+Add Pin To Net: Unknown Pin: Pin D220-1
+Add Pin To Net: Unknown Pin: Pin D220-2
+Add Pin To Net: Unknown Pin: Pin D221-1
+Add Pin To Net: Unknown Pin: Pin D221-2
+Add Pin To Net: Unknown Pin: Pin D222-1
+Add Pin To Net: Unknown Pin: Pin D222-2
+Add Pin To Net: Unknown Pin: Pin D223-1
+Add Pin To Net: Unknown Pin: Pin D223-2
+Add Pin To Net: Unknown Pin: Pin L102-1
+Add Pin To Net: Unknown Pin: Pin L102-2
+Add Pin To Net: Unknown Pin: Pin R100-1
+Add Pin To Net: Unknown Pin: Pin R100-2
+Add Pin To Net: Unknown Pin: Pin R101-1
+Add Pin To Net: Unknown Pin: Pin R101-2
+Add Pin To Net: Unknown Pin: Pin R200-1
+Add Pin To Net: Unknown Pin: Pin R200-2
+Add Pin To Net: Unknown Pin: Pin R201-1
+Add Pin To Net: Unknown Pin: Pin R201-2
+Add Pin To Net: Unknown Pin: Pin R202-1
+Add Pin To Net: Unknown Pin: Pin R202-2
+Add Pin To Net: Unknown Pin: Pin R204-1
+Add Pin To Net: Unknown Pin: Pin R204-2
+Add Pin To Net: Unknown Pin: Pin R205-1
+Add Pin To Net: Unknown Pin: Pin R205-2
+Add Pin To Net: Unknown Pin: Pin R206-1
+Add Pin To Net: Unknown Pin: Pin R206-2
+Add Pin To Net: Unknown Pin: Pin R207-1
+Add Pin To Net: Unknown Pin: Pin R207-2
+Add Pin To Net: Unknown Pin: Pin R208-1
+Add Pin To Net: Unknown Pin: Pin R208-2
+Add Pin To Net: Unknown Pin: Pin R209-1
+Add Pin To Net: Unknown Pin: Pin R209-2
+Add Pin To Net: Unknown Pin: Pin R210-1
+Add Pin To Net: Unknown Pin: Pin R210-2
+Add Pin To Net: Unknown Pin: Pin R212-1
+Add Pin To Net: Unknown Pin: Pin R212-2
+Add Pin To Net: Unknown Pin: Pin R213-1
+Add Pin To Net: Unknown Pin: Pin R213-2
+Add Pin To Net: Unknown Pin: Pin R214-1
+Add Pin To Net: Unknown Pin: Pin R214-2
+Add Pin To Net: Unknown Pin: Pin R215-1
+Add Pin To Net: Unknown Pin: Pin R215-2
+Add Pin To Net: Unknown Pin: Pin R216-1
+Add Pin To Net: Unknown Pin: Pin R216-2
+Add Pin To Net: Unknown Pin: Pin R217-1
+Add Pin To Net: Unknown Pin: Pin R217-2
+Add Pin To Net: Unknown Pin: Pin R218-1
+Add Pin To Net: Unknown Pin: Pin R218-2
+Add Pin To Net: Unknown Pin: Pin R220-1
+Add Pin To Net: Unknown Pin: Pin R220-2
+Add Pin To Net: Unknown Pin: Pin R221-1
+Add Pin To Net: Unknown Pin: Pin R221-2
+Add Pin To Net: Unknown Pin: Pin R222-1
+Add Pin To Net: Unknown Pin: Pin R222-2
+Add Pin To Net: Unknown Pin: Pin R223-1
+Add Pin To Net: Unknown Pin: Pin R223-2
+Add Pin To Net: Unknown Pin: Pin R224-1
+Add Pin To Net: Unknown Pin: Pin R224-2
+Add Pin To Net: Unknown Pin: Pin R225-1
+Add Pin To Net: Unknown Pin: Pin R225-2
+Add Pin To Net: Unknown Pin: Pin R226-1
+Add Pin To Net: Unknown Pin: Pin R226-2
+Add Pin To Net: Unknown Pin: Pin R228-1
+Add Pin To Net: Unknown Pin: Pin R228-2
+Add Pin To Net: Unknown Pin: Pin R229-1
+Add Pin To Net: Unknown Pin: Pin R229-2
+Add Pin To Net: Unknown Pin: Pin R230-1
+Add Pin To Net: Unknown Pin: Pin R230-2
+Add Pin To Net: Unknown Pin: Pin R231-1
+Add Pin To Net: Unknown Pin: Pin R231-2
+Add Pin To Net: Unknown Pin: Pin R232-1
+Add Pin To Net: Unknown Pin: Pin R232-2
+Add Pin To Net: Unknown Pin: Pin R233-1
+Add Pin To Net: Unknown Pin: Pin R233-2
+Add Pin To Net: Unknown Pin: Pin R234-1
+Add Pin To Net: Unknown Pin: Pin R234-2
+Add Pin To Net: Unknown Pin: Pin R236-1
+Add Pin To Net: Unknown Pin: Pin R236-2
+Add Pin To Net: Unknown Pin: Pin R237-1
+Add Pin To Net: Unknown Pin: Pin R237-2
+Add Pin To Net: Unknown Pin: Pin R238-1
+Add Pin To Net: Unknown Pin: Pin R238-2
+Add Pin To Net: Unknown Pin: Pin R239-1
+Add Pin To Net: Unknown Pin: Pin R239-2
+Add Pin To Net: Unknown Pin: Pin R240-1
+Add Pin To Net: Unknown Pin: Pin R240-2
+Add Pin To Net: Unknown Pin: Pin R241-1
+Add Pin To Net: Unknown Pin: Pin R241-2
+Add Pin To Net: Unknown Pin: Pin R242-1
+Add Pin To Net: Unknown Pin: Pin R242-2
+Add Pin To Net: Unknown Pin: Pin R244-1
+Add Pin To Net: Unknown Pin: Pin R244-2
+Add Pin To Net: Unknown Pin: Pin R245-1
+Add Pin To Net: Unknown Pin: Pin R245-2
+Add Pin To Net: Unknown Pin: Pin R246-1
+Add Pin To Net: Unknown Pin: Pin R246-2
+Add Pin To Net: Unknown Pin: Pin R247-1
+Add Pin To Net: Unknown Pin: Pin R247-2
+Add Pin To Net: Unknown Pin: Pin R248-1
+Add Pin To Net: Unknown Pin: Pin R248-2
+Add Pin To Net: Unknown Pin: Pin R249-1
+Add Pin To Net: Unknown Pin: Pin R249-2
+Add Pin To Net: Unknown Pin: Pin R250-1
+Add Pin To Net: Unknown Pin: Pin R250-2
+Add Pin To Net: Unknown Pin: Pin R300-1
+Add Pin To Net: Unknown Pin: Pin R300-2
+Add Pin To Net: Unknown Pin: Pin R300-3
+Add Pin To Net: Unknown Pin: Pin R300-4
+Add Pin To Net: Unknown Pin: Pin R300-5
+Add Pin To Net: Unknown Pin: Pin R300-6
+Add Pin To Net: Unknown Pin: Pin R300-7
+Add Pin To Net: Unknown Pin: Pin R300-8
+Add Pin To Net: Unknown Pin: Pin R301-1
+Add Pin To Net: Unknown Pin: Pin R301-2
+Add Pin To Net: Unknown Pin: Pin R301-3
+Add Pin To Net: Unknown Pin: Pin R301-4
+Add Pin To Net: Unknown Pin: Pin R301-5
+Add Pin To Net: Unknown Pin: Pin R301-6
+Add Pin To Net: Unknown Pin: Pin R301-7
+Add Pin To Net: Unknown Pin: Pin R301-8
+Add Pin To Net: Unknown Pin: Pin R302-1
+Add Pin To Net: Unknown Pin: Pin R302-2
+Add Pin To Net: Unknown Pin: Pin R303-1
+Add Pin To Net: Unknown Pin: Pin R303-2
+Add Pin To Net: Unknown Pin: Pin R303-3
+Add Pin To Net: Unknown Pin: Pin R303-4
+Add Pin To Net: Unknown Pin: Pin R303-5
+Add Pin To Net: Unknown Pin: Pin R303-6
+Add Pin To Net: Unknown Pin: Pin R303-7
+Add Pin To Net: Unknown Pin: Pin R303-8
+Add Pin To Net: Unknown Pin: Pin U101-1
+Add Pin To Net: Unknown Pin: Pin U101-2
+Add Pin To Net: Unknown Pin: Pin U101-3
+Add Pin To Net: Unknown Pin: Pin U101-4
+Add Pin To Net: Unknown Pin: Pin U101-5
+Add Pin To Net: Unknown Pin: Pin U101-6
+Add Pin To Net: Unknown Pin: Pin U102-1
+Add Pin To Net: Unknown Pin: Pin U102-2
+Add Pin To Net: Unknown Pin: Pin U102-3
+Add Pin To Net: Unknown Pin: Pin U102-4
+Add Pin To Net: Unknown Pin: Pin U200-1
+Add Pin To Net: Unknown Pin: Pin U200-2
+Add Pin To Net: Unknown Pin: Pin U200-3
+Add Pin To Net: Unknown Pin: Pin U200-4
+Add Pin To Net: Unknown Pin: Pin U200-5
+Add Pin To Net: Unknown Pin: Pin U200-6
+Add Pin To Net: Unknown Pin: Pin U200-7
+Add Pin To Net: Unknown Pin: Pin U200-8
+Add Pin To Net: Unknown Pin: Pin U200-9
+Add Pin To Net: Unknown Pin: Pin U200-10
+Add Pin To Net: Unknown Pin: Pin U200-11
+Add Pin To Net: Unknown Pin: Pin U200-12
+Add Pin To Net: Unknown Pin: Pin U200-13
+Add Pin To Net: Unknown Pin: Pin U200-14
+Add Pin To Net: Unknown Pin: Pin U201-1
+Add Pin To Net: Unknown Pin: Pin U201-2
+Add Pin To Net: Unknown Pin: Pin U201-3
+Add Pin To Net: Unknown Pin: Pin U201-4
+Add Pin To Net: Unknown Pin: Pin U201-5
+Add Pin To Net: Unknown Pin: Pin U201-6
+Add Pin To Net: Unknown Pin: Pin U201-7
+Add Pin To Net: Unknown Pin: Pin U201-8
+Add Pin To Net: Unknown Pin: Pin U201-9
+Add Pin To Net: Unknown Pin: Pin U201-10
+Add Pin To Net: Unknown Pin: Pin U201-11
+Add Pin To Net: Unknown Pin: Pin U201-12
+Add Pin To Net: Unknown Pin: Pin U201-13
+Add Pin To Net: Unknown Pin: Pin U201-14
+Add Pin To Net: Unknown Pin: Pin V200-1
+Add Pin To Net: Unknown Pin: Pin V200-2
+Add Pin To Net: Unknown Pin: Pin V200-3
+Add Pin To Net: Unknown Pin: Pin V200-4
+Add Pin To Net: Unknown Pin: Pin V200-5
+Add Pin To Net: Unknown Pin: Pin V200-6
+Add Pin To Net: Unknown Pin: Pin V200-7
+Add Pin To Net: Unknown Pin: Pin V200-8
+Add Pin To Net: Unknown Pin: Pin V201-1
+Add Pin To Net: Unknown Pin: Pin V201-2
+Add Pin To Net: Unknown Pin: Pin V201-3
+Add Pin To Net: Unknown Pin: Pin V201-4
+Add Pin To Net: Unknown Pin: Pin V201-5
+Add Pin To Net: Unknown Pin: Pin V201-6
+Add Pin To Net: Unknown Pin: Pin V201-7
+Add Pin To Net: Unknown Pin: Pin V201-8
+Add Pin To Net: Unknown Pin: Pin V202-1
+Add Pin To Net: Unknown Pin: Pin V202-2
+Add Pin To Net: Unknown Pin: Pin V202-3
+Add Pin To Net: Unknown Pin: Pin V202-4
+Add Pin To Net: Unknown Pin: Pin V202-5
+Add Pin To Net: Unknown Pin: Pin V202-6
+Add Pin To Net: Unknown Pin: Pin V202-7
+Add Pin To Net: Unknown Pin: Pin V202-8
+Add Pin To Net: Unknown Pin: Pin V203-1
+Add Pin To Net: Unknown Pin: Pin V203-2
+Add Pin To Net: Unknown Pin: Pin V203-3
+Add Pin To Net: Unknown Pin: Pin V203-4
+Add Pin To Net: Unknown Pin: Pin V203-5
+Add Pin To Net: Unknown Pin: Pin V203-6
+Add Pin To Net: Unknown Pin: Pin V203-7
+Add Pin To Net: Unknown Pin: Pin V203-8
+Add Pin To Net: Unknown Pin: Pin V204-1
+Add Pin To Net: Unknown Pin: Pin V204-2
+Add Pin To Net: Unknown Pin: Pin V204-3
+Add Pin To Net: Unknown Pin: Pin V204-4
+Add Pin To Net: Unknown Pin: Pin V204-5
+Add Pin To Net: Unknown Pin: Pin V204-6
+Add Pin To Net: Unknown Pin: Pin V204-7
+Add Pin To Net: Unknown Pin: Pin V204-8
+Add Pin To Net: Unknown Pin: Pin V205-1
+Add Pin To Net: Unknown Pin: Pin V205-2
+Add Pin To Net: Unknown Pin: Pin V205-3
+Add Pin To Net: Unknown Pin: Pin V205-4
+Add Pin To Net: Unknown Pin: Pin V205-5
+Add Pin To Net: Unknown Pin: Pin V205-6
+Add Pin To Net: Unknown Pin: Pin V205-7
+Add Pin To Net: Unknown Pin: Pin V205-8

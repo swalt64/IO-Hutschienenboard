@@ -1,2 +1,6 @@
 # Altium Designer backup history
 **/History/
+
+# Altium Designer log files (automatisch generiert)
+**/*.LOG
+**/Project Logs for */

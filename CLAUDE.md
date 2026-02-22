@@ -103,3 +103,34 @@ Build system: PlatformIO with Arduino framework, targeting ESP32-S3 (custom boar
 - `ArduinoJson` — JSON serialization for WebSocket messages and REST API (`/api/state`)
 - `Adafruit MCP23017` — I2C I/O expander for relay control
 - `Freenove WS2812 Lib` — RGB status LED
+
+## Altium Designer Workflows
+
+### PCB Component Placement — Move Component to Cursor
+
+**Goal:** Place a component at the exact cursor position without the view jumping to the component.
+
+**Workflow:**
+1. In PCB editor, position cursor where you want to place the component
+2. Press `M` (Move) → a selection dialog appears
+3. Type or filter the component designator (e.g., `R100`, `U1`)
+4. Dialog shows matching components
+5. Select the component → click **"Move Component to Cursor"**
+6. Component jumps to cursor position (view stays centered)
+7. Click to confirm placement, press `Space` to rotate if needed
+
+**Keyboard:** `M` → type designator → Tab to navigate → Enter to confirm option
+
+### ESP32-S3 Symbol Verification
+
+**ESP32-S3-WROOM-1 pinout (DUBEUYEW variant, 44-pin):**
+
+Critical pins for this project:
+- GPIO1–GPIO10: ADC1 channels (Ch0–Ch9)
+- GPIO11–GPIO20: ADC2 channels (Ch0–Ch9)
+- GPIO19: USB_D− (not USB_D+!)
+- GPIO20: USB_D+ (not USB_D−!)
+- GPIO47/GPIO48: RGB LED (WS2812) clock lines
+- GPIO11/GPIO12: I2C bus (SDA/SCL to MCP23017)
+
+**Common symbol errors to watch for:** ADC channel mismatches, swapped USB D±, JTAG pin order (GPIO39–42 = MTCK/MTDO/MTDI/MTMS).

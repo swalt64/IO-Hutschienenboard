@@ -7,24 +7,40 @@
 // ============================================================
 //
 // Architecture:
-//   12 AC Inputs  -> Optocoupler -> ESP32 GPIO (direct, for fast edge detection)
-//   12 Bistable Relays -> 2x MCP23017 via I2C (24 outputs: SET + RESET per relay)
+//   12 AC Inputs  -> Optocoupler -> ESP32 GPIO (direct, fast edge detection)
+//   12 Bistable Relays -> 2x MCP23017 via I2C
 //
-// MCP23017 #1 (0x20): Relay 1-8 SET (GPA0-7) + Relay 1-8 RESET (GPB0-7)
-// MCP23017 #2 (0x21): Relay 9-12 SET (GPA0-3) + Relay 9-12 RESET (GPB0-3)
-//                      GPA4-7, GPB4-7 = 8 spare I/Os for future use
+// MCP23017 Adress-Schema:
+//   0x20 (A2=0, A1=0, A0=0) : Relay SET  coils  — alle 12 SET-Spulen
+//   0x21 (A2=0, A1=0, A0=1) : Relay RESET coils — alle 12 RESET-Spulen
+//   0x22 (A2=0, A1=1, A0=0) : Top Board LEDs    (Top Board PCB: A1=HIGH)
+//   0x23 (A2=0, A1=1, A0=1) : Top Board Buttons (Top Board PCB: A1=HIGH, A0=HIGH)
+//
+// Relay Pin Mapping (identisch auf SET-MCP und RESET-MCP):
+//   GPA0-7 : Relais  1-8  (pin  0-7)
+//   GPB0-3 : Relais  9-12 (pin  8-11)
+//   GPB4-7 : frei
+//
+// Relay Typ: Panasonic DSP1A-L2-DC12V (bistabil, 2 Spulen)
+//   SET-Spule:   Pin 15(+) -> 12V, Pin 16(-) -> ULN2803A -> MCP SET-GPA/GPB
+//   RESET-Spule: Pin  2(+) -> 12V, Pin  1(-) -> ULN2803A -> MCP RESET-GPA/GPB
+//   Kontakt NO:  Pin 5 | COM: Pin 8
+//   Spulenwiderstand: 480Ω | Strom: 25mA | Puls: min. 10ms
 //
 // ============================================================
 
-// --- I2C Bus for MCP23017 ---
+// --- I2C Bus ---
 static const uint8_t I2C_SDA_PIN = 11;
 static const uint8_t I2C_SCL_PIN = 12;
 
-// --- MCP23017 I2C Addresses ---
-static const uint8_t MCP_ADDR_1 = 0x20;  // Relay 1-8
-static const uint8_t MCP_ADDR_2 = 0x21;  // Relay 9-12
+// --- MCP23017 I2C Adressen ---
+static const uint8_t MCP_ADDR_SET   = 0x20;  // SET-Spulen  (A2=0, A1=0, A0=0)
+static const uint8_t MCP_ADDR_RESET = 0x21;  // RESET-Spulen(A2=0, A1=0, A0=1)
+// Top Board (Info, nicht in Firmware genutzt):
+// static const uint8_t MCP_ADDR_LED = 0x22;  // Top Board LEDs    (A1=HIGH)
+// static const uint8_t MCP_ADDR_BTN = 0x23;  // Top Board Buttons (A1=HIGH, A0=HIGH)
 
-// --- 12 Digital Inputs (from optocoupler outputs, directly on ESP32) ---
+// --- 12 Digital Inputs (Optokoppler -> ESP32 GPIO) ---
 static const uint8_t INPUT_PINS[12] = {
     4,   // GPIO4  - Input 1
     5,   // GPIO5  - Input 2
@@ -40,38 +56,33 @@ static const uint8_t INPUT_PINS[12] = {
     10,  // GPIO10 - Input 12
 };
 
-// --- Relay Pin Mapping on MCP23017 ---
-// Each relay has a SET pin and RESET pin on the MCP23017
-// Format: {mcp_index (0 or 1), set_pin (0-15), reset_pin (0-15)}
-struct RelayPinDef {
-    uint8_t mcpIndex;   // 0 = MCP_ADDR_1, 1 = MCP_ADDR_2
-    uint8_t setPin;     // MCP23017 pin number (0-15, 0-7=GPA, 8-15=GPB)
-    uint8_t resetPin;   // MCP23017 pin number
+// --- Relay Pin Mapping ---
+// SET-Spule  -> mcp[MCP_SET]  (0x20), Pin = relayPin
+// RESET-Spule-> mcp[MCP_RESET](0x21), Pin = relayPin (gleiche Pinnummer)
+static const uint8_t RELAY_PINS[12] = {
+    0,   // Relay  1: GPA0
+    1,   // Relay  2: GPA1
+    2,   // Relay  3: GPA2
+    3,   // Relay  4: GPA3
+    4,   // Relay  5: GPA4
+    5,   // Relay  6: GPA5
+    6,   // Relay  7: GPA6
+    7,   // Relay  8: GPA7
+    8,   // Relay  9: GPB0
+    9,   // Relay 10: GPB1
+    10,  // Relay 11: GPB2
+    11,  // Relay 12: GPB3
 };
 
-static const RelayPinDef RELAY_PINS[12] = {
-    // MCP23017 #1 (0x20): Relays 1-8
-    {0,  0,  8},  // Relay 1:  SET=GPA0, RESET=GPB0
-    {0,  1,  9},  // Relay 2:  SET=GPA1, RESET=GPB1
-    {0,  2, 10},  // Relay 3:  SET=GPA2, RESET=GPB2
-    {0,  3, 11},  // Relay 4:  SET=GPA3, RESET=GPB3
-    {0,  4, 12},  // Relay 5:  SET=GPA4, RESET=GPB4
-    {0,  5, 13},  // Relay 6:  SET=GPA5, RESET=GPB5
-    {0,  6, 14},  // Relay 7:  SET=GPA6, RESET=GPB6
-    {0,  7, 15},  // Relay 8:  SET=GPA7, RESET=GPB7
-    // MCP23017 #2 (0x21): Relays 9-12
-    {1,  0,  8},  // Relay 9:  SET=GPA0, RESET=GPB0
-    {1,  1,  9},  // Relay 10: SET=GPA1, RESET=GPB1
-    {1,  2, 10},  // Relay 11: SET=GPA2, RESET=GPB2
-    {1,  3, 11},  // Relay 12: SET=GPA3, RESET=GPB3
-};
+// MCP Array-Indices
+static const uint8_t MCP_SET   = 0;  // mcp[0] = SET  MCP (0x20)
+static const uint8_t MCP_RESET = 1;  // mcp[1] = RESET MCP (0x21)
 
-// Bistable relay pulse duration in milliseconds
-static const uint16_t RELAY_PULSE_MS = 50;
+// Bistabiler Relais-Impuls
+static const uint16_t RELAY_PULSE_MS = 15;  // 15ms > 10ms Min. laut Datenblatt
 
-// Number of channels
+// Anzahl Kanäle
 static const uint8_t NUM_CHANNELS = 12;
 
-// --- Free ESP32 GPIOs (not used, available for future expansion) ---
+// --- Freie ESP32 GPIOs ---
 // GPIO0, 1, 2, 13, 14, 21, 35, 36, 37, 38, 39, 40, 41, 42, 45, 46, 47, 48
-// = 18 spare pins!

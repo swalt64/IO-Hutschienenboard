@@ -49,7 +49,7 @@ Build system: PlatformIO with Arduino framework, targeting ESP32-S3 (custom boar
 - **Namespace isolation:** Modules use `dbg::`, `statusled::` namespaces
 - **Dual WiFi:** Simultaneous AP (192.168.50.1, SSID "IO-Hutschiene") + optional STA client
 - **WebSocket protocol:** Bidirectional JSON — commands: `toggle`, `set`, `map`, `timer`, `wifi`, `alloff`; server pushes full state as JSON arrays
-- **Monostable relays:** 1 pin per relay on MCP23017 #1, driven via ULN2803A Darlington arrays
+- **Bistable relays:** Panasonic DSP1A-L2-DC12V, 2 Spulen — 15ms SET-Impuls (MCP 0x20) oder RESET-Impuls (MCP 0x21)
 - **S0 input detection:** Rising-edge polling in loop() triggers mapped relay toggle; supports both DC (constant HIGH) and AC (50Hz square wave detection via `isInputActive()`)
 - **Top board buttons:** MCP23017 #3 with interrupt-on-change, INTA+INTB mirrored (open-drain) to ESP32
 - **Configuration persistence:** NVS via Preferences API, namespace "io-config" (WiFi creds, input-output mappings, auto-off timers)
@@ -75,13 +75,13 @@ Build system: PlatformIO with Arduino framework, targeting ESP32-S3 (custom boar
 - I-GND galvanically isolated from main GND, coupled only via C110 (4700pF/1000V)
 - 12V directly to relay coils (K300-K311 DSP1a-DC12V) and ULN2803A COM pins
 
-**I2C Bus — MCP23017 U300 (0x20, A0=A1=A2=GND):**
-- GPA0-3 → R300 (4k7 array) → V300 (ULN2803A) inputs 1-4 → relays K1-K4
-- GPA4-7 → R301 (4k7 array) → V300 inputs 5-8 → relays K5-K8
-- GPB0-3 → R303 (4k7 array) → V301 (ULN2803A) inputs 1-4 → relays K9-K12
-- GPB4-7: free (not connected)
-- ULN2803A outputs → ferrite beads (L300-L311, 742792651) → relay coils (DSP1a-DC12V)
-- Top board MCP23017 #2 (0x21) and #3 (0x22) connect via J202 connector
+**I2C Bus — MCP23017 Adress-Schema:**
+- 0x20 (A2=0,A1=0,A0=0): SET-Spulen  — GPA0-7=K1-8 SET,  GPB0-3=K9-12 SET
+- 0x21 (A2=0,A1=0,A0=1): RESET-Spulen — GPA0-7=K1-8 RESET, GPB0-3=K9-12 RESET
+- 0x22 (A2=0,A1=1,A0=0): Top Board LEDs    (via J202, A1=HIGH)
+- 0x23 (A2=0,A1=1,A0=1): Top Board Buttons (via J202, A1=HIGH, A0=HIGH)
+- ULN2803A outputs → ferrite beads (L300-L311, 742792651) → relay coils (DSP1A-L2-DC12V)
+- Relay Typ: Panasonic DSP1A-L2-DC12V, SET-Pin 15(+)/16(-), RESET-Pin 2(+)/1(-), 480Ω, 25mA
 
 **Connectors:**
 - J200 (MCV 1,5/9-G-3,5): S0 inputs 1-8 (pins 1-8), I-GND (pin 9)

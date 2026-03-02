@@ -108,17 +108,18 @@ void setupMCP() {
 #else
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
 
-    const uint8_t addrs[2] = {MCP_ADDR_1, MCP_ADDR_2};
+    const uint8_t addrs[2] = {MCP_ADDR_SET, MCP_ADDR_RESET};
+    const char* names[2]   = {"SET (0x20)", "RESET (0x21)"};
     for (uint8_t m = 0; m < 2; m++) {
         if (mcp[m].begin_I2C(addrs[m], &Wire)) {
             mcpReady[m] = true;
-            dbg::info(CAT_MCP, "MCP23017 #%d (0x%02X) OK", m + 1, addrs[m]);
+            dbg::info(CAT_MCP, "MCP23017 %s OK", names[m]);
             for (uint8_t p = 0; p < 16; p++) {
                 mcp[m].pinMode(p, OUTPUT);
                 mcp[m].digitalWrite(p, LOW);
             }
         } else {
-            dbg::error(CAT_MCP, "MCP23017 #%d (0x%02X) NICHT GEFUNDEN!", m + 1, addrs[m]);
+            dbg::error(CAT_MCP, "MCP23017 %s NICHT GEFUNDEN!", names[m]);
         }
     }
 #endif
@@ -133,16 +134,18 @@ void setRelay(uint8_t ch, bool on) {
 #if SIMULATE_HW
     dbg::debug(CAT_RELAY, "[SIM] Relais %d: Puls auf %s-Pin", ch + 1, on ? "SET" : "RESET");
 #else
-    const RelayPinDef& rp = RELAY_PINS[ch];
-    if (!mcpReady[rp.mcpIndex]) {
-        dbg::error(CAT_RELAY, "Relais %d: MCP23017 #%d nicht bereit!", ch + 1, rp.mcpIndex + 1);
+    uint8_t mcpIdx = on ? MCP_SET : MCP_RESET;
+    uint8_t pin    = RELAY_PINS[ch];
+
+    if (!mcpReady[mcpIdx]) {
+        dbg::error(CAT_RELAY, "Relais %d: MCP23017 %s nicht bereit!",
+                   ch + 1, on ? "SET" : "RESET");
         return;
     }
 
-    uint8_t pin = on ? rp.setPin : rp.resetPin;
-    mcp[rp.mcpIndex].digitalWrite(pin, HIGH);
+    mcp[mcpIdx].digitalWrite(pin, HIGH);
     delay(RELAY_PULSE_MS);
-    mcp[rp.mcpIndex].digitalWrite(pin, LOW);
+    mcp[mcpIdx].digitalWrite(pin, LOW);
 #endif
 
     relayState[ch] = on;
@@ -609,17 +612,15 @@ void setup() {
     setupWiFi();
     setupWebServer();
 
-    // Reset all relays to OFF on startup
+    // Reset all relays to OFF on startup (RESET-Impuls auf MCP 0x21)
 #if !SIMULATE_HW
-    for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-        if (mcpReady[RELAY_PINS[i].mcpIndex]) {
-            mcp[RELAY_PINS[i].mcpIndex].digitalWrite(RELAY_PINS[i].resetPin, HIGH);
+    if (mcpReady[MCP_RESET]) {
+        for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+            mcp[MCP_RESET].digitalWrite(RELAY_PINS[i], HIGH);
         }
-    }
-    delay(RELAY_PULSE_MS);
-    for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-        if (mcpReady[RELAY_PINS[i].mcpIndex]) {
-            mcp[RELAY_PINS[i].mcpIndex].digitalWrite(RELAY_PINS[i].resetPin, LOW);
+        delay(RELAY_PULSE_MS);
+        for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+            mcp[MCP_RESET].digitalWrite(RELAY_PINS[i], LOW);
         }
     }
 #endif

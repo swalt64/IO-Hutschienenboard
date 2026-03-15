@@ -15,8 +15,66 @@
 #include "pin_config.h"
 #include "swtools.h"
 #include "statusled.h"
+#include "display.h"
 
 using namespace dbg;
+
+#ifndef OLED_HARDTEST
+#define OLED_HARDTEST 0
+#endif
+
+#if OLED_HARDTEST
+static bool probeI2CAddress(uint8_t addr);
+
+static void oledCmd1(uint8_t addr, uint8_t cmd) {
+    Wire.beginTransmission(addr);
+    Wire.write(0x00);
+    Wire.write(cmd);
+    Wire.endTransmission();
+}
+
+static void oledCmd2(uint8_t addr, uint8_t cmd1, uint8_t cmd2) {
+    Wire.beginTransmission(addr);
+    Wire.write(0x00);
+    Wire.write(cmd1);
+    Wire.write(cmd2);
+    Wire.endTransmission();
+}
+
+static void runOledHardTest() {
+    const uint8_t addr = OLED_ADDR;
+
+    dbg::info(CAT_SYSTEM, "=== OLED HARDTEST ===");
+    dbg::info(CAT_SYSTEM, "OLED probe 0x3C: %s", probeI2CAddress(0x3C) ? "ACK" : "kein ACK");
+    dbg::info(CAT_SYSTEM, "OLED probe 0x3D: %s", probeI2CAddress(0x3D) ? "ACK" : "kein ACK");
+
+    if (!probeI2CAddress(addr)) {
+        dbg::warn(CAT_SYSTEM, "OLED antwortet nicht auf 0x%02X", addr);
+        return;
+    }
+
+    oledCmd1(addr, 0xAE);
+    oledCmd2(addr, 0xD5, 0x80);
+    oledCmd2(addr, 0xA8, 0x3F);
+    oledCmd2(addr, 0xD3, 0x00);
+    oledCmd1(addr, 0x40);
+    oledCmd2(addr, 0x8D, 0x14);
+    oledCmd2(addr, 0x20, 0x00);
+    oledCmd1(addr, 0xA1);
+    oledCmd1(addr, 0xC8);
+    oledCmd2(addr, 0xDA, 0x12);
+    oledCmd2(addr, 0x81, 0xCF);
+    oledCmd2(addr, 0xD9, 0xF1);
+    oledCmd2(addr, 0xDB, 0x40);
+    oledCmd1(addr, 0xA4);
+    oledCmd1(addr, 0xA6);
+    oledCmd1(addr, 0xAF);
+    delay(100);
+
+    oledCmd1(addr, 0xA5);
+    dbg::warn(CAT_SYSTEM, "OLED Hardtest aktiv: ALL PIXELS ON auf 0x%02X", addr);
+}
+#endif
 
 // ============================================================
 // WiFi Configuration - AP mode for initial setup
@@ -40,8 +98,13 @@ Preferences prefs;
 
 #if !SIMULATE_HW
 Adafruit_MCP23X17 mcp[2];
+Adafruit_MCP23X17 mcpTop;
 #endif
-bool mcpReady[2] = {false, false};
+bool mcpReady[2]  = {false, false};
+bool mcpTopReady  = false;
+
+volatile bool topBtnFlag = false;
+void IRAM_ATTR topBtnISR() { topBtnFlag = true; }
 
 bool relayState[NUM_CHANNELS] = {false};
 bool inputState[NUM_CHANNELS] = {false};
@@ -51,6 +114,10 @@ int8_t inputMapping[NUM_CHANNELS];
 
 uint32_t autoOffSeconds[NUM_CHANNELS] = {0};
 unsigned long relayOnTimestamp[NUM_CHANNELS] = {0};
+int32_t tempTimeAdjustMs[NUM_CHANNELS] = {0};  // temporäre Zeitkorrektur via Taster (kein NVS)
+
+char channelNames[NUM_CHANNELS][CH_NAME_MAX_LEN + 1];
+uint8_t displayChannel = 0;
 
 uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
     if (ch >= NUM_CHANNELS) return 0;
@@ -58,13 +125,49 @@ uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
     if (autoOffSeconds[ch] == 0) return 0;
     if (relayOnTimestamp[ch] == 0) return 0;
 
-    const unsigned long totalMs = (unsigned long)autoOffSeconds[ch] * 1000UL;
-    const unsigned long elapsedMs = nowMs - relayOnTimestamp[ch];
-    if (elapsedMs >= totalMs) return 0;
+    const int64_t totalMs = (int64_t)autoOffSeconds[ch] * 1000LL + tempTimeAdjustMs[ch];
+    if (totalMs <= 0) return 0;
 
-    const unsigned long remainingMs = totalMs - elapsedMs;
+    const unsigned long elapsedMs = nowMs - relayOnTimestamp[ch];
+    if (elapsedMs >= (unsigned long)totalMs) return 0;
+
+    const unsigned long remainingMs = (unsigned long)totalMs - elapsedMs;
     return (remainingMs + 999UL) / 1000UL;
 }
+
+// ============================================================
+// Display-Aktualisierung für den aktuell angezeigten Kanal
+// ============================================================
+void updateDisplay() {
+    uint8_t ch = displayChannel;
+    display::show(ch, channelNames[ch], relayState[ch],
+                  getRemainingAutoOffSeconds(ch, millis()),
+                  autoOffSeconds[ch] > 0);
+}
+
+// ============================================================
+// Top Board: Status-LEDs aktualisieren (GPB0-2, aktiv-low)
+// ============================================================
+void updateTopLeds() {
+#if !SIMULATE_HW
+    if (!mcpTopReady) return;
+
+    bool staConnected = (WiFi.status() == WL_CONNECTED);
+    bool anyRelayOn = false;
+    for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+        if (relayState[i]) { anyRelayOn = true; break; }
+    }
+    bool systemReady = (mcpReady[0] && mcpReady[1]);
+
+    // aktiv-low: LOW = LED an, HIGH = LED aus
+    mcpTop.digitalWrite(LED_WLAN_PIN,   staConnected ? LOW : HIGH);
+    mcpTop.digitalWrite(LED_OUTPUT_PIN, anyRelayOn   ? LOW : HIGH);
+    mcpTop.digitalWrite(LED_RUN_PIN,    systemReady  ? LOW : HIGH);
+#endif
+}
+
+// handleButton() ist nach onWebSocketEvent() definiert (benötigt sendState etc.)
+void handleButton(uint8_t btn);
 
 // ============================================================
 // Helper: determine correct LED state based on system status
@@ -95,19 +198,53 @@ void updateLedState() {
     } else {
         statusled::setState(statusled::ST_AP_ONLY);
     }
+
+    updateTopLeds();
 }
 
 // ============================================================
 // MCP23017 Init
 // ============================================================
+// I2C-Bus-Recovery: SDA nach Soft-Reset stuck → 9 SCL-Pulse + STOP-Condition
+static void i2cBusRecover() {
+    pinMode(I2C_SCL_PIN, OUTPUT);
+    pinMode(I2C_SDA_PIN, OUTPUT);
+    digitalWrite(I2C_SDA_PIN, HIGH);
+    for (int i = 0; i < 9; i++) {
+        digitalWrite(I2C_SCL_PIN, HIGH); delayMicroseconds(5);
+        digitalWrite(I2C_SCL_PIN, LOW);  delayMicroseconds(5);
+    }
+    // STOP condition: SDA LOW → SCL HIGH → SDA HIGH
+    digitalWrite(I2C_SDA_PIN, LOW);  delayMicroseconds(5);
+    digitalWrite(I2C_SCL_PIN, HIGH); delayMicroseconds(5);
+    digitalWrite(I2C_SDA_PIN, HIGH); delayMicroseconds(5);
+    // Pins auf INPUT zurück damit Wire sie übernehmen kann
+    pinMode(I2C_SCL_PIN, INPUT);
+    pinMode(I2C_SDA_PIN, INPUT);
+}
+
+static bool probeI2CAddress(uint8_t addr) {
+    Wire.beginTransmission(addr);
+    return Wire.endTransmission() == 0;
+}
+
 void setupMCP() {
 #if SIMULATE_HW
-    mcpReady[0] = true;
-    mcpReady[1] = true;
+    i2cBusRecover();
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+    Wire.setTimeOut(10);   // 10ms statt 1000ms — verhindert 145s Init-Delay beim SSD1306
+    Wire.setClock(100000); // explizit 100kHz
+    mcpReady[0]  = true;
+    mcpReady[1]  = true;
+    mcpTopReady  = true;
     dbg::warn(CAT_MCP, "*** SIMULATE_HW: MCP23017 simuliert ***");
 #else
+    i2cBusRecover();
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+    Wire.setTimeOut(10);
+    Wire.setClock(100000);
 
+    // --- Relais-MCPs (0x20 SET, 0x21 RESET) ---
     const uint8_t addrs[2] = {MCP_ADDR_SET, MCP_ADDR_RESET};
     const char* names[2]   = {"SET (0x20)", "RESET (0x21)"};
     for (uint8_t m = 0; m < 2; m++) {
@@ -121,6 +258,43 @@ void setupMCP() {
         } else {
             dbg::error(CAT_MCP, "MCP23017 %s NICHT GEFUNDEN!", names[m]);
         }
+    }
+
+    // --- Top Board MCP (0x22): Taster GPA0-4, LEDs GPB0-2 ---
+    if (mcpTop.begin_I2C(MCP_ADDR_TOPBOARD, &Wire)) {
+        mcpTopReady = true;
+        dbg::info(CAT_MCP, "MCP23017 TopBoard (0x22) OK");
+
+        // GPA0-4: Taster-Eingaenge, interne Pull-ups aktiv
+        for (uint8_t p = BTN_ENTER; p <= BTN_RIGHT; p++) {
+            mcpTop.pinMode(p, INPUT_PULLUP);
+        }
+        // GPA5-7: ungenutzt, als Eingang mit Pull-up
+        for (uint8_t p = 5; p <= 7; p++) {
+            mcpTop.pinMode(p, INPUT_PULLUP);
+        }
+        // GPB0-2: LED-Ausgaenge, aktiv-low → HIGH = aus
+        for (uint8_t p = LED_WLAN_PIN; p <= LED_RUN_PIN; p++) {
+            mcpTop.pinMode(p, OUTPUT);
+            mcpTop.digitalWrite(p, HIGH);
+        }
+        // GPB3-7: ungenutzt, HIGH
+        for (uint8_t p = 11; p <= 15; p++) {
+            mcpTop.pinMode(p, OUTPUT);
+            mcpTop.digitalWrite(p, HIGH);
+        }
+
+        // INTA konfigurieren: kein Mirror, Push-Pull, aktiv-low
+        mcpTop.setupInterrupts(false, false, LOW);
+        for (uint8_t p = BTN_ENTER; p <= BTN_RIGHT; p++) {
+            mcpTop.setupInterruptPin(p, CHANGE);
+        }
+
+        // GPIO13 als Interrupt-Eingang (INTA, aktiv-low)
+        pinMode(MCP_INT_PIN, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(MCP_INT_PIN), topBtnISR, FALLING);
+    } else {
+        dbg::error(CAT_MCP, "MCP23017 TopBoard (0x22) NICHT GEFUNDEN!");
     }
 #endif
 }
@@ -148,11 +322,13 @@ void setRelay(uint8_t ch, bool on) {
     mcp[mcpIdx].digitalWrite(pin, LOW);
 #endif
 
+    tempTimeAdjustMs[ch] = 0;
     relayState[ch] = on;
     relayOnTimestamp[ch] = on ? millis() : 0;
     dbg::info(CAT_RELAY, "Relais %d: %s", ch + 1, on ? "EIN" : "AUS");
 
     updateLedState();
+    if (ch == displayChannel) updateDisplay();
 }
 
 void toggleRelay(uint8_t ch) {
@@ -172,6 +348,11 @@ void loadConfig() {
         inputMapping[i] = prefs.getChar(key.c_str(), -1);
         key = "auto" + String(i);
         autoOffSeconds[i] = prefs.getUInt(key.c_str(), 0);
+        key = "name" + String(i);
+        String defaultName = "Ausgang " + String(i + 1);
+        String name = prefs.getString(key.c_str(), defaultName);
+        strncpy(channelNames[i], name.c_str(), CH_NAME_MAX_LEN);
+        channelNames[i][CH_NAME_MAX_LEN] = '\0';
     }
     prefs.end();
     dbg::info(CAT_CONFIG, "Konfiguration geladen (SSID: '%s')", sta_ssid.c_str());
@@ -202,6 +383,7 @@ String buildStateJson() {
     JsonArray mappings = doc["mappings"].to<JsonArray>();
     JsonArray timers = doc["timers"].to<JsonArray>();
     JsonArray remaining = doc["remaining"].to<JsonArray>();
+    JsonArray names = doc["names"].to<JsonArray>();
     JsonArray mcpStatus = doc["mcp"].to<JsonArray>();
     unsigned long now = millis();
 
@@ -211,6 +393,7 @@ String buildStateJson() {
         mappings.add(inputMapping[i]);
         timers.add(autoOffSeconds[i]);
         remaining.add(getRemainingAutoOffSeconds(i, now));
+        names.add(channelNames[i]);
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
@@ -286,9 +469,64 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
                 if (relayState[i]) setRelay(i, false);
             }
+        } else if (strcmp(cmd, "name") == 0) {
+            uint8_t ch = doc["ch"];
+            const char* nm = doc["name"];
+            if (ch < NUM_CHANNELS && nm) {
+                strncpy(channelNames[ch], nm, CH_NAME_MAX_LEN);
+                channelNames[ch][CH_NAME_MAX_LEN] = '\0';
+                dbg::info(CAT_CONFIG, "Kanalname %d: '%s'", ch + 1, channelNames[ch]);
+                prefs.begin("io-config", false);
+                prefs.putString(("name" + String(ch)).c_str(), channelNames[ch]);
+                prefs.end();
+                if (ch == displayChannel) updateDisplay();
+            }
         }
 
         sendState();
+    }
+}
+
+// ============================================================
+// Top Board: Taster-Aktion verarbeiten
+// ============================================================
+void handleButton(uint8_t btn) {
+    static const char* const btnNames[] = {"ENTER", "UP", "DOWN", "LEFT", "RIGHT"};
+    dbg::info(CAT_SYSTEM, "Taster: %s", btnNames[btn]);
+
+    unsigned long now = millis();
+
+    if (btn == BTN_UP) {
+        displayChannel = (displayChannel + 11) % NUM_CHANNELS;
+        updateDisplay();
+    } else if (btn == BTN_DOWN) {
+        displayChannel = (displayChannel + 1) % NUM_CHANNELS;
+        updateDisplay();
+    } else if (btn == BTN_ENTER) {
+        toggleRelay(displayChannel);
+        sendState();
+    } else if (btn == BTN_RIGHT) {
+        uint8_t ch = displayChannel;
+        if (relayState[ch] && autoOffSeconds[ch] > 0) {
+            uint32_t rem = getRemainingAutoOffSeconds(ch, now);
+            if (rem < 86400) {  // cap bei 24h
+                tempTimeAdjustMs[ch] += 60000;
+            }
+            updateDisplay();
+            sendState();
+        }
+    } else if (btn == BTN_LEFT) {
+        uint8_t ch = displayChannel;
+        if (relayState[ch] && autoOffSeconds[ch] > 0) {
+            uint32_t rem = getRemainingAutoOffSeconds(ch, now);
+            if (rem <= 60) {
+                setRelay(ch, false);
+            } else {
+                tempTimeAdjustMs[ch] -= 60000;
+                updateDisplay();
+            }
+            sendState();
+        }
     }
 }
 
@@ -332,6 +570,8 @@ void setupWiFiEvents() {
             case ARDUINO_EVENT_WIFI_STA_GOT_IP:
                 dbg::info(CAT_WIFI, "WiFi Event: STA hat IP -> %s",
                           IPAddress(info.got_ip.ip_info.ip.addr).toString().c_str());
+                dbg::ntpSync("CET-1CEST,M3.5.0,M10.5.0/3");
+                statusled::setState(statusled::ST_WIFI_NO_NTP);
                 break;
             case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
                 dbg::warn(CAT_WIFI, "WiFi Event: STA getrennt (Reason=%u)",
@@ -501,16 +741,12 @@ void setupWiFi() {
 
         if (WiFi.status() == WL_CONNECTED) {
             dbg::info(CAT_WIFI, "WiFi verbunden! IP: %s", WiFi.localIP().toString().c_str());
-            dbg::ntpSync("CET-1CEST,M3.5.0,M10.5.0/3");
+            // NTP-Sync erfolgt im GOT_IP-Event-Handler (vermeidet Doppelaufruf)
             statusled::setState(statusled::ST_WIFI_NO_NTP);
         } else {
-            dbg::warn(CAT_WIFI, "WiFi-Verbindung fehlgeschlagen, wechsle auf stabilen AP-Modus");
-            WiFi.disconnect(false);
-            WiFi.mode(WIFI_AP);
-            delay(100);
-            startAccessPoint();
-            ensureApDhcpServer();
-            diagnoseDHCP();
+            // Timeout aber im AP+STA-Modus bleiben — ESP32 verbindet asynchron weiter.
+            // NTP-Sync erfolgt im GOT_IP-Event-Handler sobald Verbindung steht.
+            dbg::warn(CAT_WIFI, "WiFi-Verbindungsversuch laeuft im Hintergrund weiter...");
             statusled::setState(statusled::ST_AP_ONLY);
         }
 
@@ -536,6 +772,7 @@ void setupWebServer() {
         JsonArray mappings = doc["mappings"].to<JsonArray>();
         JsonArray timers = doc["timers"].to<JsonArray>();
         JsonArray remaining = doc["remaining"].to<JsonArray>();
+        JsonArray names = doc["names"].to<JsonArray>();
         unsigned long now = millis();
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
@@ -543,6 +780,7 @@ void setupWebServer() {
             mappings.add(inputMapping[i]);
             timers.add(autoOffSeconds[i]);
             remaining.add(getRemainingAutoOffSeconds(i, now));
+            names.add(channelNames[i]);
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
@@ -587,6 +825,23 @@ void setupInputPins() {
 void setup() {
     dbg::begin(dbg::LVL_DEBUG, dbg::CAT_ALL);
 
+#if OLED_HARDTEST
+    pinMode(RESET_PERIPHERIE_PIN, OUTPUT);
+    digitalWrite(RESET_PERIPHERIE_PIN, HIGH);
+    delay(10);
+
+    i2cBusRecover();
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+    Wire.setTimeOut(10);
+    Wire.setClock(100000);
+    runOledHardTest();
+    return;
+#endif
+
+    pinMode(RESET_PERIPHERIE_PIN, OUTPUT);
+    digitalWrite(RESET_PERIPHERIE_PIN, HIGH);
+    delay(10);
+
     statusled::begin(20);
     statusled::setState(statusled::ST_BOOTING);
 
@@ -598,6 +853,11 @@ void setup() {
 
     setupInputPins();
     setupMCP();
+    if (display::begin(I2C_SDA_PIN, I2C_SCL_PIN, OLED_ADDR)) {
+        dbg::info(CAT_SYSTEM, "OLED Display OK (0x%02X, %s)", display::address(), display::controller());
+    } else {
+        dbg::warn(CAT_SYSTEM, "OLED Display nicht gefunden (nur 0x%02X getestet)", OLED_ADDR);
+    }
     loadConfig();
     setupWiFiEvents();
 
@@ -627,12 +887,41 @@ void setup() {
     dbg::info(CAT_RELAY, "Alle Relais zurueckgesetzt");
 
     updateLedState();
+    updateDisplay();
     dbg::info(CAT_SYSTEM, "Setup abgeschlossen - System bereit");
 }
 
 void loop() {
+#if OLED_HARDTEST
+    delay(1000);
+    return;
+#endif
+
     ws.cleanupClients();
     statusled::update();
+
+    // Top Board: Taster via MCP23017 INTA (GPIO13)
+#if !SIMULATE_HW
+    if (topBtnFlag) {
+        topBtnFlag = false;
+        if (mcpTopReady) {
+            static unsigned long lastBtnMs = 0;
+            unsigned long nowBtn = millis();
+            // readGPIOAB liest GPA+GPB und loescht dabei den MCP-Interrupt
+            uint16_t gpioVal = mcpTop.readGPIOAB();
+            uint8_t  gpa     = gpioVal & 0xFF;  // GPA: Taster-Port
+            if (nowBtn - lastBtnMs >= 50) {     // 50ms Entprellung
+                lastBtnMs = nowBtn;
+                // aktiv-low: Bit = 0 → Taster gedrueckt
+                if (!(gpa & (1 << BTN_ENTER))) handleButton(BTN_ENTER);
+                if (!(gpa & (1 << BTN_UP)))    handleButton(BTN_UP);
+                if (!(gpa & (1 << BTN_DOWN)))  handleButton(BTN_DOWN);
+                if (!(gpa & (1 << BTN_LEFT)))  handleButton(BTN_LEFT);
+                if (!(gpa & (1 << BTN_RIGHT))) handleButton(BTN_RIGHT);
+            }
+        }
+    }
+#endif
 
     bool stateChanged = false;
 
@@ -653,16 +942,23 @@ void loop() {
         inputStatePrev[i] = current;
     }
 
-    // Auto-off timer check
+    // Auto-off timer check (berücksichtigt tempTimeAdjustMs)
     unsigned long now = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         if (relayState[i] && autoOffSeconds[i] > 0 && relayOnTimestamp[i] > 0) {
-            if (now - relayOnTimestamp[i] >= (unsigned long)autoOffSeconds[i] * 1000UL) {
-                dbg::info(CAT_TIMER, "Auto-Aus: Relais %d nach %u s", i + 1, autoOffSeconds[i]);
+            if (getRemainingAutoOffSeconds(i, now) == 0) {
+                dbg::info(CAT_TIMER, "Auto-Aus: Relais %d", i + 1);
                 setRelay(i, false);
                 stateChanged = true;
             }
         }
+    }
+
+    // Display jede Sekunde aktualisieren (Countdown)
+    static unsigned long lastDisp = 0;
+    if (now - lastDisp >= 1000) {
+        lastDisp = now;
+        updateDisplay();
     }
 
     // Update LED when NTP syncs
@@ -716,7 +1012,3 @@ void loop() {
 
     delay(10);
 }
-
-
-
-

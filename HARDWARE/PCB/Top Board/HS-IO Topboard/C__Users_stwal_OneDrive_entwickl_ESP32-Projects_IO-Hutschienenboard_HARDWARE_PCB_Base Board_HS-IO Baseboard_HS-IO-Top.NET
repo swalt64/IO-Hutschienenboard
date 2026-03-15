@@ -1,0 +1,171 @@
+Wire List
+
+<<< Component List >>>
+100n                            C1             CC1608-0603
+100n                            C2             CC1608-0603
+100n                            C3             CC1608-0603
+JMD0.96-1                       DISP?          JMD0.96-1-Footprint-1
+150060YS55040                   LED OUTPU      LED_0603_Standard
+150060GS55040                   LED RUN        LED_0603_Standard
+150060RS55040                   LED WLAN       LED_0603_Standard
+61031421121                     P1             61031421121
+s0603_715_1%                    R1             CC1608-0603
+s0603_8k66_1%                   R2             CC1608-0603
+S0603_931_1%                    R3             CC1608-0603
+1k0                             R4             CR1608-0603
+4k7                             R5             CR1608-0603
+4k7                             R6             CR1608-0603
+4k7                             R7             CR1608-0603
+4k7                             R8             CR1608-0603
+4k7                             R9             CR1608-0603
+4k7                             R10            CR1608-0603
+430182050816                    S1             430182050816
+430182050816                    S2             430182050816
+430182050816                    S3             430182050816
+430182050816                    S4             430182050816
+430182050816                    S5             430182050816
+430182050816                    S6             430182050816
+MCP23017-E/SS                   U1             SSOP-SS28_M
+
+<<< Wire List >>>
+
+  NODE  REFERENCE  PIN #   PIN NAME       PIN TYPE    PART VALUE
+
+[00034] TASTER UP
+        R7         1       1              PASSIVE     4k7
+        S3         1       1              PASSIVE     430182050816
+        S3         3       3              PASSIVE     430182050816
+        U1         22      GPA1           I/O         MCP23017-E/SS
+
+[00033] TASTER RIGHT
+        R10        1       1              PASSIVE     4k7
+        S6         1       1              PASSIVE     430182050816
+        S6         3       3              PASSIVE     430182050816
+        U1         25      GPA4           I/O         MCP23017-E/SS
+
+[00032] TASTER RESET
+        P1         12      12             PASSIVE     61031421121
+        R5         1       1              PASSIVE     4k7
+        S1         1       1              PASSIVE     430182050816
+        S1         3       3              PASSIVE     430182050816
+
+[00031] TASTER LEFT
+        R9         1       1              PASSIVE     4k7
+        S5         1       1              PASSIVE     430182050816
+        S5         3       3              PASSIVE     430182050816
+        U1         24      GPA3           I/O         MCP23017-E/SS
+
+[00030] TASTER ENTER
+        R6         1       1              PASSIVE     4k7
+        S2         1       1              PASSIVE     430182050816
+        S2         3       3              PASSIVE     430182050816
+        U1         21      GPA0           I/O         MCP23017-E/SS
+
+[00029] TASTER DOWN
+        R8         1       1              PASSIVE     4k7
+        S4         1       1              PASSIVE     430182050816
+        S4         3       3              PASSIVE     430182050816
+        U1         23      GPA2           I/O         MCP23017-E/SS
+
+[00016] NetP1_14
+        P1         14      14             PASSIVE     61031421121
+        R4         2       2              PASSIVE     1k0
+
+[00015] NetP1_10
+        P1         10      10             PASSIVE     61031421121
+
+[00014] NetP1_8
+        P1         8       8              PASSIVE     61031421121
+
+[00013] NetP1_6
+        P1         6       6              PASSIVE     61031421121
+
+[00012] NetLED WLAN CONNECT_2
+        LED WLAN   2       A              PASSIVE     150060RS55040
+        R3         1       1              PASSIVE     S0603_931_1%
+
+[00011] NetLED RUN_2
+        LED RUN    2       A              PASSIVE     150060GS55040
+        R2         1       1              PASSIVE     s0603_8k66_1%
+
+[00010] NetLED OUTPUT ON_2
+        LED OUTPU  2       A              PASSIVE     150060YS55040
+        R1         1       1              PASSIVE     s0603_715_1%
+
+[00009] NetDISP?_4
+        DISP?      4       SDA            PASSIVE     JMD0.96-1
+        P1         2       2              PASSIVE     61031421121
+        U1         13      SDA            I/O         MCP23017-E/SS
+
+[00008] NetDISP?_3
+        DISP?      3       SCL            PASSIVE     JMD0.96-1
+        P1         4       4              PASSIVE     61031421121
+        U1         12      SCL            INPUT       MCP23017-E/SS
+
+[00007] LED YELLOW
+        LED OUTPU  1       K              PASSIVE     150060YS55040
+        U1         2       GPB1           I/O         MCP23017-E/SS
+
+[00006] LED RED
+        LED WLAN   1       K              PASSIVE     150060RS55040
+        U1         1       GPB0           I/O         MCP23017-E/SS
+
+[00005] LED GREEN
+        LED RUN    1       K              PASSIVE     150060GS55040
+        U1         3       GPB2           I/O         MCP23017-E/SS
+
+[00004] I2C_R\E\S\E\T\
+        C2         2       2              PASSIVE     100n
+        R4         1       1              PASSIVE     1k0
+        U1         18      R\E\S\E\T\     INPUT       MCP23017-E/SS
+
+[00003] GND
+        C1         1       1              PASSIVE     100n
+        C2         1       1              PASSIVE     100n
+        C3         1       1              PASSIVE     100n
+        DISP?      1       GND            PASSIVE     JMD0.96-1
+        DISP?      A       GND            PASSIVE     JMD0.96-1
+        DISP?      B       GND            PASSIVE     JMD0.96-1
+        DISP?      C       GND            PASSIVE     JMD0.96-1
+        DISP?      D       GND            PASSIVE     JMD0.96-1
+        P1         9       9              PASSIVE     61031421121
+        P1         11      11             PASSIVE     61031421121
+        P1         13      13             PASSIVE     61031421121
+        S1         2       2              PASSIVE     430182050816
+        S1         4       4              PASSIVE     430182050816
+        S2         2       2              PASSIVE     430182050816
+        S2         4       4              PASSIVE     430182050816
+        S3         2       2              PASSIVE     430182050816
+        S3         4       4              PASSIVE     430182050816
+        S4         2       2              PASSIVE     430182050816
+        S4         4       4              PASSIVE     430182050816
+        S5         2       2              PASSIVE     430182050816
+        S5         4       4              PASSIVE     430182050816
+        S6         2       2              PASSIVE     430182050816
+        S6         4       4              PASSIVE     430182050816
+        U1         10      VSS            POWER       MCP23017-E/SS
+        U1         15      A0             INPUT       MCP23017-E/SS
+        U1         17      A2             INPUT       MCP23017-E/SS
+
+[00002] 12V
+        P1         5       5              PASSIVE     61031421121
+        P1         7       7              PASSIVE     61031421121
+
+[00001] 3V3p
+        C1         2       2              PASSIVE     100n
+        C3         2       2              PASSIVE     100n
+        DISP?      2       VCC            PASSIVE     JMD0.96-1
+        P1         1       1              PASSIVE     61031421121
+        P1         3       3              PASSIVE     61031421121
+        R1         2       2              PASSIVE     s0603_715_1%
+        R2         2       2              PASSIVE     s0603_8k66_1%
+        R3         2       2              PASSIVE     S0603_931_1%
+        R5         2       2              PASSIVE     4k7
+        R6         2       2              PASSIVE     4k7
+        R7         2       2              PASSIVE     4k7
+        R8         2       2              PASSIVE     4k7
+        R9         2       2              PASSIVE     4k7
+        R10        2       2              PASSIVE     4k7
+        U1         9       VDD            POWER       MCP23017-E/SS
+        U1         16      A1             INPUT       MCP23017-E/SS
+

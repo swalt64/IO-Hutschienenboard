@@ -18,6 +18,7 @@
         .led-on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .led-input-on { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
         select, input[type=number] { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 100%; }
+        input[type=text].name-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 120px; }
         button { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
         button:hover { background: #0284c7; }
         .btn-on { background: #22c55e; }
@@ -44,6 +45,7 @@
                     <th>Eingang</th>
                     <th>Status</th>
                     <th>&#8594; Ausgang</th>
+                    <th>Name</th>
                     <th>Relais</th>
                     <th>Auto-Aus (s)</th>
                     <th>Manuell</th>
@@ -71,7 +73,8 @@ let state = {
     outputs: Array(NUM_CH).fill(false),
     mappings: Array(NUM_CH).fill(-1),
     timers: Array(NUM_CH).fill(0),
-    remaining: Array(NUM_CH).fill(0)
+    remaining: Array(NUM_CH).fill(0),
+    names: Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1))
 };
 
 function initTable() {
@@ -87,10 +90,14 @@ function initTable() {
                     ${Array.from({length: NUM_CH}, (_, j) => `<option value="${j}">A${j+1}</option>`).join('')}
                 </select>
             </td>
+            <td>
+                <input type="text" class="name-input" id="name-${i}" maxlength="20" value="Ausgang ${i+1}"
+                       onchange="setName(${i}, this.value)">
+            </td>
             <td><span class="led led-off" id="out-${i}"></span></td>
             <td>
                 <input type="number" id="timer-${i}" min="0" max="86400" value="0" onchange="setTimer(${i}, this.value)">
-                <div class="remaining" id="remaining-${i}">Zeit bis AUS: --</div>
+                <div class="remaining" id="remaining-${i}">Rest: --</div>
             </td>
             <td><button id="btn-${i}" onclick="toggleRelay(${i})">Toggle</button></td>
         `;
@@ -125,6 +132,11 @@ function updateUI() {
         outLed.className = state.outputs[i] ? 'led led-on' : 'led led-off';
 
         document.getElementById(`map-${i}`).value = state.mappings[i];
+
+        const nameInput = document.getElementById(`name-${i}`);
+        if (document.activeElement !== nameInput) {
+            nameInput.value = state.names[i];
+        }
 
         const timerInput = document.getElementById(`timer-${i}`);
         if (document.activeElement !== timerInput) {
@@ -162,6 +174,7 @@ function connectWS() {
         if (data.mappings) state.mappings = data.mappings;
         if (data.timers) state.timers = data.timers;
         if (data.remaining) state.remaining = data.remaining;
+        if (data.names) state.names = data.names;
         updateUI();
     };
 }
@@ -176,6 +189,10 @@ function setMapping(input, output) {
 
 function setTimer(ch, secs) {
     ws.send(JSON.stringify({cmd: 'timer', ch: ch, secs: parseInt(secs)}));
+}
+
+function setName(ch, val) {
+    ws.send(JSON.stringify({cmd: 'name', ch: ch, name: val.trim()}));
 }
 
 function saveWifi() {
@@ -193,6 +210,7 @@ fetch('/api/state').then(r => r.json()).then(data => {
     if (data.mappings) state.mappings = data.mappings;
     if (data.timers) state.timers = data.timers;
     if (data.remaining) state.remaining = data.remaining;
+    if (data.names) state.names = data.names;
     updateUI();
 
     document.getElementById('wifi-ssid').value = data.sta_ssid || '';

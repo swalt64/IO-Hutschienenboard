@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(~/.platformio/penv/Scripts/pio.exe run:*)"
+      "Bash(~/.platformio/penv/Scripts/pio.exe run:*)",
+      "Bash(\"/c/Users/stwal/.platformio/penv/Scripts/platformio.exe\" run:*)",
+      "Read(//c/Users/stwal/.platformio/packages/tool-unity/**)",
+      "Read(//c/Users/stwal/.platformio/**)"
     ]
   }
 }

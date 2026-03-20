@@ -5,7 +5,9 @@
       "Bash(ls:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebSearch",
+      "Bash(cd \"/c/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/IO-Hutschienenboard_SRC\" && \"/c/Users/stwal/.platformio/penv/Scripts/platformio.exe\" run 2>&1)"
     ]
   }
 }

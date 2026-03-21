@@ -44,6 +44,7 @@ CrossRefPorts=3
 CrossRefCrossSheets=1
 CrossRefSheetEntries=0
 CrossRefFollowFromMainSettings=1
+CurrentVariant=Teilbestückt
 
 [Preferences]
 PrefsVaultGUID=
@@ -117,6 +118,15 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=QXKLQRDL
 
+[ProjectVariant1]
+UniqueId=2eb02f80-1166-4f0f-9add-b9712f020751
+Description=Teilbestückt
+AllowFabrication=0
+ParameterCount=0
+VariationCount=1
+Variation1=Designator=U100|UniqueId=\KIWHGEKB|Kind=1|AlternatePart=
+ParamVariationCount=0
+
 [GeneratedDocument1]
 DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO Baseboard.NET
 DItemRevisionGUID=
@@ -124,6 +134,14 @@ DItemRevisionGUID=
 [GeneratedDocument2]
 DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO ESP32.NET
 DItemRevisionGUID=
+
+[Parameter1]
+Name=Designer
+Value=S .Waltersberger
+
+[Parameter2]
+Name=Version
+Value=1.0
 
 [Configuration1]
 Name=Sources

@@ -44,6 +44,7 @@ CrossRefPorts=3
 CrossRefCrossSheets=1
 CrossRefSheetEntries=0
 CrossRefFollowFromMainSettings=1
+CurrentVariant=Teilbestückt
 
 [Preferences]
 PrefsVaultGUID=
@@ -82,6 +83,23 @@ ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=AQIXZSCN
+
+[ProjectVariant1]
+UniqueId=bd40251b-8e04-4d9e-b540-553a6b5519d8
+Description=Teilbestückt
+AllowFabrication=0
+ParameterCount=0
+VariationCount=1
+Variation1=Designator=DISP1|UniqueId=\DZDFCLVT|Kind=1|AlternatePart=
+ParamVariationCount=0
+
+[Parameter1]
+Name=Version
+Value=1.0
+
+[Parameter2]
+Name=Designer
+Value=S. Waltersberger
 
 [Configuration1]
 Name=Sources

@@ -7,7 +7,22 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "WebSearch",
-      "Bash(cd \"/c/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/IO-Hutschienenboard_SRC\" && \"/c/Users/stwal/.platformio/penv/Scripts/platformio.exe\" run 2>&1)"
+      "Bash(cd \"/c/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/IO-Hutschienenboard_SRC\" && \"/c/Users/stwal/.platformio/penv/Scripts/platformio.exe\" run 2>&1)",
+      "Bash(sort -t. -k2 -n)",
+      "Bash(BASE=\"c:/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/NET-List & BOM/PADSNetlist/HS-IO Baseboard.NET\" TOP=\"c:/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Top Board/HS-IO Topboard/Project Outputs for HS-IO Topboard/NET-List + BOM/PADSNetlist/HS-IO Topboard.NET\" __NEW_LINE_a0fc2ede98440131__ echo \"=== P101 \\(Base Board\\) ===\" grep -B1 \"P101\\\\.\" \"$BASE\")",
+      "Bash(sed 's/\\\\*SIGNAL\\\\* //')",
+      "Bash(where magick:*)",
+      "Bash(where gs:*)",
+      "Bash(where mupdf:*)",
+      "Bash(where convert:*)",
+      "Bash(powershell -Command \"Get-Command magick,gs,mupdf -ErrorAction SilentlyContinue | Select-Object Name,Source\")",
+      "Bash(where python:*)",
+      "Bash(\"c:/Users/stwal/.platformio/penv/Scripts/python.exe\" -c \"\nimport subprocess, sys\ntry:\n    import fitz  # PyMuPDF\n    print\\('fitz available'\\)\nexcept:\n    print\\('fitz not available'\\)\ntry:\n    import pdf2image\n    print\\('pdf2image available'\\)\nexcept:\n    print\\('pdf2image not available'\\)\ntry:\n    import pdfplumber\n    print\\('pdfplumber available'\\)\nexcept:\n    print\\('pdfplumber not available'\\)\n\")",
+      "Bash(\"c:/Users/stwal/.platformio/penv/Scripts/pip.exe\" install:*)",
+      "Bash(PDF=\"c:/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/Documentation Outputs/HS-IO Baseboard.PDF\")",
+      "Bash(\"c:/Users/stwal/.platformio/penv/Scripts/python.exe\" -c \":*)",
+      "Bash(PDF=\"c:/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/DOKU/esp32-s3（non-antenna）.pdf\")",
+      "Bash(OUTDIR=\"/tmp/pcb_pdf\")"
     ]
   }
 }

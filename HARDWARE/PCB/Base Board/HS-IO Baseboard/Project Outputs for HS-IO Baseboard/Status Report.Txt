@@ -1,10 +1,14 @@
-Output: Cadnetix Netlist
-Type  : CadnetixNetlist
-From  : Project [HS-IO Baseboard.PrjPcb]
-   Generated File[HS-IO ESP32.NET]
+Project Outputs Generation Report
+---------------------------------
+Start Output Generation At 20:15:06 On 21.03.2026
+
+Output: Bill of Materials
+Type  : BOM
+From  : Variant [PT100] of Project [HS-IO Baseboard.PrjPcb]
+   Generated File[//d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/BOM/Bill of Materials-HS-IO Baseboard.xlsx]
 
 
 Files Generated   : 1
 Documents Printed : 0
 
-Finished Output Generation At 23:30:45 On 21.02.2026
+Finished Output Generation At 20:15:16 On 21.03.2026

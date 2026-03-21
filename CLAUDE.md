@@ -11,7 +11,7 @@ ESP32-S3 based 12-channel I/O DIN-rail controller (Hutschienenboard) with web UI
 - OLED display 128×64 (JMD0.96-1, SSD1306, I2C 0x3C) auf dem Top Board
 - 5 Navigationstasten (ENTER, UP, DOWN, LEFT, RIGHT) via MCP23017 GPA auf dem Top Board
 - 3 Status-LEDs (WLAN, OUTPUT, RUN) via MCP23017 GPB auf dem Top Board
-- ESP32-S3 powered directly via 3V3 (5V pin unused)
+- ESP32-S3 (DUBEUYEW ESP32-S3, basierend auf ESP32-S3-WROOM-1-N16R8, 44-pin DIL Through-Hole-Modul) powered directly via 3V3 (5V pin unused)
 
 ## Build Commands
 
@@ -86,8 +86,8 @@ Remaining-Format: `MM:SS` (<1h) oder `HH:MM:SS` (≥1h)
   - U200: GPIO4(Inp1), GPIO5(Inp2), GPIO6(Inp3), GPIO7(Inp4), GPIO15(Inp5), GPIO16(Inp6)
   - U201: GPIO17(Inp7), GPIO18(Inp8), GPIO8(Inp9), GPIO3(Inp10), GPIO9(Inp11), GPIO10(Inp12)
 - I2C bus: SDA=GPIO11, SCL=GPIO12 (R104/R105 4k7 pull-ups to 3V3p)
-- Peripheral reset (active-low): GPIO2 (`RESET_PERIPHERIE_PIN`) → R302 (1k0) → RESET_PERIPHERIE-Netz → MCP23017 pin 18; in setup() auf HIGH gesetzt
-- Top board connector (J202): GPIO13 (MCP_INT_PIN/INTA), GPIO14, GPIO21, GPIO38 (via R248-R251 3k3)
+- Peripheral reset (active-low): GPIO2 (`RESET_PERIPHERIE_PIN`) → R302/R306 (je 1k0) → RESET_PERIPHERIE-Netz → alle drei MCP23017 (0x20, 0x21, 0x22) RESET-Pin; auch auf J202 Pin 4 geführt (für Top Board und externe Erweiterungsmodule); in setup() auf HIGH gesetzt vor I2C-Init
+- Board-to-board connector (P101 → Top Board P1, 14-polig): 3V3p (Pin 1,3), I2C SDA (Pin 2), I2C SCL (Pin 4), 12V (Pin 5,7), GPIO13 (Pin 6, via R248), GPIO14 (Pin 8, via R249), GND (Pin 9,11,13), GPIO21 (Pin 10), TASTER RESET (Pin 12), RESET_PERIPHERIE/GPIO2 (Pin 14)
 - Hardware reset: EN/RST pin with R103 (4k7) pull-up, S100 reset button to GND
 - USB (internal): GPIO19 (USB_D−), GPIO20 (USB_D+)
 - Reserved: GPIO26-32 (flash), GPIO33-37 (octal PSRAM)
@@ -121,7 +121,7 @@ Remaining-Format: `MM:SS` (<1h) oder `HH:MM:SS` (≥1h)
 **Connectors:**
 - J200 (MCV 1,5/9-G-3,5): S0 inputs 1-8 (pins 1-8), I-GND (pin 9)
 - J201 (MCV 1,5/9-G-3,5): S0 inputs 9-12 (pins 1-4), 12V power (pins 5-6), spare (pins 7-8), I-GND (pin 9)
-- J202 (MCV 1,5/9-G-3,5): I2C SDA (pin 1), SCL (pin 2), GND (pin 3), RESET (pin 4), GPIO13 (pin 5), GPIO14 (pin 6), GPIO21 (pin 7), GPIO38 (pin 8), GND (pin 9)
+- J202 (MCV 1,5/9-G-3,5): externe Buchse, normalerweise unbestückt — I2C SDA (pin 1, via R252), SCL (pin 2, via R253), GND (pin 3), RESET_PERIPHERIE/GPIO2 (pin 4), GPIO13 (pin 5, via R248), GPIO14 (pin 6, via R249), 12V (pin 7), 3V3p (pin 8), GND (pin 9)
 - J300/J301/J302 (MSTBVA 2,5/8-G): relay contacts K1-K12 (Schließer/Öffner pairs)
 
 **S0 Input Circuit (per channel, verified from netlist):**

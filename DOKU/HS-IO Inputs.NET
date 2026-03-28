@@ -1,0 +1,618 @@
+Wire List
+
+<<< Component List >>>
+470n                            C200           CC1608-0603
+470n                            C201           CC1608-0603
+470n                            C202           CC1608-0603
+470n                            C203           CC1608-0603
+470n                            C204           CC1608-0603
+470n                            C205           CC1608-0603
+470n                            C206           CC1608-0603
+470n                            C207           CC1608-0603
+470n                            C208           CC1608-0603
+470n                            C209           CC1608-0603
+470n                            C210           CC1608-0603
+470n                            C211           CC1608-0603
+SMBJ20A-TR                      D200           SMB
+BAS316                          D201           SOD323F
+SMBJ20A-TR                      D202           SMB
+BAS316                          D203           SOD323F
+SMBJ20A-TR                      D204           SMB
+BAS316                          D205           SOD323F
+SMBJ20A-TR                      D206           SMB
+BAS316                          D207           SOD323F
+SMBJ20A-TR                      D208           SMB
+BAS316                          D209           SOD323F
+SMBJ20A-TR                      D210           SMB
+BAS316                          D211           SOD323F
+SMBJ20A-TR                      D212           SMB
+BAS316                          D213           SOD323F
+SMBJ20A-TR                      D214           SMB
+BAS316                          D215           SOD323F
+SMBJ20A-TR                      D216           SMB
+BAS316                          D217           SOD323F
+SMBJ20A-TR                      D218           SMB
+BAS316                          D219           SOD323F
+SMBJ20A-TR                      D220           SMB
+BAS316                          D221           SOD323F
+SMBJ20A-TR                      D222           SMB
+BAS316                          D223           SOD323F
+MCV 1,5/ 9-G-3,5                J200           MCV1,5/9-G-3,5 - I
+MCV 1,5/ 9-G-3,5                J201           MCV1,5/9-G-3,5 - I
+MCV 1,5/ 9-G-3,5                J202           MCV1,5/9-G-3,5 - I
+B82422_330uH                    L200           CR3225-1210
+B82422_330uH                    L201           CR3225-1210
+B82422_330uH                    L202           CR3225-1210
+B82422_330uH                    L203           CR3225-1210
+B82422_330uH                    L204           CR3225-1210
+B82422_330uH                    L205           CR3225-1210
+B82422_330uH                    L206           CR3225-1210
+B82422_330uH                    L207           CR3225-1210
+B82422_330uH                    L208           CR3225-1210
+B82422_330uH                    L209           CR3225-1210
+B82422_330uH                    L210           CR3225-1210
+B82422_330uH                    L211           CR3225-1210
+1k0                             R200           CR1608-0603
+3k3                             R201           CR1608-0603
+3k3                             R202           CR1608-0603
+560R                            R203           CC1608-0603
+1k0                             R204           CR1608-0603
+3k3                             R205           CR1608-0603
+560R                            R206           CC1608-0603
+3k3                             R207           CR1608-0603
+1k0                             R208           CR1608-0603
+3k3                             R209           CR1608-0603
+3k3                             R210           CR1608-0603
+560R                            R211           CC1608-0603
+1k0                             R212           CR1608-0603
+3k3                             R213           CR1608-0603
+560R                            R214           CC1608-0603
+3k3                             R215           CR1608-0603
+1k0                             R216           CR1608-0603
+3k3                             R217           CR1608-0603
+3k3                             R218           CR1608-0603
+560R                            R219           CC1608-0603
+1k0                             R220           CR1608-0603
+3k3                             R221           CR1608-0603
+560R                            R222           CC1608-0603
+3k3                             R223           CR1608-0603
+1k0                             R224           CR1608-0603
+3k3                             R225           CR1608-0603
+3k3                             R226           CR1608-0603
+560R                            R227           CC1608-0603
+1k0                             R228           CR1608-0603
+3k3                             R229           CR1608-0603
+560R                            R230           CC1608-0603
+3k3                             R231           CR1608-0603
+1k0                             R232           CR1608-0603
+3k3                             R233           CR1608-0603
+3k3                             R234           CR1608-0603
+560R                            R235           CC1608-0603
+1k0                             R236           CR1608-0603
+3k3                             R237           CR1608-0603
+560R                            R238           CC1608-0603
+3k3                             R239           CR1608-0603
+1k0                             R240           CR1608-0603
+3k3                             R241           CR1608-0603
+3k3                             R242           CR1608-0603
+560R                            R243           CC1608-0603
+1k0                             R244           CR1608-0603
+3k3                             R245           CR1608-0603
+560R                            R246           CC1608-0603
+3k3                             R247           CR1608-0603
+3k3                             R248           CR1608-0603
+3k3                             R249           CR1608-0603
+0R                              R252           CR1608-0603
+0R                              R253           CR1608-0603
+SN74HCT14DR                     U200           SO14
+SN74HCT14DR                     U201           SO14
+ILD213T                         V200           SOIC8
+ILD213T                         V201           SOIC8
+ILD213T                         V202           SOIC8
+ILD213T                         V203           SOIC8
+ILD213T                         V204           SOIC8
+ILD213T                         V205           SOIC8
+
+<<< Wire List >>>
+
+  NODE  REFERENCE  PIN #   PIN NAME       PIN TYPE    PART VALUE
+
+[00001] 3V3p
+        J202       8       8              PASSIVE     MCV 1,5/ 9-G-3,5
+        U200       14      VCC            POWER       SN74HCT14DR
+        U201       14      VCC            POWER       SN74HCT14DR
+        V200       6       6              PASSIVE     ILD213T
+        V200       8       Vcc            PASSIVE     ILD213T
+        V201       6       6              PASSIVE     ILD213T
+        V201       8       Vcc            PASSIVE     ILD213T
+        V202       6       6              PASSIVE     ILD213T
+        V202       8       Vcc            PASSIVE     ILD213T
+        V203       6       6              PASSIVE     ILD213T
+        V203       8       Vcc            PASSIVE     ILD213T
+        V204       6       6              PASSIVE     ILD213T
+        V204       8       Vcc            PASSIVE     ILD213T
+        V205       6       6              PASSIVE     ILD213T
+        V205       8       Vcc            PASSIVE     ILD213T
+
+[00002] 12V
+        J201       6       6              PASSIVE     MCV 1,5/ 9-G-3,5
+        J201       7       7              PASSIVE     MCV 1,5/ 9-G-3,5
+        J202       7       7              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00003] GND
+        C200       2       2              PASSIVE     470n
+        C201       2       2              PASSIVE     470n
+        C202       2       2              PASSIVE     470n
+        C203       2       2              PASSIVE     470n
+        C204       2       2              PASSIVE     470n
+        C205       2       2              PASSIVE     470n
+        C206       2       2              PASSIVE     470n
+        C207       2       2              PASSIVE     470n
+        C208       2       2              PASSIVE     470n
+        C209       2       2              PASSIVE     470n
+        C210       2       2              PASSIVE     470n
+        C211       2       2              PASSIVE     470n
+        J201       8       8              PASSIVE     MCV 1,5/ 9-G-3,5
+        J201       9       9              PASSIVE     MCV 1,5/ 9-G-3,5
+        J202       3       3              PASSIVE     MCV 1,5/ 9-G-3,5
+        J202       9       9              PASSIVE     MCV 1,5/ 9-G-3,5
+        R200       2       2              PASSIVE     1k0
+        R204       2       2              PASSIVE     1k0
+        R208       2       2              PASSIVE     1k0
+        R212       2       2              PASSIVE     1k0
+        R216       2       2              PASSIVE     1k0
+        R220       2       2              PASSIVE     1k0
+        R224       2       2              PASSIVE     1k0
+        R228       2       2              PASSIVE     1k0
+        R232       2       2              PASSIVE     1k0
+        R236       2       2              PASSIVE     1k0
+        R240       2       2              PASSIVE     1k0
+        R244       2       2              PASSIVE     1k0
+        U200       7       GND            POWER       SN74HCT14DR
+        U201       7       GND            POWER       SN74HCT14DR
+
+[00004] I01
+        D201       2       K              PASSIVE     BAS316
+        J200       1       1              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00005] I02
+        D203       2       K              PASSIVE     BAS316
+        J200       2       2              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00006] I2C SCL
+        R253       2       2              PASSIVE     0R
+
+[00007] I2C SCL_1
+        J202       2       2              PASSIVE     MCV 1,5/ 9-G-3,5
+        R253       1       1              PASSIVE     0R
+
+[00008] I2C SDA
+        R252       2       2              PASSIVE     0R
+
+[00009] I2C SDA_1
+        J202       1       1              PASSIVE     MCV 1,5/ 9-G-3,5
+        R252       1       1              PASSIVE     0R
+
+[00010] I03
+        D205       2       K              PASSIVE     BAS316
+        J200       3       3              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00011] I04
+        D207       2       K              PASSIVE     BAS316
+        J200       4       4              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00012] I05
+        D209       2       K              PASSIVE     BAS316
+        J200       5       5              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00013] I06
+        D211       2       K              PASSIVE     BAS316
+        J200       6       6              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00014] I07
+        D213       2       K              PASSIVE     BAS316
+        J200       7       7              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00015] I08
+        D215       2       K              PASSIVE     BAS316
+        J200       8       8              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00016] I09
+        D217       2       K              PASSIVE     BAS316
+        J201       1       1              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00017] I10
+        D219       2       K              PASSIVE     BAS316
+        J201       2       2              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00018] I11
+        D221       2       K              PASSIVE     BAS316
+        J201       3       3              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00019] I12
+        D223       2       K              PASSIVE     BAS316
+        J201       4       4              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00020] I-5V
+        D200       2       K              PASSIVE     SMBJ20A-TR
+        D202       2       K              PASSIVE     SMBJ20A-TR
+        D204       2       K              PASSIVE     SMBJ20A-TR
+        D206       2       K              PASSIVE     SMBJ20A-TR
+        D208       2       K              PASSIVE     SMBJ20A-TR
+        D210       2       K              PASSIVE     SMBJ20A-TR
+        D212       2       K              PASSIVE     SMBJ20A-TR
+        D214       2       K              PASSIVE     SMBJ20A-TR
+        D216       2       K              PASSIVE     SMBJ20A-TR
+        D218       2       K              PASSIVE     SMBJ20A-TR
+        D220       2       K              PASSIVE     SMBJ20A-TR
+        D222       2       K              PASSIVE     SMBJ20A-TR
+        R201       1       1              PASSIVE     3k3
+        R205       1       1              PASSIVE     3k3
+        R209       1       1              PASSIVE     3k3
+        R213       1       1              PASSIVE     3k3
+        R217       1       1              PASSIVE     3k3
+        R221       1       1              PASSIVE     3k3
+        R225       1       1              PASSIVE     3k3
+        R229       1       1              PASSIVE     3k3
+        R233       1       1              PASSIVE     3k3
+        R237       1       1              PASSIVE     3k3
+        R241       1       1              PASSIVE     3k3
+        R245       1       1              PASSIVE     3k3
+        V200       1       1              PASSIVE     ILD213T
+        V200       3       3              PASSIVE     ILD213T
+        V201       1       1              PASSIVE     ILD213T
+        V201       3       3              PASSIVE     ILD213T
+        V202       1       1              PASSIVE     ILD213T
+        V202       3       3              PASSIVE     ILD213T
+        V203       1       1              PASSIVE     ILD213T
+        V203       3       3              PASSIVE     ILD213T
+        V204       1       1              PASSIVE     ILD213T
+        V204       3       3              PASSIVE     ILD213T
+        V205       1       1              PASSIVE     ILD213T
+        V205       3       3              PASSIVE     ILD213T
+
+[00021] I-GND
+        J200       9       9              PASSIVE     MCV 1,5/ 9-G-3,5
+        J201       5       5              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00022] IO13
+        J202       5       5              PASSIVE     MCV 1,5/ 9-G-3,5
+        R248       1       1              PASSIVE     3k3
+
+[00023] IO14
+        J202       6       6              PASSIVE     MCV 1,5/ 9-G-3,5
+        R249       1       1              PASSIVE     3k3
+
+[00024] NetC200_1
+        C200       1       1              PASSIVE     470n
+        R202       2       2              PASSIVE     3k3
+        U200       1       A              INPUT       SN74HCT14DR
+
+[00025] NetC201_1
+        C201       1       1              PASSIVE     470n
+        R207       2       2              PASSIVE     3k3
+        U200       3       A              INPUT       SN74HCT14DR
+
+[00026] NetC202_1
+        C202       1       1              PASSIVE     470n
+        R210       2       2              PASSIVE     3k3
+        U200       5       A              INPUT       SN74HCT14DR
+
+[00027] NetC203_1
+        C203       1       1              PASSIVE     470n
+        R215       2       2              PASSIVE     3k3
+        U200       9       A              INPUT       SN74HCT14DR
+
+[00028] NetC204_1
+        C204       1       1              PASSIVE     470n
+        R218       2       2              PASSIVE     3k3
+        U200       11      A              INPUT       SN74HCT14DR
+
+[00029] NetC205_1
+        C205       1       1              PASSIVE     470n
+        R223       2       2              PASSIVE     3k3
+        U200       13      A              INPUT       SN74HCT14DR
+
+[00030] NetC206_1
+        C206       1       1              PASSIVE     470n
+        R226       2       2              PASSIVE     3k3
+        U201       1       A              INPUT       SN74HCT14DR
+
+[00031] NetC207_1
+        C207       1       1              PASSIVE     470n
+        R231       2       2              PASSIVE     3k3
+        U201       3       A              INPUT       SN74HCT14DR
+
+[00032] NetC208_1
+        C208       1       1              PASSIVE     470n
+        R234       2       2              PASSIVE     3k3
+        U201       5       A              INPUT       SN74HCT14DR
+
+[00033] NetC209_1
+        C209       1       1              PASSIVE     470n
+        R239       2       2              PASSIVE     3k3
+        U201       9       A              INPUT       SN74HCT14DR
+
+[00034] NetC210_1
+        C210       1       1              PASSIVE     470n
+        R242       2       2              PASSIVE     3k3
+        U201       11      A              INPUT       SN74HCT14DR
+
+[00035] NetC211_1
+        C211       1       1              PASSIVE     470n
+        R247       2       2              PASSIVE     3k3
+        U201       13      A              INPUT       SN74HCT14DR
+
+[00036] NetD200_1
+        D200       1       A              PASSIVE     SMBJ20A-TR
+        R203       2       2              PASSIVE     560R
+        V200       2       2              PASSIVE     ILD213T
+
+[00037] NetD201_1
+        D201       1       A              PASSIVE     BAS316
+        L200       1       1              PASSIVE     B82422_330uH
+
+[00038] NetD202_1
+        D202       1       A              PASSIVE     SMBJ20A-TR
+        R206       2       2              PASSIVE     560R
+        V200       4       4              PASSIVE     ILD213T
+
+[00039] NetD203_1
+        D203       1       A              PASSIVE     BAS316
+        L201       1       1              PASSIVE     B82422_330uH
+
+[00040] NetD204_1
+        D204       1       A              PASSIVE     SMBJ20A-TR
+        R211       2       2              PASSIVE     560R
+        V201       2       2              PASSIVE     ILD213T
+
+[00041] NetD205_1
+        D205       1       A              PASSIVE     BAS316
+        L202       1       1              PASSIVE     B82422_330uH
+
+[00042] NetD206_1
+        D206       1       A              PASSIVE     SMBJ20A-TR
+        R214       2       2              PASSIVE     560R
+        V201       4       4              PASSIVE     ILD213T
+
+[00043] NetD207_1
+        D207       1       A              PASSIVE     BAS316
+        L203       1       1              PASSIVE     B82422_330uH
+
+[00044] NetD208_1
+        D208       1       A              PASSIVE     SMBJ20A-TR
+        R219       2       2              PASSIVE     560R
+        V202       2       2              PASSIVE     ILD213T
+
+[00045] NetD209_1
+        D209       1       A              PASSIVE     BAS316
+        L204       1       1              PASSIVE     B82422_330uH
+
+[00046] NetD210_1
+        D210       1       A              PASSIVE     SMBJ20A-TR
+        R222       2       2              PASSIVE     560R
+        V202       4       4              PASSIVE     ILD213T
+
+[00047] NetD211_1
+        D211       1       A              PASSIVE     BAS316
+        L205       1       1              PASSIVE     B82422_330uH
+
+[00048] NetD212_1
+        D212       1       A              PASSIVE     SMBJ20A-TR
+        R227       2       2              PASSIVE     560R
+        V203       2       2              PASSIVE     ILD213T
+
+[00049] NetD213_1
+        D213       1       A              PASSIVE     BAS316
+        L206       1       1              PASSIVE     B82422_330uH
+
+[00050] NetD214_1
+        D214       1       A              PASSIVE     SMBJ20A-TR
+        R230       2       2              PASSIVE     560R
+        V203       4       4              PASSIVE     ILD213T
+
+[00051] NetD215_1
+        D215       1       A              PASSIVE     BAS316
+        L207       1       1              PASSIVE     B82422_330uH
+
+[00052] NetD216_1
+        D216       1       A              PASSIVE     SMBJ20A-TR
+        R235       2       2              PASSIVE     560R
+        V204       2       2              PASSIVE     ILD213T
+
+[00053] NetD217_1
+        D217       1       A              PASSIVE     BAS316
+        L208       1       1              PASSIVE     B82422_330uH
+
+[00054] NetD218_1
+        D218       1       A              PASSIVE     SMBJ20A-TR
+        R238       2       2              PASSIVE     560R
+        V204       4       4              PASSIVE     ILD213T
+
+[00055] NetD219_1
+        D219       1       A              PASSIVE     BAS316
+        L209       1       1              PASSIVE     B82422_330uH
+
+[00056] NetD220_1
+        D220       1       A              PASSIVE     SMBJ20A-TR
+        R243       2       2              PASSIVE     560R
+        V205       2       2              PASSIVE     ILD213T
+
+[00057] NetD221_1
+        D221       1       A              PASSIVE     BAS316
+        L210       1       1              PASSIVE     B82422_330uH
+
+[00058] NetD222_1
+        D222       1       A              PASSIVE     SMBJ20A-TR
+        R246       2       2              PASSIVE     560R
+        V205       4       4              PASSIVE     ILD213T
+
+[00059] NetD223_1
+        D223       1       A              PASSIVE     BAS316
+        L211       1       1              PASSIVE     B82422_330uH
+
+[00060] NetJ202_4
+        J202       4       4              PASSIVE     MCV 1,5/ 9-G-3,5
+
+[00061] NetL200_2
+        L200       2       2              PASSIVE     B82422_330uH
+        R201       2       2              PASSIVE     3k3
+        R203       1       1              PASSIVE     560R
+
+[00062] NetL201_2
+        L201       2       2              PASSIVE     B82422_330uH
+        R205       2       2              PASSIVE     3k3
+        R206       1       1              PASSIVE     560R
+
+[00063] NetL202_2
+        L202       2       2              PASSIVE     B82422_330uH
+        R209       2       2              PASSIVE     3k3
+        R211       1       1              PASSIVE     560R
+
+[00064] NetL203_2
+        L203       2       2              PASSIVE     B82422_330uH
+        R213       2       2              PASSIVE     3k3
+        R214       1       1              PASSIVE     560R
+
+[00065] NetL204_2
+        L204       2       2              PASSIVE     B82422_330uH
+        R217       2       2              PASSIVE     3k3
+        R219       1       1              PASSIVE     560R
+
+[00066] NetL205_2
+        L205       2       2              PASSIVE     B82422_330uH
+        R221       2       2              PASSIVE     3k3
+        R222       1       1              PASSIVE     560R
+
+[00067] NetL206_2
+        L206       2       2              PASSIVE     B82422_330uH
+        R225       2       2              PASSIVE     3k3
+        R227       1       1              PASSIVE     560R
+
+[00068] NetL207_2
+        L207       2       2              PASSIVE     B82422_330uH
+        R229       2       2              PASSIVE     3k3
+        R230       1       1              PASSIVE     560R
+
+[00069] NetL208_2
+        L208       2       2              PASSIVE     B82422_330uH
+        R233       2       2              PASSIVE     3k3
+        R235       1       1              PASSIVE     560R
+
+[00070] NetL209_2
+        L209       2       2              PASSIVE     B82422_330uH
+        R237       2       2              PASSIVE     3k3
+        R238       1       1              PASSIVE     560R
+
+[00071] NetL210_2
+        L210       2       2              PASSIVE     B82422_330uH
+        R241       2       2              PASSIVE     3k3
+        R243       1       1              PASSIVE     560R
+
+[00072] NetL211_2
+        L211       2       2              PASSIVE     B82422_330uH
+        R245       2       2              PASSIVE     3k3
+        R246       1       1              PASSIVE     560R
+
+[00073] NetR200_1
+        R200       1       1              PASSIVE     1k0
+        R202       1       1              PASSIVE     3k3
+        V200       7       7              PASSIVE     ILD213T
+
+[00074] NetR204_1
+        R204       1       1              PASSIVE     1k0
+        R207       1       1              PASSIVE     3k3
+        V200       5       5              PASSIVE     ILD213T
+
+[00075] NetR208_1
+        R208       1       1              PASSIVE     1k0
+        R210       1       1              PASSIVE     3k3
+        V201       7       7              PASSIVE     ILD213T
+
+[00076] NetR212_1
+        R212       1       1              PASSIVE     1k0
+        R215       1       1              PASSIVE     3k3
+        V201       5       5              PASSIVE     ILD213T
+
+[00077] NetR216_1
+        R216       1       1              PASSIVE     1k0
+        R218       1       1              PASSIVE     3k3
+        V202       7       7              PASSIVE     ILD213T
+
+[00078] NetR220_1
+        R220       1       1              PASSIVE     1k0
+        R223       1       1              PASSIVE     3k3
+        V202       5       5              PASSIVE     ILD213T
+
+[00079] NetR224_1
+        R224       1       1              PASSIVE     1k0
+        R226       1       1              PASSIVE     3k3
+        V203       7       7              PASSIVE     ILD213T
+
+[00080] NetR228_1
+        R228       1       1              PASSIVE     1k0
+        R231       1       1              PASSIVE     3k3
+        V203       5       5              PASSIVE     ILD213T
+
+[00081] NetR232_1
+        R232       1       1              PASSIVE     1k0
+        R234       1       1              PASSIVE     3k3
+        V204       7       7              PASSIVE     ILD213T
+
+[00082] NetR236_1
+        R236       1       1              PASSIVE     1k0
+        R239       1       1              PASSIVE     3k3
+        V204       5       5              PASSIVE     ILD213T
+
+[00083] NetR240_1
+        R240       1       1              PASSIVE     1k0
+        R242       1       1              PASSIVE     3k3
+        V205       7       7              PASSIVE     ILD213T
+
+[00084] NetR244_1
+        R244       1       1              PASSIVE     1k0
+        R247       1       1              PASSIVE     3k3
+        V205       5       5              PASSIVE     ILD213T
+
+[00085] NetR248_2
+        R248       2       2              PASSIVE     3k3
+
+[00086] NetR249_2
+        R249       2       2              PASSIVE     3k3
+
+[00087] NetU200_2
+        U200       2       Y              OUTPUT      SN74HCT14DR
+
+[00088] NetU200_4
+        U200       4       Y              OUTPUT      SN74HCT14DR
+
+[00089] NetU200_6
+        U200       6       Y              OUTPUT      SN74HCT14DR
+
+[00090] NetU200_8
+        U200       8       Y              OUTPUT      SN74HCT14DR
+
+[00091] NetU200_10
+        U200       10      Y              OUTPUT      SN74HCT14DR
+
+[00092] NetU200_12
+        U200       12      Y              OUTPUT      SN74HCT14DR
+
+[00093] NetU201_2
+        U201       2       Y              OUTPUT      SN74HCT14DR
+
+[00094] NetU201_4
+        U201       4       Y              OUTPUT      SN74HCT14DR
+
+[00095] NetU201_6
+        U201       6       Y              OUTPUT      SN74HCT14DR
+
+[00096] NetU201_8
+        U201       8       Y              OUTPUT      SN74HCT14DR
+
+[00097] NetU201_10
+        U201       10      Y              OUTPUT      SN74HCT14DR
+
+[00098] NetU201_12
+        U201       12      Y              OUTPUT      SN74HCT14DR
+

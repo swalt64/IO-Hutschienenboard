@@ -1,0 +1,27 @@
+* LTspice Netlist - Eingang 8VAC 50Hz
+
+V1 IN 0 SINE(0 11.3 50)
+
+D1 IN N1 D
+R1 N1 N2 3.3k
+L1 N1 N2 330u
+R2 N2 N3 560
+
+D2 N3 0 D
+D3 N3 N4 D
+
+G1 N5 0 VALUE = { V(N4)*0.01 }
+
+VCC3 VCC3 0 DC 3.3
+R3 VCC3 N5 3.3k
+R4 N5 0 1k
+C1 N5 0 470n
+
+B1 OUT 0 V = V(N5) > 1.6 ? 3.3 : 0
+
+Rload OUT 0 10k
+
+.model D D
+
+.tran 0 50m
+.end

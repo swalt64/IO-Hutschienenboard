@@ -135,12 +135,29 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=QXKLQRDL
 
+[Document6]
+DocumentPath=HS-IO Baseboard.BomDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=0
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=
+
 [ProjectVariant1]
 UniqueId=2eb02f80-1166-4f0f-9add-b9712f020751
 Description=Teilbestückt
 AllowFabrication=0
 ParameterCount=0
-VariationCount=21
+VariationCount=24
 Variation1=Designator=U100|UniqueId=\KIWHGEKB|Kind=1|AlternatePart=
 Variation2=Designator=R252|UniqueId=\LVRPEEVK|Kind=1|AlternatePart=
 Variation3=Designator=R253|UniqueId=\SQDBEQFV|Kind=1|AlternatePart=
@@ -162,6 +179,9 @@ Variation18=Designator=K306|UniqueId=\LUQCFKEU|Kind=1|AlternatePart=
 Variation19=Designator=K304|UniqueId=\QVDKKLXF|Kind=1|AlternatePart=
 Variation20=Designator=K302|UniqueId=\OWSXTGIV|Kind=1|AlternatePart=
 Variation21=Designator=K300|UniqueId=\ANIRNQOK|Kind=1|AlternatePart=
+Variation22=Designator=12V|UniqueId=\MNKUPJGQ|Kind=1|AlternatePart=
+Variation23=Designator=C102|UniqueId=\DTWKJOWQ|Kind=1|AlternatePart=
+Variation24=Designator=U102|UniqueId=\XVVLVJYZ|Kind=1|AlternatePart=
 ParamVariationCount=0
 
 [GeneratedDocument1]
@@ -169,106 +189,114 @@ DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO
 DItemRevisionGUID=
 
 [GeneratedDocument2]
-DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for PQIO BaseBoard/BOM/Bill of Materials-HS-IO Baseboard.xlsx
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/BOM/Bill of Materials-HS-IO Baseboard(Teilbestückt).xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument3]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.DRR
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for PQIO BaseBoard/BOM/Bill of Materials-HS-IO Baseboard(Teilbestückt).xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument4]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.EXTREP
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for PQIO BaseBoard/BOM/Bill of Materials-HS-IO Baseboard.xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument5]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.LDP
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.DRR
 DItemRevisionGUID=
 
 [GeneratedDocument6]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.REP
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.EXTREP
 DItemRevisionGUID=
 
 [GeneratedDocument7]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.TXT
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.LDP
 DItemRevisionGUID=
 
 [GeneratedDocument8]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_1.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.REP
 DItemRevisionGUID=
 
 [GeneratedDocument9]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_2.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.TXT
 DItemRevisionGUID=
 
 [GeneratedDocument10]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_1.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument11]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_2.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_2.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument12]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Bot.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument13]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Top.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_2.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument14]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Bot.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument15]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Top.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument16]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_NPTH_Drill.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument17]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Bot.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument18]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Top.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_NPTH_Drill.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument19]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Profile.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument20]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_PTH_Drill.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument21]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Bot.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Profile.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument22]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Top.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_PTH_Drill.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument23]
-DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.NET
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument24]
-DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO Baseboard.NET
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument25]
-DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.PRT
+DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.NET
 DItemRevisionGUID=
 
 [GeneratedDocument26]
-DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO ESP32.NET
+DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO Baseboard.NET
 DItemRevisionGUID=
 
 [GeneratedDocument27]
+DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.PRT
+DItemRevisionGUID=
+
+[GeneratedDocument28]
+DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO ESP32.NET
+DItemRevisionGUID=
+
+[GeneratedDocument29]
 DocumentPath=Project Outputs for PQIO BaseBoard\Pick&Place\Pick Place for HS-IO-BaseBoard.csv
 DItemRevisionGUID=
 
@@ -2153,4 +2181,7 @@ ComparisonOptions5=Kind=Structure Class|MinPercent=75|MinMatch=3|ShowMatch=0|Use
 
 [SmartPDF]
 PageOptions=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.00|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
+
+[Parameter Manager Custom Column Order]
+<Schematic>=E01_Value_1,Manufacturer,"Manufacturer Part Number",Supplier,"Supplier Order Number",ComponentLink1Description,ComponentLink1URL,ComponentLink2Description,ComponentLink2URL,Kommentar,"Supplier Price 100pcs"
 

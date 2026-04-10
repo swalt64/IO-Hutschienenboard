@@ -15,13 +15,13 @@ LifeCycleDefinitionGUID=
 RevisionNamingSchemeGUID=
 
 [OutputGroup1]
-Name=PQIO BaserBoard.OutJob
+Name=HS-IO BaserBoard.OutJob
 Description=
-TargetOutputMedium=PDF
-VariantName=PT100
+TargetOutputMedium=BOM
+VariantName=Teilbestückt
 VariantScope=1
 CurrentConfigurationName=
-TargetPrinter=Virtual Printer
+TargetPrinter=EPSON XP-830 Series
 PrinterOptions=Record=PrinterOptions|Copies=1|Duplex=1|TrueTypeOptions=3|Collate=1|PrintJobKind=1|PrintWhat=0
 OutputMedium1=Print Job
 OutputMedium1_Type=Printer
@@ -42,7 +42,7 @@ OutputName1=Schematic Prints
 OutputCategory1=Documentation
 OutputDocumentPath1=
 OutputVariantName1=
-OutputEnabled1=1
+OutputEnabled1=0
 OutputEnabled1_OutputMedium1=0
 OutputEnabled1_OutputMedium2=1
 OutputEnabled1_OutputMedium3=0
@@ -58,7 +58,7 @@ OutputName2=PCB Prints
 OutputCategory2=Documentation
 OutputDocumentPath2=
 OutputVariantName2=PT100
-OutputEnabled2=1
+OutputEnabled2=0
 OutputEnabled2_OutputMedium1=0
 OutputEnabled2_OutputMedium2=2
 OutputEnabled2_OutputMedium3=0
@@ -107,7 +107,7 @@ OutputName3=Composite Drawing
 OutputCategory3=Documentation
 OutputDocumentPath3=
 OutputVariantName3=PT100
-OutputEnabled3=1
+OutputEnabled3=0
 OutputEnabled3_OutputMedium1=0
 OutputEnabled3_OutputMedium2=3
 OutputEnabled3_OutputMedium3=0
@@ -160,7 +160,7 @@ OutputName4=3D Top view
 OutputCategory4=Documentation
 OutputDocumentPath4=
 OutputVariantName4=PT100
-OutputEnabled4=1
+OutputEnabled4=0
 OutputEnabled4_OutputMedium1=0
 OutputEnabled4_OutputMedium2=4
 OutputEnabled4_OutputMedium3=0
@@ -168,7 +168,7 @@ OutputEnabled4_OutputMedium4=0
 OutputEnabled4_OutputMedium5=0
 OutputEnabled4_OutputMedium6=0
 OutputDefault4=0
-PageOptions4=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.88|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
+PageOptions4=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.84|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
 Configuration4_Name1=OutputConfigurationParameter1
 Configuration4_Item1=Record=Pcb3DPrintView|ResX=600|ResY=600|ViewX=62086620|ViewY=34015962|LookAtX=41043312|LookAtY=27007874|LookAtZ=0|UpX=0|UpY=1|UpZ=0|FOV=0|QuatX=0|QuatY=0|QuatZ=0|QuatW=1|Zoom=4.37614416761615E-5|UnitsPercent=True|UnitsDPI=True|LockResAspect=True|ViewConfigType=.config_3d|CustomCamera=False|ViewFromTop=True|ScreenWidth=0|ScreenHeight=0|ImageOutputType=1|ViewConfig= |DocumentPath=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\PQIO-BaseBoard.PcbDoc
 OutputType5=PCB 3D Print
@@ -176,7 +176,7 @@ OutputName5=3D Bottom view
 OutputCategory5=Documentation
 OutputDocumentPath5=
 OutputVariantName5=PT100
-OutputEnabled5=1
+OutputEnabled5=0
 OutputEnabled5_OutputMedium1=0
 OutputEnabled5_OutputMedium2=5
 OutputEnabled5_OutputMedium3=0
@@ -184,7 +184,7 @@ OutputEnabled5_OutputMedium4=0
 OutputEnabled5_OutputMedium5=0
 OutputEnabled5_OutputMedium6=0
 OutputDefault5=0
-PageOptions5=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.88|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
+PageOptions5=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.84|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
 Configuration5_Name1=OutputConfigurationParameter1
 Configuration5_Item1=Record=Pcb3DPrintView|ResX=600|ResY=600|ViewX=62086620|ViewY=34015962|LookAtX=41043312|LookAtY=27007874|LookAtZ=0|UpX=0|UpY=1|UpZ=0|FOV=0|QuatX=0|QuatY=0|QuatZ=0|QuatW=1|Zoom=4.37614416761615E-5|UnitsPercent=True|UnitsDPI=True|LockResAspect=True|ViewConfigType=.config_3d|CustomCamera=False|ViewFromTop=False|ScreenWidth=0|ScreenHeight=0|ImageOutputType=1|ViewConfig= |DocumentPath=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\PQIO-BaseBoard.PcbDoc
 OutputType6=BOM_PartType
@@ -192,7 +192,7 @@ OutputName6=Bill of Materials
 OutputCategory6=Report
 OutputDocumentPath6=
 OutputVariantName6=
-OutputEnabled6=0
+OutputEnabled6=1
 OutputEnabled6_OutputMedium1=0
 OutputEnabled6_OutputMedium2=0
 OutputEnabled6_OutputMedium3=1
@@ -273,15 +273,15 @@ OutputEnabled10_OutputMedium6=1
 OutputDefault10=0
 
 [PublishSettings]
-OutputFilePath2=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\Project Outputs for PQIO BaseBoard\Documentation Outputs\PQIO BaseBoard.PDF
-ReleaseManaged2=0
-OutputBasePath2=Project Outputs for PQIO BaseBoard\
+OutputFilePath2=c:\Users\stwal\OneDrive\entwickl\ESP32-Projects\IO-Hutschienenboard\HARDWARE\PCB\Base Board\HS-IO Baseboard\Project Outputs for HS-IO Baseboard\Documentation Outputs\HS-IO Baseboard.PDF
+ReleaseManaged2=1
+OutputBasePath2=Project Outputs for HS-IO Baseboard
 OutputPathMedia2=Documentation Outputs
 OutputPathMediaValue2=Documentation Outputs
 OutputPathOutputer2=[Output Type]
 OutputPathOutputerPrefix2=
 OutputPathOutputerValue2=
-OutputFileName2=PQIO BaserBoard.PDF
+OutputFileName2=HS-IO BaserBoard.PDF
 OutputFileNameMulti2=
 UseOutputNameForMulti2=0
 OutputFileNameSpecial2==ProjectName
@@ -300,9 +300,9 @@ ShowComponentParameters2=1
 GlobalBookmarks2=0
 PDFACompliance2=Disabled
 PDFVersion2=Default
-OutputFilePath3=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\Project Outputs for PQIO BaseBoard\
-ReleaseManaged3=0
-OutputBasePath3=Project Outputs for PQIO BaseBoard\
+OutputFilePath3=c:\Users\stwal\OneDrive\entwickl\ESP32-Projects\IO-Hutschienenboard\HARDWARE\PCB\Base Board\HS-IO Baseboard\Project Outputs for HS-IO Baseboard\
+ReleaseManaged3=1
+OutputBasePath3=Project Outputs for HS-IO Baseboard
 OutputPathMedia3=
 OutputPathMediaValue3=
 OutputPathOutputer3=[Output Type]
@@ -341,7 +341,7 @@ OutputFileNameSpecial5=
 OpenOutput5=1
 OutputFilePath6=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\Project Outputs for PQIO BaseBoard\
 ReleaseManaged6=1
-OutputBasePath6=Project Outputs for PQIO BaseBoard
+OutputBasePath6=Project Outputs for HS-IO Baseboard
 OutputPathMedia6=[Media Name]
 OutputPathMediaValue6=
 OutputPathOutputer6=[Output Type]
@@ -354,9 +354,9 @@ OutputFileNameSpecial6=
 OpenOutput6=1
 
 [GeneratedFilesSettings]
-RelativeOutputPath2=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\Project Outputs for PQIO BaseBoard\Documentation Outputs\PQIO BaseBoard.PDF
+RelativeOutputPath2=c:\Users\stwal\OneDrive\entwickl\ESP32-Projects\IO-Hutschienenboard\HARDWARE\PCB\Base Board\HS-IO Baseboard\Project Outputs for HS-IO Baseboard\Documentation Outputs\HS-IO Baseboard.PDF
 OpenOutputs2=1
-RelativeOutputPath3=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\Project Outputs for PQIO BaseBoard\
+RelativeOutputPath3=c:\Users\stwal\OneDrive\entwickl\ESP32-Projects\IO-Hutschienenboard\HARDWARE\PCB\Base Board\HS-IO Baseboard\Project Outputs for HS-IO Baseboard\
 OpenOutputs3=1
 AddToProject3=1
 TimestampFolder3=0

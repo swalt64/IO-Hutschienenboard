@@ -1,14 +1,11 @@
-Project Outputs Generation Report
----------------------------------
-Start Output Generation At 14:19:39 On 10.04.2026
-
-Output: Bill of Materials
-Type  : BOM
-From  : Variant [[No Variations]] of Project [HS-IO Baseboard.PrjPcb]
-   Generated File[//d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/BOM/Bill of Materials-HS-IO Baseboard.xlsx]
+Output: PADS ASCII Netlist
+Type  : PADSNetlist
+From  : Project [HS-IO Baseboard.PrjPcb]
+   Generated File[HS-IO Baseboard.NET]
+   Generated File[HS-IO Baseboard.PRT]
 
 
-Files Generated   : 1
+Files Generated   : 2
 Documents Printed : 0
 
-Finished Output Generation At 14:19:42 On 10.04.2026
+Finished Output Generation At 09:21:13 On 12.04.2026

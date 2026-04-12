@@ -22,7 +22,11 @@
       "Bash(PDF=\"c:/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/Documentation Outputs/HS-IO Baseboard.PDF\")",
       "Bash(\"c:/Users/stwal/.platformio/penv/Scripts/python.exe\" -c \":*)",
       "Bash(PDF=\"c:/Users/stwal/OneDrive/entwickl/ESP32-Projects/IO-Hutschienenboard/DOKU/esp32-s3（non-antenna）.pdf\")",
-      "Bash(OUTDIR=\"/tmp/pcb_pdf\")"
+      "Bash(OUTDIR=\"/tmp/pcb_pdf\")",
+      "WebFetch(domain:www.altium.com)",
+      "WebFetch(domain:forum.allaboutcircuits.com)",
+      "WebFetch(domain:blog.mbedded.ninja)",
+      "Bash(curl -s \"https://forum.altium.com/search?q=V26+3D+models+disappear+STEP\" --max-time 15 -L)"
     ]
   }
 }

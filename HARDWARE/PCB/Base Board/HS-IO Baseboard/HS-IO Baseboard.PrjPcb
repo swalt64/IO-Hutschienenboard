@@ -193,120 +193,220 @@ DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO
 DItemRevisionGUID=
 
 [GeneratedDocument3]
-DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for PQIO BaseBoard/BOM/Bill of Materials-HS-IO Baseboard(Teilbestückt).xlsx
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/BOM/Bill of Materials-HS-IO Baseboard.xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument4]
-DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for PQIO BaseBoard/BOM/Bill of Materials-HS-IO Baseboard.xlsx
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/BOM/BOM/Bill of Materials-HS-IO Baseboard(Teilbestückt).xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument5]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.DRR
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for HS-IO Baseboard/BOM/BOM/Bill of Materials-HS-IO Baseboard.xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument6]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.EXTREP
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for PQIO BaseBoard/BOM/Bill of Materials-HS-IO Baseboard(Teilbestückt).xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument7]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.LDP
+DocumentPath=https://d.docs.live.net/a6b938ace8709119/entwickl/ESP32-Projects/IO-Hutschienenboard/HARDWARE/PCB/Base Board/HS-IO Baseboard/Project Outputs for PQIO BaseBoard/BOM/Bill of Materials-HS-IO Baseboard.xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument8]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.REP
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\NC Drill\HS-IO-BaseBoard.DRR
 DItemRevisionGUID=
 
 [GeneratedDocument9]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.TXT
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.DRR
 DItemRevisionGUID=
 
 [GeneratedDocument10]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_1.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard.EXTREP
 DItemRevisionGUID=
 
 [GeneratedDocument11]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_2.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.EXTREP
 DItemRevisionGUID=
 
 [GeneratedDocument12]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_1.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\NC Drill\HS-IO-BaseBoard.LDP
 DItemRevisionGUID=
 
 [GeneratedDocument13]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_2.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.LDP
 DItemRevisionGUID=
 
 [GeneratedDocument14]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Bot.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard.REP
 DItemRevisionGUID=
 
 [GeneratedDocument15]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Top.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard.REP
 DItemRevisionGUID=
 
 [GeneratedDocument16]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Bot.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\NC Drill\HS-IO-BaseBoard.TXT
 DItemRevisionGUID=
 
 [GeneratedDocument17]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Top.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\NC Drill\HS-IO-BaseBoard.TXT
 DItemRevisionGUID=
 
 [GeneratedDocument18]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_NPTH_Drill.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument19]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Bot.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument20]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Top.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_2.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument21]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Profile.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Plane_2.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument22]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_PTH_Drill.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument23]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Bot.gbr
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument24]
-DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Top.gbr
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_2.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument25]
-DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.NET
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_2.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument26]
-DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO Baseboard.NET
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument27]
-DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.PRT
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument28]
-DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO ESP32.NET
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument29]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Copper_Signal_Top.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument30]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Bot.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument31]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Bot.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument32]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Top.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument33]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Legend_Top.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument34]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_NPTH_Drill.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument35]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_NPTH_Drill.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument36]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Bot.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument37]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Bot.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument38]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Top.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument39]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Paste_Top.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument40]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Profile.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument41]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Profile.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument42]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_PTH_Drill.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument43]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_PTH_Drill.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument44]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Bot.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument45]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Bot.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument46]
+DocumentPath=Project Outputs for HS-IO Baseboard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Top.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument47]
+DocumentPath=Project Outputs for PQIO BaseBoard\Gerber etc.\GerberX2\HS-IO-BaseBoard_Soldermask_Top.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument48]
+DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.NET
+DItemRevisionGUID=
+
+[GeneratedDocument49]
+DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO Baseboard.NET
+DItemRevisionGUID=
+
+[GeneratedDocument50]
+DocumentPath=Project Outputs for Free Documents\NET-List & BOM\PADSNetlist\HS-IO Baseboard.PRT
+DItemRevisionGUID=
+
+[GeneratedDocument51]
+DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO Baseboard.PRT
+DItemRevisionGUID=
+
+[GeneratedDocument52]
+DocumentPath=Project Outputs for HS-IO Baseboard\HS-IO ESP32.NET
+DItemRevisionGUID=
+
+[GeneratedDocument53]
+DocumentPath=Project Outputs for HS-IO Baseboard\Pick&Place\Pick Place for HS-IO-BaseBoard.csv
+DItemRevisionGUID=
+
+[GeneratedDocument54]
 DocumentPath=Project Outputs for PQIO BaseBoard\Pick&Place\Pick Place for HS-IO-BaseBoard.csv
 DItemRevisionGUID=
 
 [Parameter1]
-Name=Designer
-Value=S .Waltersberger
+Name=Version
+Value=1.1
 
 [Parameter2]
-Name=Version
-Value=1.0
+Name=Designer
+Value=S .Waltersberger
 
 [Configuration1]
 Name=Sources
@@ -323,57 +423,57 @@ Name=Netlist Outputs
 Description=
 TargetPrinter=EPSON XP-830 Series
 PrinterOptions=Record=PrinterOptions|Copies=1|Duplex=1|TrueTypeOptions=3|Collate=1|PrintJobKind=1|PrintWhat=1
-OutputType1=CadnetixNetlist
-OutputName1=Cadnetix Netlist
+OutputType1=RacalNetlist
+OutputName1=Racal Netlist
 OutputDocumentPath1=
 OutputVariantName1=
 OutputDefault1=0
-Configuration1_Name1=ForceUpdateSettings
-Configuration1_Item1=False
-OutputType2=CalayNetlist
-OutputName2=Calay Netlist
+OutputType2=RINFNetlist
+OutputName2=RINF Netlist
 OutputDocumentPath2=
 OutputVariantName2=
 OutputDefault2=0
-OutputType3=EDIF
-OutputName3=EDIF for PCB
+OutputType3=ProtelNetlist
+OutputName3=Protel
 OutputDocumentPath3=
 OutputVariantName3=
 OutputDefault3=0
-OutputType4=EESofNetlist
-OutputName4=EESof Netlist
+OutputType4=PCADnltNetlist
+OutputName4=PCADnlt Netlist
 OutputDocumentPath4=
 OutputVariantName4=
 OutputDefault4=0
-OutputType5=IntergraphNetlist
-OutputName5=Intergraph Netlist
+OutputType5=Protel2Netlist
+OutputName5=Protel2 Netlist
 OutputDocumentPath5=
 OutputVariantName5=
 OutputDefault5=0
-OutputType6=MentorBoardStationNetlist
-OutputName6=Mentor BoardStation Netlist
+OutputType6=WireListNetlist
+OutputName6=WireList Netlist
 OutputDocumentPath6=
 OutputVariantName6=
 OutputDefault6=0
-OutputType7=MultiWire
-OutputName7=MultiWire
+Configuration6_Name1=ForceUpdateSettings
+Configuration6_Item1=False
+Configuration6_Name2=OutputConfigurationParameter1
+Configuration6_Item2==.config_3d|CustomCamera=False|ViewFromTop=False|ScreenWidth=0|ScreenHeight=0|ImageOutputType=1|ViewConfig= |DocumentPath=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\PQIO-BaseBoard.PcbDoc
+OutputType7=XSpiceNetlist
+OutputName7=Mixed Sim Netlist
 OutputDocumentPath7=
 OutputVariantName7=
 OutputDefault7=0
-OutputType8=OrCadPCB2Netlist
-OutputName8=Orcad/PCB2 Netlist
+OutputType8=TelesisNetlist
+OutputName8=Telesis Netlist
 OutputDocumentPath8=
 OutputVariantName8=
 OutputDefault8=0
-Configuration8_Name1=ForceUpdateSettings
-Configuration8_Item1=False
-OutputType9=PADSNetlist
-OutputName9=PADS ASCII Netlist
+OutputType9=SciCardsNetlist
+OutputName9=SciCards Netlist
 OutputDocumentPath9=
 OutputVariantName9=
 OutputDefault9=0
-OutputType10=Pcad
-OutputName10=Pcad for PCB
+OutputType10=TangoNetlist
+OutputName10=Tango Netlist
 OutputDocumentPath10=
 OutputVariantName10=
 OutputDefault10=0
@@ -382,53 +482,61 @@ OutputName11=PCAD Netlist
 OutputDocumentPath11=
 OutputVariantName11=
 OutputDefault11=0
-OutputType12=PCADnltNetlist
-OutputName12=PCADnlt Netlist
+OutputType12=EESofNetlist
+OutputName12=EESof Netlist
 OutputDocumentPath12=
 OutputVariantName12=
 OutputDefault12=0
-OutputType13=Protel2Netlist
-OutputName13=Protel2 Netlist
+OutputType13=IntergraphNetlist
+OutputName13=Intergraph Netlist
 OutputDocumentPath13=
 OutputVariantName13=
 OutputDefault13=0
-OutputType14=ProtelNetlist
-OutputName14=Protel
+OutputType14=EDIF
+OutputName14=EDIF for PCB
 OutputDocumentPath14=
 OutputVariantName14=
 OutputDefault14=0
-OutputType15=RacalNetlist
-OutputName15=Racal Netlist
+OutputType15=CadnetixNetlist
+OutputName15=Cadnetix Netlist
 OutputDocumentPath15=
 OutputVariantName15=
 OutputDefault15=0
-OutputType16=RINFNetlist
-OutputName16=RINF Netlist
+Configuration15_Name1=ForceUpdateSettings
+Configuration15_Item1=False
+OutputType16=CalayNetlist
+OutputName16=Calay Netlist
 OutputDocumentPath16=
 OutputVariantName16=
 OutputDefault16=0
-OutputType17=SciCardsNetlist
-OutputName17=SciCards Netlist
+OutputType17=PADSNetlist
+OutputName17=PADS ASCII Netlist
 OutputDocumentPath17=
 OutputVariantName17=
 OutputDefault17=0
-OutputType18=TangoNetlist
-OutputName18=Tango Netlist
+Configuration17_Name1=ForceUpdateSettings
+Configuration17_Item1=False
+Configuration17_Name2=OutputConfigurationParameter1
+Configuration17_Item2=CustomCamera=False|ViewFromTop=False|ScreenWidth=0|ScreenHeight=0|ImageOutputType=1|ViewConfig= |DocumentPath=D:\Projekte\Embedded\PQIO\PQIO hardware\PCB\Base Board\PQIO-BaseBoard.PcbDoc
+OutputType18=Pcad
+OutputName18=Pcad for PCB
 OutputDocumentPath18=
 OutputVariantName18=
 OutputDefault18=0
-OutputType19=TelesisNetlist
-OutputName19=Telesis Netlist
+OutputType19=OrCadPCB2Netlist
+OutputName19=Orcad/PCB2 Netlist
 OutputDocumentPath19=
 OutputVariantName19=
 OutputDefault19=0
-OutputType20=WireListNetlist
-OutputName20=WireList Netlist
+Configuration19_Name1=ForceUpdateSettings
+Configuration19_Item1=False
+OutputType20=MentorBoardStationNetlist
+OutputName20=Mentor BoardStation Netlist
 OutputDocumentPath20=
 OutputVariantName20=
 OutputDefault20=0
-OutputType21=XSpiceNetlist
-OutputName21=Mixed Sim Netlist
+OutputType21=MultiWire
+OutputName21=MultiWire
 OutputDocumentPath21=
 OutputVariantName21=
 OutputDefault21=0

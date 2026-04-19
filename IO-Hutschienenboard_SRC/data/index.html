@@ -61,8 +61,10 @@
             <label>SSID: <input type="text" id="wifi-ssid"></label>
             <label>Passwort: <input type="password" id="wifi-pass"></label>
             <button onclick="saveWifi()">Speichern &amp; Neustart</button>
+            <button onclick="location.href='/update'" style="background:#6366f1;margin-left:8px;">Firmware Update</button>
         </div>
         <div class="status" id="wifi-info"></div>
+        <div class="status" id="fw-version" style="color:#4b5563;font-size:0.75rem;"></div>
     </div>
 
 <script>
@@ -115,7 +117,7 @@ function formatRemaining(seconds) {
 function tickCountdown() {
     let changed = false;
     for (let i = 0; i < NUM_CH; i++) {
-        if (state.outputs[i] && state.timers[i] > 0 && state.remaining[i] > 0) {
+        if (state.outputs[i] && state.remaining[i] > 0) {
             state.remaining[i] -= 1;
             changed = true;
         }
@@ -144,7 +146,7 @@ function updateUI() {
         }
 
         const remainingEl = document.getElementById(`remaining-${i}`);
-        if (state.outputs[i] && state.timers[i] > 0) {
+        if (state.outputs[i] && state.remaining[i] > 0) {
             remainingEl.textContent = `Rest: ${formatRemaining(state.remaining[i])}`;
         } else {
             remainingEl.textContent = 'Rest: --';
@@ -214,8 +216,10 @@ fetch('/api/state').then(r => r.json()).then(data => {
     updateUI();
 
     document.getElementById('wifi-ssid').value = data.sta_ssid || '';
+    document.getElementById('wifi-pass').value = data.sta_pass || '';
     document.getElementById('wifi-info').textContent =
         `AP: ${data.ap_ip} | STA: ${data.sta_ip} (${data.sta_ssid || 'nicht konfiguriert'})`;
+    if (data.version) document.getElementById('fw-version').textContent = `Firmware: v${data.version}`;
 });
 
 initTable();

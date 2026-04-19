@@ -34,6 +34,18 @@
             }
         },
         {
+            "label": "Build LittleFS (littlefs.bin)",
+            "type": "shell",
+            "command": "${userHome}/.platformio/penv/Scripts/pio",
+            "args": ["run", "-t", "buildfs"],
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
             "label": "Upload Webseite (LittleFS)",
             "type": "shell",
             "command": "${userHome}/.platformio/penv/Scripts/pio",

@@ -9,6 +9,8 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <Preferences.h>
+#include <ArduinoOTA.h>
+#include <ElegantOTA.h>
 #if !SIMULATE_HW
 #include <Adafruit_MCP23X17.h>
 #endif
@@ -18,6 +20,8 @@
 #include "display.h"
 
 using namespace dbg;
+
+#define FW_VERSION "1.1.0"
 
 #ifndef OLED_HARDTEST
 #define OLED_HARDTEST 0
@@ -122,7 +126,6 @@ uint8_t displayChannel = 0;
 uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
     if (ch >= NUM_CHANNELS) return 0;
     if (!relayState[ch]) return 0;
-    if (autoOffSeconds[ch] == 0) return 0;
     if (relayOnTimestamp[ch] == 0) return 0;
 
     const int64_t totalMs = (int64_t)autoOffSeconds[ch] * 1000LL + tempTimeAdjustMs[ch];
@@ -135,6 +138,13 @@ uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
     return (remainingMs + 999UL) / 1000UL;
 }
 
+static int32_t btnStepMs(uint32_t remainSecs) {
+    if (remainSecs <= 900)  return 60000;        // bis 15 min → 1 min
+    if (remainSecs <= 3600) return 300000;       // bis 1h    → 5 min
+    if (remainSecs <= 21600) return 900000;      // bis 6h    → 15 min
+    return 1800000;                              // darüber   → 30 min
+}
+
 // ============================================================
 // Display-Aktualisierung für den aktuell angezeigten Kanal
 // ============================================================
@@ -142,7 +152,7 @@ void updateDisplay() {
     uint8_t ch = displayChannel;
     display::show(ch, channelNames[ch], relayState[ch],
                   getRemainingAutoOffSeconds(ch, millis()),
-                  autoOffSeconds[ch] > 0);
+                  autoOffSeconds[ch] > 0 || tempTimeAdjustMs[ch] > 0);
 }
 
 // ============================================================
@@ -160,7 +170,8 @@ void updateTopLeds() {
     bool systemReady = (mcpReady[0] && mcpReady[1]);
 
     // aktiv-low: LOW = LED an, HIGH = LED aus
-    mcpTop.digitalWrite(LED_WLAN_PIN,   staConnected ? LOW : HIGH);
+    bool wlanActive = staConnected || (WiFi.getMode() & WIFI_AP);
+    mcpTop.digitalWrite(LED_WLAN_PIN,   wlanActive   ? LOW : HIGH);
     mcpTop.digitalWrite(LED_OUTPUT_PIN, anyRelayOn   ? LOW : HIGH);
     mcpTop.digitalWrite(LED_RUN_PIN,    systemReady  ? LOW : HIGH);
 #endif
@@ -497,32 +508,36 @@ void handleButton(uint8_t btn) {
     unsigned long now = millis();
 
     if (btn == BTN_UP) {
-        displayChannel = (displayChannel + 11) % NUM_CHANNELS;
+        displayChannel = (displayChannel + 1) % NUM_CHANNELS;
         updateDisplay();
     } else if (btn == BTN_DOWN) {
-        displayChannel = (displayChannel + 1) % NUM_CHANNELS;
+        displayChannel = (displayChannel + NUM_CHANNELS - 1) % NUM_CHANNELS;
         updateDisplay();
     } else if (btn == BTN_ENTER) {
         toggleRelay(displayChannel);
         sendState();
     } else if (btn == BTN_RIGHT) {
         uint8_t ch = displayChannel;
-        if (relayState[ch] && autoOffSeconds[ch] > 0) {
+        if (relayState[ch]) {
+            if (autoOffSeconds[ch] == 0 && tempTimeAdjustMs[ch] == 0)
+                tempTimeAdjustMs[ch] = 86400000L;  // Default 24h
             uint32_t rem = getRemainingAutoOffSeconds(ch, now);
-            if (rem < 86400) {  // cap bei 24h
-                tempTimeAdjustMs[ch] += 60000;
-            }
+            int32_t step = btnStepMs(rem);
+            if (rem < 86400) tempTimeAdjustMs[ch] += step;
             updateDisplay();
             sendState();
         }
     } else if (btn == BTN_LEFT) {
         uint8_t ch = displayChannel;
-        if (relayState[ch] && autoOffSeconds[ch] > 0) {
+        if (relayState[ch]) {
+            if (autoOffSeconds[ch] == 0 && tempTimeAdjustMs[ch] == 0)
+                tempTimeAdjustMs[ch] = 86400000L;  // Default 24h
             uint32_t rem = getRemainingAutoOffSeconds(ch, now);
-            if (rem <= 60) {
+            int32_t step = btnStepMs(rem);
+            if (rem <= (uint32_t)(step / 1000)) {
                 setRelay(ch, false);
             } else {
-                tempTimeAdjustMs[ch] -= 60000;
+                tempTimeAdjustMs[ch] -= step;
                 updateDisplay();
             }
             sendState();
@@ -785,6 +800,8 @@ void setupWebServer() {
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
         doc["sta_ssid"] = sta_ssid;
+        doc["sta_pass"] = sta_pass;
+        doc["version"] = FW_VERSION;
         doc["mcp1"] = mcpReady[0];
         doc["mcp2"] = mcpReady[1];
         doc["time"] = dbg::getTimestamp();
@@ -801,6 +818,9 @@ void setupWebServer() {
         req->send(204);
     });
 
+    ElegantOTA.begin(&server);
+    ElegantOTA.setAutoReboot(true);
+
     ws.onEvent(onWebSocketEvent);
     server.addHandler(&ws);
 
@@ -816,6 +836,7 @@ void setupWebServer() {
 void setupInputPins() {
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         pinMode(INPUT_PINS[i], INPUT);
+        inputStatePrev[i] = digitalRead(INPUT_PINS[i]);
     }
 }
 
@@ -872,6 +893,14 @@ void setup() {
     setupWiFi();
     setupWebServer();
 
+    ArduinoOTA.setHostname("io-hutschiene");
+    ArduinoOTA.setPassword("ota1234");
+    ArduinoOTA.onStart([]() { dbg::info(CAT_SYSTEM, "ArduinoOTA Start"); });
+    ArduinoOTA.onEnd([]()   { dbg::info(CAT_SYSTEM, "ArduinoOTA Ende"); });
+    ArduinoOTA.onError([](ota_error_t e) { dbg::error(CAT_SYSTEM, "ArduinoOTA Fehler: %u", e); });
+    ArduinoOTA.begin();
+    dbg::info(CAT_SYSTEM, "ArduinoOTA bereit (Port 3232)");
+
     // Reset all relays to OFF on startup (RESET-Impuls auf MCP 0x21)
 #if !SIMULATE_HW
     if (mcpReady[MCP_RESET]) {
@@ -897,27 +926,52 @@ void loop() {
     return;
 #endif
 
+    ArduinoOTA.handle();
+    ElegantOTA.loop();
+
     ws.cleanupClients();
     statusled::update();
 
-    // Top Board: Taster via MCP23017 INTA (GPIO13)
+    // Top Board: Taster via Polling (50ms-Takt) + INTA-Interrupt als Trigger
 #if !SIMULATE_HW
-    if (topBtnFlag) {
-        topBtnFlag = false;
-        if (mcpTopReady) {
-            static unsigned long lastBtnMs = 0;
-            unsigned long nowBtn = millis();
-            // readGPIOAB liest GPA+GPB und loescht dabei den MCP-Interrupt
+    if (mcpTopReady) {
+        static unsigned long lastPollMs  = 0;
+        static uint8_t       lastGpa     = 0xFF;
+        static uint8_t       heldBtn     = 0xFF;   // aktuell gehaltene Taste
+        static unsigned long heldSince   = 0;       // wann gedrückt
+        static unsigned long lastRepeatMs = 0;      // letzter Repeat-Feuerzeitpunkt
+        static const uint32_t REPEAT_DELAY_MS  = 600;
+        static const uint32_t REPEAT_PERIOD_MS = 150;
+
+        unsigned long nowBtn = millis();
+        if (topBtnFlag || (nowBtn - lastPollMs >= 50)) {
+            topBtnFlag = false;
+            lastPollMs = nowBtn;
             uint16_t gpioVal = mcpTop.readGPIOAB();
-            uint8_t  gpa     = gpioVal & 0xFF;  // GPA: Taster-Port
-            if (nowBtn - lastBtnMs >= 50) {     // 50ms Entprellung
-                lastBtnMs = nowBtn;
-                // aktiv-low: Bit = 0 → Taster gedrueckt
-                if (!(gpa & (1 << BTN_ENTER))) handleButton(BTN_ENTER);
-                if (!(gpa & (1 << BTN_UP)))    handleButton(BTN_UP);
-                if (!(gpa & (1 << BTN_DOWN)))  handleButton(BTN_DOWN);
-                if (!(gpa & (1 << BTN_LEFT)))  handleButton(BTN_LEFT);
-                if (!(gpa & (1 << BTN_RIGHT))) handleButton(BTN_RIGHT);
+            uint8_t  gpa     = gpioVal & 0xFF;
+            uint8_t  held    = (~gpa) & 0x1F;   // aktuell gedrückte Bits (alle 5 Tasten)
+            uint8_t  pressed = (~gpa) & lastGpa; // nur neue Flanken
+            lastGpa = gpa;
+
+            // Flanken: sofort auslösen
+            if (pressed & (1 << BTN_ENTER)) handleButton(BTN_ENTER);
+            if (pressed & (1 << BTN_UP))    handleButton(BTN_UP);
+            if (pressed & (1 << BTN_DOWN))  handleButton(BTN_DOWN);
+            if (pressed & (1 << BTN_LEFT))  { handleButton(BTN_LEFT);  heldBtn = BTN_LEFT;  heldSince = nowBtn; lastRepeatMs = nowBtn; }
+            if (pressed & (1 << BTN_RIGHT)) { handleButton(BTN_RIGHT); heldBtn = BTN_RIGHT; heldSince = nowBtn; lastRepeatMs = nowBtn; }
+
+            // Auto-Repeat für LEFT / RIGHT
+            if (heldBtn != 0xFF) {
+                if (held & (1 << heldBtn)) {
+                    // Taste noch gehalten
+                    if ((nowBtn - heldSince >= REPEAT_DELAY_MS) &&
+                        (nowBtn - lastRepeatMs >= REPEAT_PERIOD_MS)) {
+                        lastRepeatMs = nowBtn;
+                        handleButton(heldBtn);
+                    }
+                } else {
+                    heldBtn = 0xFF; // losgelassen
+                }
             }
         }
     }
@@ -945,7 +999,7 @@ void loop() {
     // Auto-off timer check (berücksichtigt tempTimeAdjustMs)
     unsigned long now = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-        if (relayState[i] && autoOffSeconds[i] > 0 && relayOnTimestamp[i] > 0) {
+        if (relayState[i] && (autoOffSeconds[i] > 0 || tempTimeAdjustMs[i] > 0) && relayOnTimestamp[i] > 0) {
             if (getRemainingAutoOffSeconds(i, now) == 0) {
                 dbg::info(CAT_TIMER, "Auto-Aus: Relais %d", i + 1);
                 setRelay(i, false);

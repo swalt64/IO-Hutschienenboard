@@ -9,5 +9,5 @@ namespace display {
     void showBoot(const char* version = "");
 
     void show(uint8_t ch, const char* name, bool relayOn,
-              uint32_t remainSecs, bool hasTimer);
+              uint32_t remainSecs, bool hasTimer, uint16_t stateMask = 0);
 }

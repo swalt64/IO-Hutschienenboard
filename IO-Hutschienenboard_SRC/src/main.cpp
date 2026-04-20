@@ -124,7 +124,13 @@ int8_t inputMapping[NUM_CHANNELS];
 
 uint32_t autoOffSeconds[NUM_CHANNELS] = {0};
 unsigned long relayOnTimestamp[NUM_CHANNELS] = {0};
-int32_t tempTimeAdjustMs[NUM_CHANNELS] = {0};  // temporäre Zeitkorrektur via Taster (kein NVS)
+int32_t tempTimeAdjustMs[NUM_CHANNELS] = {0};
+unsigned long timerFreezeStart[NUM_CHANNELS]  = {0};  // Freeze-Beginn (0=inaktiv)
+unsigned long timerFreezeExpiry[NUM_CHANNELS] = {0};  // Freeze-Ablauf
+
+static inline unsigned long getTimerEffectiveNow(uint8_t ch) {
+    return (timerFreezeStart[ch] > 0) ? timerFreezeStart[ch] : millis();
+}
 
 char channelNames[NUM_CHANNELS][CH_NAME_MAX_LEN + 1];
 uint8_t displayChannel = 0;
@@ -156,9 +162,13 @@ static int32_t btnStepMs(uint32_t remainSecs) {
 // ============================================================
 void updateDisplay() {
     uint8_t ch = displayChannel;
+    uint16_t mask = 0;
+    for (uint8_t i = 0; i < NUM_CHANNELS; i++)
+        if (relayState[i]) mask |= (1u << i);
     display::show(ch, channelNames[ch], relayState[ch],
-                  getRemainingAutoOffSeconds(ch, millis()),
-                  autoOffSeconds[ch] > 0 || tempTimeAdjustMs[ch] > 0);
+                  getRemainingAutoOffSeconds(ch, getTimerEffectiveNow(ch)),
+                  autoOffSeconds[ch] > 0 || tempTimeAdjustMs[ch] > 0,
+                  mask);
 }
 
 // ============================================================
@@ -177,9 +187,15 @@ void updateTopLeds() {
 
     // aktiv-low: LOW = LED an, HIGH = LED aus
     bool wlanActive = staConnected || (WiFi.getMode() & WIFI_AP);
-    mcpTop.digitalWrite(LED_WLAN_PIN,   wlanActive   ? LOW : HIGH);
-    mcpTop.digitalWrite(LED_OUTPUT_PIN, anyRelayOn   ? LOW : HIGH);
-    mcpTop.digitalWrite(LED_RUN_PIN,    systemReady  ? LOW : HIGH);
+    mcpTop.digitalWrite(LED_WLAN_PIN,   wlanActive ? LOW : HIGH);
+    mcpTop.digitalWrite(LED_OUTPUT_PIN, anyRelayOn ? LOW : HIGH);
+    // RUN-LED: 2s-Blinker (1s an, 1s aus) wenn System bereit
+    if (systemReady) {
+        bool runOn = ((millis() / 1000) % 2) == 0;
+        mcpTop.digitalWrite(LED_RUN_PIN, runOn ? LOW : HIGH);
+    } else {
+        mcpTop.digitalWrite(LED_RUN_PIN, HIGH);  // aus
+    }
 #endif
 }
 
@@ -339,7 +355,9 @@ void setRelay(uint8_t ch, bool on) {
     mcp[mcpIdx].digitalWrite(pin, LOW);
 #endif
 
-    tempTimeAdjustMs[ch] = 0;
+    tempTimeAdjustMs[ch]  = 0;
+    timerFreezeStart[ch]  = 0;
+    timerFreezeExpiry[ch] = 0;
     relayState[ch] = on;
     relayOnTimestamp[ch] = on ? millis() : 0;
     dbg::info(CAT_RELAY, "Relais %d: %s", ch + 1, on ? "EIN" : "AUS");
@@ -522,28 +540,36 @@ void handleButton(uint8_t btn) {
     } else if (btn == BTN_ENTER) {
         toggleRelay(displayChannel);
         sendState();
-    } else if (btn == BTN_RIGHT) {
+    } else if (btn == BTN_RIGHT || btn == BTN_LEFT) {
         uint8_t ch = displayChannel;
         if (relayState[ch]) {
             if (autoOffSeconds[ch] == 0 && tempTimeAdjustMs[ch] == 0)
                 tempTimeAdjustMs[ch] = 86400000L;  // Default 24h
-            uint32_t rem = getRemainingAutoOffSeconds(ch, now);
-            int32_t step = btnStepMs(rem);
-            if (rem < 86400) tempTimeAdjustMs[ch] += step;
-            updateDisplay();
-            sendState();
-        }
-    } else if (btn == BTN_LEFT) {
-        uint8_t ch = displayChannel;
-        if (relayState[ch]) {
-            if (autoOffSeconds[ch] == 0 && tempTimeAdjustMs[ch] == 0)
-                tempTimeAdjustMs[ch] = 86400000L;  // Default 24h
-            uint32_t rem = getRemainingAutoOffSeconds(ch, now);
-            int32_t step = btnStepMs(rem);
-            if (rem <= (uint32_t)(step / 1000)) {
+
+            // Freeze aktivieren/verlängern
+            if (timerFreezeStart[ch] == 0) timerFreezeStart[ch] = now;
+            timerFreezeExpiry[ch] = now + 5000;
+
+            uint32_t rem  = getRemainingAutoOffSeconds(ch, timerFreezeStart[ch]);
+            uint32_t step = (uint32_t)(btnStepMs(rem) / 1000);  // Rasterschrittweite in Sekunden
+
+            uint32_t newRem;
+            if (btn == BTN_RIGHT) {
+                // Auf nächsten Rastwert aufrunden
+                newRem = (rem / step + 1) * step;
+                if (newRem > 86400) newRem = 86400;
+            } else {
+                // Auf vorherigen Rastwert abrunden
+                uint32_t snapped = (rem / step) * step;
+                newRem = (snapped < rem) ? snapped : (snapped >= step ? snapped - step : 0);
+            }
+
+            if (newRem == 0) {
+                timerFreezeStart[ch]  = 0;
+                timerFreezeExpiry[ch] = 0;
                 setRelay(ch, false);
             } else {
-                tempTimeAdjustMs[ch] -= step;
+                tempTimeAdjustMs[ch] += (int32_t)(newRem - rem) * 1000;
                 updateDisplay();
             }
             sendState();
@@ -991,7 +1017,6 @@ void loop() {
     // DETECTING → COUNTING → 4 Flanken → Toggle + LOCKED
     // LOCKED → 500ms ohne Flanke → IDLE
     static const uint32_t IN_AC_DETECT_MS  = 20;
-    static const uint32_t IN_EDGE_TRIGGER  = 4;
     static const uint32_t IN_LOCKOUT_MS    = 500;
     unsigned long nowIn = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
@@ -1029,7 +1054,8 @@ void loop() {
                 inputEdgeCnt[i]++;
                 inputLastEdgeMs[i] = nowIn;
             }
-            if (inputEdgeCnt[i] >= IN_EDGE_TRIGGER) {
+            // DC: 2 Flanken genügen (1× drücken+loslassen); AC: 4 Flanken (2 Halbwellen)
+            if (inputEdgeCnt[i] >= (inputIsAC[i] ? 4u : 2u)) {
                 dbg::info(CAT_INPUT, "Eingang %d Trigger (%s, %d Flanken)",
                           i+1, inputIsAC[i] ? "AC" : "DC", inputEdgeCnt[i]);
                 if (inputMapping[i] >= 0 && inputMapping[i] < NUM_CHANNELS) {
@@ -1052,16 +1078,33 @@ void loop() {
         }
     }
 
-    // Auto-off timer check (berücksichtigt tempTimeAdjustMs)
+    // Timer-Freeze Ablauf prüfen → relayOnTimestamp verschieben
     unsigned long now = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+        if (timerFreezeStart[i] > 0 && now >= timerFreezeExpiry[i]) {
+            relayOnTimestamp[i] += timerFreezeExpiry[i] - timerFreezeStart[i];
+            timerFreezeStart[i]  = 0;
+            timerFreezeExpiry[i] = 0;
+            stateChanged = true;
+        }
+    }
+
+    // Auto-off timer check
+    for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         if (relayState[i] && (autoOffSeconds[i] > 0 || tempTimeAdjustMs[i] > 0) && relayOnTimestamp[i] > 0) {
-            if (getRemainingAutoOffSeconds(i, now) == 0) {
+            if (getRemainingAutoOffSeconds(i, getTimerEffectiveNow(i)) == 0) {
                 dbg::info(CAT_TIMER, "Auto-Aus: Relais %d", i + 1);
                 setRelay(i, false);
                 stateChanged = true;
             }
         }
+    }
+
+    // RUN-LED Blinker: alle 250ms aktualisieren
+    static unsigned long lastLedTick = 0;
+    if (now - lastLedTick >= 250) {
+        lastLedTick = now;
+        updateTopLeds();
     }
 
     // Display jede Sekunde aktualisieren (Countdown)

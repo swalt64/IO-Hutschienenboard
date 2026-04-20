@@ -80,7 +80,7 @@ void showBoot(const char* version) {
 }
 
 void show(uint8_t ch, const char* name, bool relayOn,
-          uint32_t remainSecs, bool hasTimer) {
+          uint32_t remainSecs, bool hasTimer, uint16_t stateMask) {
     if (!oled) return;
 
     char shortName[14];
@@ -103,7 +103,7 @@ void show(uint8_t ch, const char* name, bool relayOn,
 
     char remainLine[24];
     if (!relayOn) {
-        strcpy(remainLine, "--");
+        remainLine[0] = '\0';
     } else if (!hasTimer) {
         strcpy(remainLine, "Dauerbetrieb");
     } else if (remainSecs > 0) {
@@ -128,8 +128,22 @@ void show(uint8_t ch, const char* name, bool relayOn,
     oled->setCursor(0, 46);
     oled->print(remainLine);
 
-    oled->setCursor(0, 56);
-    oled->print("^v Ch  OK Tog");
+    // 12-Kanal-Statusleiste unten (y=57..63)
+    static const int BW = 8, BH = 6, GAP = 1;
+    static const int START_X = (128 - (12 * BW + 11 * GAP)) / 2;
+    static const int START_Y = 57;
+    for (uint8_t i = 0; i < 12; i++) {
+        int x = START_X + i * (BW + GAP);
+        bool on  = (stateMask >> i) & 1u;
+        bool cur = (i == ch);
+        if (cur) {
+            oled->fillRect(x - 1, START_Y - 1, BW + 2, BH + 2, SSD1306_WHITE);
+            if (!on) oled->fillRect(x, START_Y, BW, BH, SSD1306_BLACK);
+        } else {
+            if (on) oled->fillRect(x, START_Y, BW, BH, SSD1306_WHITE);
+            else    oled->drawRect(x, START_Y, BW, BH, SSD1306_WHITE);
+        }
+    }
 
     oled->display();
 }

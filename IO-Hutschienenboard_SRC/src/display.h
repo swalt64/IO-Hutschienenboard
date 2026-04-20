@@ -6,7 +6,7 @@ namespace display {
     uint8_t address();
     const char* controller();
 
-    void showBoot();
+    void showBoot(const char* version = "");
 
     void show(uint8_t ch, const char* name, bool relayOn,
               uint32_t remainSecs, bool hasTimer);

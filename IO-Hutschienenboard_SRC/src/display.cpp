@@ -43,7 +43,7 @@ bool begin(uint8_t sda, uint8_t scl, uint8_t addr) {
 
     oled->clearDisplay();
     oled->display();
-    showBoot();
+    showBoot("");   // version wird von außen nachgereicht
     return true;
 }
 
@@ -55,17 +55,27 @@ const char* controller() {
     return "SSD1306";
 }
 
-void showBoot() {
+void showBoot(const char* version) {
     if (!oled) return;
 
     oled->clearDisplay();
     oled->setTextColor(SSD1306_WHITE);
+
     oled->setTextSize(1);
-    oled->setCursor(24, 20);
-    oled->print("OLED OK");
-    oled->setCursor(12, 36);
-    oled->print("SSD1306 / 0x");
+    oled->setCursor(0, 0);
+    oled->print("IO-Hutschienenboard");
+    oled->drawLine(0, 10, 127, 10, SSD1306_WHITE);
+
+    oled->setTextSize(2);
+    oled->setCursor(16, 16);
+    oled->print("v");
+    oled->print(version && version[0] ? version : "?.?.?");
+
+    oled->setTextSize(1);
+    oled->setCursor(0, 46);
+    oled->print("OLED: SSD1306 0x");
     oled->print(activeAddr, HEX);
+
     oled->display();
 }
 

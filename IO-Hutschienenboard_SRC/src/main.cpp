@@ -18,10 +18,9 @@
 #include "swtools.h"
 #include "statusled.h"
 #include "display.h"
+#include "version.h"
 
 using namespace dbg;
-
-#define FW_VERSION "1.1.0"
 
 #ifndef OLED_HARDTEST
 #define OLED_HARDTEST 0
@@ -112,7 +111,14 @@ void IRAM_ATTR topBtnISR() { topBtnFlag = true; }
 
 bool relayState[NUM_CHANNELS] = {false};
 bool inputState[NUM_CHANNELS] = {false};
-bool inputStatePrev[NUM_CHANNELS] = {false};
+
+enum InputDetState : uint8_t { DET_IDLE = 0, DET_DETECTING, DET_COUNTING, DET_LOCKED };
+InputDetState inputDetState[NUM_CHANNELS]    = {};
+uint8_t       inputEdgeCnt[NUM_CHANNELS]     = {};
+bool          inputIsAC[NUM_CHANNELS]        = {};
+unsigned long inputFirstEdgeMs[NUM_CHANNELS] = {};
+unsigned long inputLastEdgeMs[NUM_CHANNELS]  = {};
+bool          inputRawPrev[NUM_CHANNELS]     = {};
 
 int8_t inputMapping[NUM_CHANNELS];
 
@@ -836,7 +842,7 @@ void setupWebServer() {
 void setupInputPins() {
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         pinMode(INPUT_PINS[i], INPUT);
-        inputStatePrev[i] = digitalRead(INPUT_PINS[i]);
+        inputRawPrev[i] = digitalRead(INPUT_PINS[i]);
     }
 }
 
@@ -876,6 +882,7 @@ void setup() {
     setupMCP();
     if (display::begin(I2C_SDA_PIN, I2C_SCL_PIN, OLED_ADDR)) {
         dbg::info(CAT_SYSTEM, "OLED Display OK (0x%02X, %s)", display::address(), display::controller());
+        display::showBoot(FW_VERSION);
     } else {
         dbg::warn(CAT_SYSTEM, "OLED Display nicht gefunden (nur 0x%02X getestet)", OLED_ADDR);
     }
@@ -979,21 +986,70 @@ void loop() {
 
     bool stateChanged = false;
 
-    // Read inputs with rising edge detection (StromstoÃŸschalter-Logik)
+    // Eingangserkennung: State Machine pro Kanal
+    // IDLE → erste Flanke → DETECTING (20ms Typ-Erkennung: ≥2 Flanken=AC, sonst DC)
+    // DETECTING → COUNTING → 4 Flanken → Toggle + LOCKED
+    // LOCKED → 500ms ohne Flanke → IDLE
+    static const uint32_t IN_AC_DETECT_MS  = 20;
+    static const uint32_t IN_EDGE_TRIGGER  = 4;
+    static const uint32_t IN_LOCKOUT_MS    = 500;
+    unsigned long nowIn = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-        bool current = digitalRead(INPUT_PINS[i]);
-        if (current && !inputStatePrev[i]) {
-            inputState[i] = true;
-            dbg::debug(CAT_INPUT, "Eingang %d: steigende Flanke", i + 1);
-            if (inputMapping[i] >= 0 && inputMapping[i] < NUM_CHANNELS) {
-                toggleRelay(inputMapping[i]);
+        bool raw  = digitalRead(INPUT_PINS[i]);
+        bool edge = (raw != inputRawPrev[i]);
+        inputRawPrev[i] = raw;
+
+        switch (inputDetState[i]) {
+        case DET_IDLE:
+            if (edge) {
+                inputEdgeCnt[i]     = 1;
+                inputFirstEdgeMs[i] = nowIn;
+                inputLastEdgeMs[i]  = nowIn;
+                inputDetState[i]    = DET_DETECTING;
+                inputState[i]       = true;
+                stateChanged        = true;
             }
-            stateChanged = true;
-        } else if (!current && inputStatePrev[i]) {
-            inputState[i] = false;
-            stateChanged = true;
+            break;
+
+        case DET_DETECTING:
+            if (edge) {
+                inputEdgeCnt[i]++;
+                inputLastEdgeMs[i] = nowIn;
+            }
+            if (nowIn - inputFirstEdgeMs[i] >= IN_AC_DETECT_MS) {
+                inputIsAC[i] = (inputEdgeCnt[i] >= 2);
+                dbg::debug(CAT_INPUT, "Eingang %d: %s (%d Flanken in 20ms)",
+                           i+1, inputIsAC[i] ? "AC" : "DC", inputEdgeCnt[i]);
+                inputDetState[i] = DET_COUNTING;
+            }
+            break;
+
+        case DET_COUNTING:
+            if (edge) {
+                inputEdgeCnt[i]++;
+                inputLastEdgeMs[i] = nowIn;
+            }
+            if (inputEdgeCnt[i] >= IN_EDGE_TRIGGER) {
+                dbg::info(CAT_INPUT, "Eingang %d Trigger (%s, %d Flanken)",
+                          i+1, inputIsAC[i] ? "AC" : "DC", inputEdgeCnt[i]);
+                if (inputMapping[i] >= 0 && inputMapping[i] < NUM_CHANNELS) {
+                    toggleRelay(inputMapping[i]);
+                }
+                inputDetState[i] = DET_LOCKED;
+                stateChanged     = true;
+            }
+            break;
+
+        case DET_LOCKED:
+            if (edge) inputLastEdgeMs[i] = nowIn;
+            if (nowIn - inputLastEdgeMs[i] >= IN_LOCKOUT_MS) {
+                inputDetState[i] = DET_IDLE;
+                inputEdgeCnt[i]  = 0;
+                inputState[i]    = false;
+                stateChanged     = true;
+            }
+            break;
         }
-        inputStatePrev[i] = current;
     }
 
     // Auto-off timer check (berücksichtigt tempTimeAdjustMs)

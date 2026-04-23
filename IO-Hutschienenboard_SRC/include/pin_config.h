@@ -21,8 +21,8 @@ static const uint8_t I2C_SDA_PIN = 11;
 static const uint8_t I2C_SCL_PIN = 12;
 
 // --- MCP23017 I2C addresses ---
-static const uint8_t MCP_ADDR_SET      = 0x20;
-static const uint8_t MCP_ADDR_RESET    = 0x21;
+static const uint8_t MCP_ADDR_SET      = 0x21;
+static const uint8_t MCP_ADDR_RESET    = 0x20;
 static const uint8_t MCP_ADDR_TOPBOARD = 0x22;
 
 // --- Top Board interrupt ---
@@ -77,7 +77,7 @@ static const uint8_t MCP_SET   = 0;
 static const uint8_t MCP_RESET = 1;
 
 // Bistable relay pulse
-static const uint16_t RELAY_PULSE_MS = 15;
+static const uint16_t RELAY_PULSE_MS = 100;
 
 // Number of channels
 static const uint8_t NUM_CHANNELS = 12;

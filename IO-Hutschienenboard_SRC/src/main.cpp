@@ -91,6 +91,8 @@ const bool ENABLE_DHCP_DIAG = false;
 
 String sta_ssid = "";
 String sta_pass = "";
+String ui_user  = "admin";
+String ui_pass  = "admin";
 
 // ============================================================
 // Global State
@@ -377,6 +379,8 @@ void loadConfig() {
     prefs.begin("io-config", true);
     sta_ssid = prefs.getString("ssid", "");
     sta_pass = prefs.getString("pass", "");
+    ui_user  = prefs.getString("ui_user", "admin");
+    ui_pass  = prefs.getString("ui_pass", "admin");
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         String key = "map" + String(i);
@@ -397,6 +401,8 @@ void saveConfig() {
     prefs.begin("io-config", false);
     prefs.putString("ssid", sta_ssid);
     prefs.putString("pass", sta_pass);
+    prefs.putString("ui_user", ui_user);
+    prefs.putString("ui_pass", ui_pass);
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         String key = "map" + String(i);
@@ -492,6 +498,10 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
         } else if (strcmp(cmd, "wifi") == 0) {
             sta_ssid = doc["ssid"].as<String>();
             sta_pass = doc["pass"].as<String>();
+            if (doc["ui_user"].as<String>().length() > 0)
+                ui_user = doc["ui_user"].as<String>();
+            if (doc["ui_pass"].as<String>().length() > 0)
+                ui_pass = doc["ui_pass"].as<String>();
             dbg::info(CAT_WIFI, "WiFi-Konfiguration geaendert: '%s'", sta_ssid.c_str());
             saveConfig();
             dbg::warn(CAT_SYSTEM, "Neustart in 1s...");
@@ -831,8 +841,8 @@ void setupWebServer() {
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
-        doc["sta_ssid"] = sta_ssid;
-        doc["sta_pass"] = sta_pass;
+        doc["sta_ssid"]     = sta_ssid;
+        doc["sta_pass_set"] = sta_pass.length() > 0;
         doc["version"] = FW_VERSION;
         doc["mcp1"] = mcpReady[0];
         doc["mcp2"] = mcpReady[1];
@@ -845,18 +855,21 @@ void setupWebServer() {
         String json;
         serializeJson(doc, json);
         req->send(200, "application/json", json);
-    });
+    }).setAuthentication(ui_user.c_str(), ui_pass.c_str());
     server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest* req) {
         req->send(204);
     });
 
     ElegantOTA.begin(&server);
     ElegantOTA.setAutoReboot(true);
+    ElegantOTA.setAuth(ui_user.c_str(), ui_pass.c_str());
 
     ws.onEvent(onWebSocketEvent);
+    ws.setAuthentication(ui_user.c_str(), ui_pass.c_str());
     server.addHandler(&ws);
 
-    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html")
+          .setAuthentication(ui_user.c_str(), ui_pass.c_str());
 
     server.begin();
     dbg::info(CAT_WEB, "Webserver gestartet auf Port 80");

@@ -59,7 +59,13 @@
         <h2>WiFi-Konfiguration</h2>
         <div>
             <label>SSID: <input type="text" id="wifi-ssid"></label>
-            <label>Passwort: <input type="password" id="wifi-pass"></label>
+            <label>Passwort: <input type="password" id="wifi-pass" placeholder="(leer = unverändert)"></label>
+        </div>
+        <div style="margin-top:8px;">
+            <label>Web-Benutzer: <input type="text" id="ui-user" placeholder="(leer = unverändert)" autocomplete="username"></label>
+            <label>Web-Passwort: <input type="password" id="ui-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
+        </div>
+        <div style="margin-top:8px;">
             <button onclick="saveWifi()">Speichern &amp; Neustart</button>
             <button onclick="location.href='/update'" style="background:#6366f1;margin-left:8px;">Firmware Update</button>
         </div>
@@ -200,9 +206,13 @@ function setName(ch, val) {
 function saveWifi() {
     const ssid = document.getElementById('wifi-ssid').value;
     const pass = document.getElementById('wifi-pass').value;
-    if (confirm(`WiFi auf '${ssid}' setzen und ESP neu starten?`)) {
-        ws.send(JSON.stringify({cmd: 'wifi', ssid: ssid, pass: pass}));
-    }
+    const uiUser = document.getElementById('ui-user').value.trim();
+    const uiPass = document.getElementById('ui-pass').value;
+    if (!confirm(`WiFi auf '${ssid}' setzen und ESP neu starten?`)) return;
+    const msg = {cmd: 'wifi', ssid: ssid, pass: pass};
+    if (uiUser) msg.ui_user = uiUser;
+    if (uiPass) msg.ui_pass = uiPass;
+    ws.send(JSON.stringify(msg));
 }
 
 // Load current WiFi info
@@ -216,7 +226,8 @@ fetch('/api/state').then(r => r.json()).then(data => {
     updateUI();
 
     document.getElementById('wifi-ssid').value = data.sta_ssid || '';
-    document.getElementById('wifi-pass').value = data.sta_pass || '';
+    if (data.sta_pass_set)
+        document.getElementById('wifi-pass').placeholder = '(gespeichert – leer lassen zum Beibehalten)';
     document.getElementById('wifi-info').textContent =
         `AP: ${data.ap_ip} | STA: ${data.sta_ip} (${data.sta_ssid || 'nicht konfiguriert'})`;
     if (data.version) document.getElementById('fw-version').textContent = `Firmware: v${data.version}`;

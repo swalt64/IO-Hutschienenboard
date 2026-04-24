@@ -490,6 +490,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
         } else if (strcmp(cmd, "timer") == 0) {
             uint8_t ch = doc["ch"];
             uint32_t secs = doc["secs"];
+            if (secs > 86400) secs = 86400;
             if (ch < NUM_CHANNELS) {
                 autoOffSeconds[ch] = secs;
                 dbg::info(CAT_TIMER, "Auto-Aus A%d: %u s", ch + 1, secs);
@@ -1029,8 +1030,9 @@ void loop() {
     // IDLE → erste Flanke → DETECTING (20ms Typ-Erkennung: ≥2 Flanken=AC, sonst DC)
     // DETECTING → COUNTING → 4 Flanken → Toggle + LOCKED
     // LOCKED → 500ms ohne Flanke → IDLE
-    static const uint32_t IN_AC_DETECT_MS  = 20;
-    static const uint32_t IN_LOCKOUT_MS    = 500;
+    static const uint32_t IN_AC_DETECT_MS       = 20;
+    static const uint32_t IN_LOCKOUT_MS         = 500;
+    static const uint32_t IN_DC_COUNTING_TIMEOUT = 2000;
     unsigned long nowIn = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         bool raw  = digitalRead(INPUT_PINS[i]);
@@ -1076,6 +1078,14 @@ void loop() {
                 }
                 inputDetState[i] = DET_LOCKED;
                 stateChanged     = true;
+            } else if (!inputIsAC[i] &&
+                       (nowIn - inputLastEdgeMs[i] >= IN_DC_COUNTING_TIMEOUT)) {
+                // Rückflanke blieb aus (dauerhaftes Signal) → zurück nach IDLE
+                dbg::debug(CAT_INPUT, "Eingang %d: DC-Timeout in COUNTING, Reset", i+1);
+                inputDetState[i] = DET_IDLE;
+                inputEdgeCnt[i]  = 0;
+                inputState[i]    = false;
+                stateChanged     = true;
             }
             break;
 
@@ -1094,7 +1104,7 @@ void loop() {
     // Timer-Freeze Ablauf prüfen → relayOnTimestamp verschieben
     unsigned long now = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-        if (timerFreezeStart[i] > 0 && now >= timerFreezeExpiry[i]) {
+        if (timerFreezeStart[i] > 0 && (long)(now - timerFreezeExpiry[i]) >= 0) {
             relayOnTimestamp[i] += timerFreezeExpiry[i] - timerFreezeStart[i];
             timerFreezeStart[i]  = 0;
             timerFreezeExpiry[i] = 0;

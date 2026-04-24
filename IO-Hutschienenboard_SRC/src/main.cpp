@@ -83,7 +83,7 @@ static void runOledHardTest() {
 // WiFi Configuration - AP mode for initial setup
 // ============================================================
 const char* AP_SSID = "IO-Hutschiene";
-const char* AP_PASS = "12345678";
+const char* AP_PASS = "12345678";   // HINWEIS: Standard-AP-Passwort – für Produktiveinsatz ändern
 const IPAddress AP_IP(192, 168, 50, 1);
 const IPAddress AP_GATEWAY(192, 168, 50, 1);
 const IPAddress AP_SUBNET(255, 255, 255, 0);
@@ -279,9 +279,9 @@ void setupMCP() {
     Wire.setTimeOut(10);
     Wire.setClock(100000);
 
-    // --- Relais-MCPs (0x20 SET, 0x21 RESET) ---
+    // --- Relais-MCPs (0x21 SET, 0x20 RESET, per Platinen-Verdrahtung) ---
     const uint8_t addrs[2] = {MCP_ADDR_SET, MCP_ADDR_RESET};
-    const char* names[2]   = {"SET (0x20)", "RESET (0x21)"};
+    const char* names[2]   = {"SET (0x21)", "RESET (0x20)"};
     for (uint8_t m = 0; m < 2; m++) {
         if (mcp[m].begin_I2C(addrs[m], &Wire)) {
             mcpReady[m] = true;
@@ -489,7 +489,8 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             }
         } else if (strcmp(cmd, "timer") == 0) {
             uint8_t ch = doc["ch"];
-            uint32_t secs = doc["secs"];
+            int32_t secsRaw = doc["secs"] | 0;
+            uint32_t secs = (secsRaw < 0) ? 0 : (uint32_t)secsRaw;
             if (secs > 86400) secs = 86400;
             if (ch < NUM_CHANNELS) {
                 autoOffSeconds[ch] = secs;
@@ -498,7 +499,8 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             }
         } else if (strcmp(cmd, "wifi") == 0) {
             sta_ssid = doc["ssid"].as<String>();
-            sta_pass = doc["pass"].as<String>();
+            String newPass = doc["pass"].as<String>();
+            if (newPass.length() > 0) sta_pass = newPass;   // leer = unverändert
             if (doc["ui_user"].as<String>().length() > 0)
                 ui_user = doc["ui_user"].as<String>();
             if (doc["ui_pass"].as<String>().length() > 0)
@@ -968,7 +970,7 @@ void setup() {
     setupWebServer();
 
     ArduinoOTA.setHostname("io-hutschiene");
-    ArduinoOTA.setPassword("ota1234");
+    ArduinoOTA.setPassword(ui_pass.c_str());   // gleiches Passwort wie Web-UI
     ArduinoOTA.onStart([]() { dbg::info(CAT_SYSTEM, "ArduinoOTA Start"); });
     ArduinoOTA.onEnd([]()   { dbg::info(CAT_SYSTEM, "ArduinoOTA Ende"); });
     ArduinoOTA.onError([](ota_error_t e) { dbg::error(CAT_SYSTEM, "ArduinoOTA Fehler: %u", e); });

@@ -209,7 +209,8 @@ function saveWifi() {
     const uiUser = document.getElementById('ui-user').value.trim();
     const uiPass = document.getElementById('ui-pass').value;
     if (!confirm(`WiFi auf '${ssid}' setzen und ESP neu starten?`)) return;
-    const msg = {cmd: 'wifi', ssid: ssid, pass: pass};
+    const msg = {cmd: 'wifi', ssid: ssid};
+    if (pass) msg.pass = pass;   // leer = unverändert
     if (uiUser) msg.ui_user = uiUser;
     if (uiPass) msg.ui_pass = uiPass;
     ws.send(JSON.stringify(msg));

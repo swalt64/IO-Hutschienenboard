@@ -66,6 +66,10 @@
             <label>Web-Passwort: <input type="password" id="ui-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
         </div>
         <div style="margin-top:8px;">
+            <label>OTA-Passwort: <input type="password" id="ota-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
+            <span style="font-size:0.75rem;color:#6b7280;margin-left:4px;">→ --auth in platformio.ini anpassen</span>
+        </div>
+        <div style="margin-top:8px;">
             <button onclick="saveWifi()">Speichern &amp; Neustart</button>
             <button onclick="location.href='/update'" style="background:#6366f1;margin-left:8px;">Firmware Update</button>
         </div>
@@ -208,11 +212,13 @@ function saveWifi() {
     const pass = document.getElementById('wifi-pass').value;
     const uiUser = document.getElementById('ui-user').value.trim();
     const uiPass = document.getElementById('ui-pass').value;
+    const otaPass = document.getElementById('ota-pass').value;
     if (!confirm(`WiFi auf '${ssid}' setzen und ESP neu starten?`)) return;
     const msg = {cmd: 'wifi', ssid: ssid};
-    if (pass) msg.pass = pass;   // leer = unverändert
-    if (uiUser) msg.ui_user = uiUser;
-    if (uiPass) msg.ui_pass = uiPass;
+    if (pass)    msg.pass     = pass;
+    if (uiUser)  msg.ui_user  = uiUser;
+    if (uiPass)  msg.ui_pass  = uiPass;
+    if (otaPass) msg.ota_pass = otaPass;
     ws.send(JSON.stringify(msg));
 }
 

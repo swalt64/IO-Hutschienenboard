@@ -91,8 +91,9 @@ const bool ENABLE_DHCP_DIAG = false;
 
 String sta_ssid = "";
 String sta_pass = "";
-String ui_user  = "admin";
-String ui_pass  = "admin";
+String ui_user  = "admin";   // Produktiveinsatz: in Web-UI ändern
+String ui_pass  = "admin";   // Produktiveinsatz: in Web-UI ändern
+String ota_pass = "admin";   // Produktiveinsatz: muss mit --auth in platformio.ini übereinstimmen
 
 // ============================================================
 // Global State
@@ -381,6 +382,7 @@ void loadConfig() {
     sta_pass = prefs.getString("pass", "");
     ui_user  = prefs.getString("ui_user", "admin");
     ui_pass  = prefs.getString("ui_pass", "admin");
+    ota_pass = prefs.getString("ota_pass", "admin");
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         String key = "map" + String(i);
@@ -403,6 +405,7 @@ void saveConfig() {
     prefs.putString("pass", sta_pass);
     prefs.putString("ui_user", ui_user);
     prefs.putString("ui_pass", ui_pass);
+    prefs.putString("ota_pass", ota_pass);
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         String key = "map" + String(i);
@@ -505,6 +508,8 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 ui_user = doc["ui_user"].as<String>();
             if (doc["ui_pass"].as<String>().length() > 0)
                 ui_pass = doc["ui_pass"].as<String>();
+            if (doc["ota_pass"].as<String>().length() > 0)
+                ota_pass = doc["ota_pass"].as<String>();
             dbg::info(CAT_WIFI, "WiFi-Konfiguration geaendert: '%s'", sta_ssid.c_str());
             saveConfig();
             dbg::warn(CAT_SYSTEM, "Neustart in 1s...");
@@ -970,7 +975,7 @@ void setup() {
     setupWebServer();
 
     ArduinoOTA.setHostname("io-hutschiene");
-    ArduinoOTA.setPassword(ui_pass.c_str());   // gleiches Passwort wie Web-UI
+    ArduinoOTA.setPassword(ota_pass.c_str());
     ArduinoOTA.onStart([]() { dbg::info(CAT_SYSTEM, "ArduinoOTA Start"); });
     ArduinoOTA.onEnd([]()   { dbg::info(CAT_SYSTEM, "ArduinoOTA Ende"); });
     ArduinoOTA.onError([](ota_error_t e) { dbg::error(CAT_SYSTEM, "ArduinoOTA Fehler: %u", e); });

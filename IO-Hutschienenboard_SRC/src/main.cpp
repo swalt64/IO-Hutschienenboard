@@ -927,6 +927,33 @@ void setup() {
         dbg::warn(CAT_SYSTEM, "OLED Display nicht gefunden (nur 0x%02X getestet)", OLED_ADDR);
     }
     loadConfig();
+
+    // Credential-Reset: ENTER beim Boot 5s gehalten → ui_user/ui_pass auf Standard zurücksetzen
+    if (mcpTopReady) {
+        uint16_t gpioVal = mcpTop.readGPIOAB();
+        if (!((gpioVal >> BTN_ENTER) & 1u)) {  // ENTER aktiv-low
+            bool held = true;
+            for (int s = 5; s > 0 && held; s--) {
+                char buf[22];
+                snprintf(buf, sizeof(buf), "ENTER halten: %d s", s);
+                display::showMessage("Passwort-Reset", buf, "Loslassen = Abbruch");
+                unsigned long t = millis();
+                while (millis() - t < 1000) {
+                    if ((mcpTop.readGPIOAB() >> BTN_ENTER) & 1u) { held = false; break; }
+                    delay(50);
+                }
+            }
+            if (held) {
+                ui_user = "admin";
+                ui_pass = "admin";
+                saveConfig();
+                dbg::warn(CAT_CONFIG, "Web-Credentials zurueckgesetzt auf admin/admin");
+                display::showMessage("Passwort-Reset", "Zurueckgesetzt!", "admin / admin");
+                delay(2000);
+            }
+        }
+    }
+
     setupWiFiEvents();
 
     if (!LittleFS.begin(true)) {
@@ -963,6 +990,9 @@ void setup() {
     dbg::info(CAT_RELAY, "Alle Relais zurueckgesetzt");
 
     updateLedState();
+    display::showIP(WiFi.softAPIP().toString().c_str(),
+                    WiFi.localIP().toString().c_str());
+    delay(3000);
     updateDisplay();
     dbg::info(CAT_SYSTEM, "Setup abgeschlossen - System bereit");
 }

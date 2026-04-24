@@ -79,6 +79,51 @@ void showBoot(const char* version) {
     oled->display();
 }
 
+void showMessage(const char* title, const char* line1, const char* line2) {
+    if (!oled) return;
+
+    oled->clearDisplay();
+    oled->setTextColor(SSD1306_WHITE);
+
+    oled->setTextSize(1);
+    oled->setCursor(0, 0);
+    oled->print(title);
+    oled->drawLine(0, 10, 127, 10, SSD1306_WHITE);
+
+    oled->setCursor(0, 18);
+    oled->print(line1);
+
+    if (line2 && line2[0]) {
+        oled->setCursor(0, 32);
+        oled->print(line2);
+    }
+
+    oled->display();
+}
+
+void showIP(const char* apIP, const char* staIP) {
+    if (!oled) return;
+
+    oled->clearDisplay();
+    oled->setTextColor(SSD1306_WHITE);
+
+    oled->setTextSize(1);
+    oled->setCursor(0, 0);
+    oled->print("Netzwerk");
+    oled->drawLine(0, 10, 127, 10, SSD1306_WHITE);
+
+    oled->setCursor(0, 16);
+    oled->print("AP:  ");
+    oled->print(apIP);
+
+    oled->setCursor(0, 30);
+    oled->print("STA: ");
+    bool staOk = staIP && staIP[0] && strcmp(staIP, "0.0.0.0") != 0;
+    oled->print(staOk ? staIP : "nicht verbunden");
+
+    oled->display();
+}
+
 void show(uint8_t ch, const char* name, bool relayOn,
           uint32_t remainSecs, bool hasTimer, uint16_t stateMask) {
     if (!oled) return;

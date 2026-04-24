@@ -11,8 +11,8 @@
 //   12 Bistable Relays -> 2x MCP23017 via I2C
 //
 // MCP23017 address scheme:
-//   0x20 (A2=0, A1=0, A0=0) : Relay SET coils
-//   0x21 (A2=0, A1=0, A0=1) : Relay RESET coils
+//   0x20 (A2=0, A1=0, A0=0) : Relay RESET coils
+//   0x21 (A2=0, A1=0, A0=1) : Relay SET coils
 //   0x22 (A2=0, A1=1, A0=0) : Top board buttons and LEDs
 //
 

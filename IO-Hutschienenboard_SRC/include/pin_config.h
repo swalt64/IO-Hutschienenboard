@@ -77,7 +77,7 @@ static const uint8_t MCP_SET   = 0;
 static const uint8_t MCP_RESET = 1;
 
 // Bistable relay pulse
-static const uint16_t RELAY_PULSE_MS = 100;
+static const uint16_t RELAY_PULSE_MS = 20;
 
 // Number of channels
 static const uint8_t NUM_CHANNELS = 12;

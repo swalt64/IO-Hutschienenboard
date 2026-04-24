@@ -11,6 +11,7 @@
 #include <Preferences.h>
 #include <ArduinoOTA.h>
 #include <ElegantOTA.h>
+#include <ESPmDNS.h>
 #if !SIMULATE_HW
 #include <Adafruit_MCP23X17.h>
 #endif
@@ -110,6 +111,7 @@ bool mcpReady[2]  = {false, false};
 bool mcpTopReady  = false;
 
 volatile bool topBtnFlag = false;
+volatile bool pendingAllOff = false;
 void IRAM_ATTR topBtnISR() { topBtnFlag = true; }
 
 bool relayState[NUM_CHANNELS] = {false};
@@ -154,10 +156,13 @@ uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
 }
 
 static int32_t btnStepMs(uint32_t remainSecs) {
-    if (remainSecs <= 900)  return 60000;        // bis 15 min → 1 min
-    if (remainSecs <= 3600) return 300000;       // bis 1h    → 5 min
-    if (remainSecs <= 21600) return 900000;      // bis 6h    → 15 min
-    return 1800000;                              // darüber   → 30 min
+    if (remainSecs <=   900) return    60000;  // bis 15 min  →  1 min
+    if (remainSecs <=  3600) return   300000;  // bis 1h      →  5 min
+    if (remainSecs <=  7200) return   600000;  // bis 2h      → 10 min
+    if (remainSecs <= 21600) return  1800000;  // bis 6h      → 30 min
+    if (remainSecs <= 86400) return  3600000;  // bis 24h     →  1 h
+    if (remainSecs <= 172800) return 21600000; // bis 48h     →  6 h
+    return 21600000;                           // über 48h    →  6 h
 }
 
 // ============================================================
@@ -201,6 +206,8 @@ void updateTopLeds() {
     }
 #endif
 }
+
+void saveConfig();  // forward declaration
 
 // handleButton() ist nach onWebSocketEvent() definiert (benötigt sendState etc.)
 void handleButton(uint8_t btn);
@@ -338,7 +345,7 @@ void setupMCP() {
 // ============================================================
 // Relay Control via MCP23017
 // ============================================================
-void setRelay(uint8_t ch, bool on) {
+void setRelay(uint8_t ch, bool on, bool saveTimerAdjust = false) {
     if (ch >= NUM_CHANNELS) return;
 
 #if SIMULATE_HW
@@ -358,6 +365,12 @@ void setRelay(uint8_t ch, bool on) {
     mcp[mcpIdx].digitalWrite(pin, LOW);
 #endif
 
+    // Beim manuellen Ausschalten: per Taste eingestellte Zeit dauerhaft speichern
+    if (!on && saveTimerAdjust && tempTimeAdjustMs[ch] != 0) {
+        int64_t totalMs = (int64_t)autoOffSeconds[ch] * 1000 + tempTimeAdjustMs[ch];
+        autoOffSeconds[ch] = totalMs > 0 ? (uint32_t)(totalMs / 1000) : 0;
+        saveConfig();
+    }
     tempTimeAdjustMs[ch]  = 0;
     timerFreezeStart[ch]  = 0;
     timerFreezeExpiry[ch] = 0;
@@ -370,7 +383,7 @@ void setRelay(uint8_t ch, bool on) {
 }
 
 void toggleRelay(uint8_t ch) {
-    setRelay(ch, !relayState[ch]);
+    setRelay(ch, !relayState[ch], relayState[ch]);  // speichert nur beim Ausschalten
 }
 
 // ============================================================
@@ -475,28 +488,37 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
 
         dbg::debug(CAT_WEB, "WS Kommando: %s", cmd);
 
+        bool doSendState = true;
+
         if (strcmp(cmd, "toggle") == 0) {
             uint8_t ch = doc["ch"];
             if (ch < NUM_CHANNELS) toggleRelay(ch);
         } else if (strcmp(cmd, "set") == 0) {
             uint8_t ch = doc["ch"];
             bool val = doc["val"];
-            if (ch < NUM_CHANNELS) setRelay(ch, val);
+            if (ch < NUM_CHANNELS) setRelay(ch, val, !val);
         } else if (strcmp(cmd, "map") == 0) {
             uint8_t input = doc["input"];
             int8_t output = doc["output"];
-            if (input < NUM_CHANNELS && output < (int8_t)NUM_CHANNELS) {
+            if (input < NUM_CHANNELS && output >= -1 && output < (int8_t)NUM_CHANNELS) {
                 inputMapping[input] = output;
-                dbg::info(CAT_CONFIG, "Mapping E%d -> A%d", input + 1, output + 1);
+                if (output == -1)
+                    dbg::info(CAT_CONFIG, "Mapping E%d -> keine", input + 1);
+                else
+                    dbg::info(CAT_CONFIG, "Mapping E%d -> A%d", input + 1, output + 1);
                 saveConfig();
             }
         } else if (strcmp(cmd, "timer") == 0) {
             uint8_t ch = doc["ch"];
             int32_t secsRaw = doc["secs"] | 0;
             uint32_t secs = (secsRaw < 0) ? 0 : (uint32_t)secsRaw;
-            if (secs > 86400) secs = 86400;
+            if (secs > 604800) secs = 604800;  // max. 1 Woche
             if (ch < NUM_CHANNELS) {
-                autoOffSeconds[ch] = secs;
+                autoOffSeconds[ch]    = secs;
+                tempTimeAdjustMs[ch]  = 0;
+                timerFreezeStart[ch]  = 0;
+                timerFreezeExpiry[ch] = 0;
+                if (relayState[ch]) relayOnTimestamp[ch] = millis();  // Timer ab jetzt
                 dbg::info(CAT_TIMER, "Auto-Aus A%d: %u s", ch + 1, secs);
                 saveConfig();
             }
@@ -518,10 +540,8 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             delay(1000);
             ESP.restart();
         } else if (strcmp(cmd, "alloff") == 0) {
-            dbg::info(CAT_RELAY, "Alle Relais AUS");
-            for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-                if (relayState[i]) setRelay(i, false);
-            }
+            pendingAllOff = true;  // in loop() ausführen; sendState() folgt dort
+            doSendState = false;
         } else if (strcmp(cmd, "name") == 0) {
             uint8_t ch = doc["ch"];
             const char* nm = doc["name"];
@@ -536,7 +556,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             }
         }
 
-        sendState();
+        if (doSendState) sendState();
     }
 }
 
@@ -561,36 +581,40 @@ void handleButton(uint8_t btn) {
     } else if (btn == BTN_RIGHT || btn == BTN_LEFT) {
         uint8_t ch = displayChannel;
         if (relayState[ch]) {
-            if (autoOffSeconds[ch] == 0 && tempTimeAdjustMs[ch] == 0)
-                tempTimeAdjustMs[ch] = 86400000L;  // Default 24h
-
-            // Freeze aktivieren/verlängern
-            if (timerFreezeStart[ch] == 0) timerFreezeStart[ch] = now;
-            timerFreezeExpiry[ch] = now + 5000;
-
-            uint32_t rem  = getRemainingAutoOffSeconds(ch, timerFreezeStart[ch]);
-            uint32_t step = (uint32_t)(btnStepMs(rem) / 1000);  // Rasterschrittweite in Sekunden
-
-            uint32_t newRem;
-            if (btn == BTN_RIGHT) {
-                // Auf nächsten Rastwert aufrunden
-                newRem = (rem / step + 1) * step;
-                if (newRem > 86400) newRem = 86400;
-            } else {
-                // Auf vorherigen Rastwert abrunden
-                uint32_t snapped = (rem / step) * step;
-                newRem = (snapped < rem) ? snapped : (snapped >= step ? snapped - step : 0);
-            }
-
-            if (newRem == 0) {
-                timerFreezeStart[ch]  = 0;
-                timerFreezeExpiry[ch] = 0;
-                setRelay(ch, false);
-            } else {
-                tempTimeAdjustMs[ch] += (int32_t)(newRem - rem) * 1000;
+            if (autoOffSeconds[ch] == 0 && tempTimeAdjustMs[ch] == 0) {
+                // Erster Tastendruck: Startwert LEFT=1h, RIGHT=6h
+                tempTimeAdjustMs[ch] = (btn == BTN_LEFT) ? 3600000L : 21600000L;
+                if (timerFreezeStart[ch] == 0) timerFreezeStart[ch] = now;
+                timerFreezeExpiry[ch] = now + 5000;
                 updateDisplay();
+                sendState();
+            } else {
+                // Freeze aktivieren/verlängern
+                if (timerFreezeStart[ch] == 0) timerFreezeStart[ch] = now;
+                timerFreezeExpiry[ch] = now + 5000;
+
+                uint32_t rem  = getRemainingAutoOffSeconds(ch, timerFreezeStart[ch]);
+                uint32_t step = (uint32_t)(btnStepMs(rem) / 1000);
+
+                uint32_t newRem;
+                if (btn == BTN_RIGHT) {
+                    newRem = (rem / step + 1) * step;
+                    if (newRem > 604800) newRem = 604800;
+                } else {
+                    uint32_t snapped = (rem / step) * step;
+                    newRem = (snapped < rem) ? snapped : (snapped >= step ? snapped - step : 0);
+                }
+
+                if (newRem == 0) {
+                    timerFreezeStart[ch]  = 0;
+                    timerFreezeExpiry[ch] = 0;
+                    setRelay(ch, false);
+                } else {
+                    tempTimeAdjustMs[ch] += (int32_t)(newRem - rem) * 1000;
+                    updateDisplay();
+                }
+                sendState();
             }
-            sendState();
         }
     }
 }
@@ -795,6 +819,7 @@ void setupWiFi() {
         statusled::setState(statusled::ST_WIFI_CONNECTING);
         statusled::update();
 
+        WiFi.setHostname("HS-IO");
         WiFi.begin(sta_ssid.c_str(), sta_pass.c_str());
         dbg::info(CAT_WIFI, "Verbinde mit '%s'...", sta_ssid.c_str());
 
@@ -951,11 +976,12 @@ void setup() {
                 }
             }
             if (held) {
-                ui_user = "admin";
-                ui_pass = "admin";
+                ui_user  = "admin";
+                ui_pass  = "admin";
+                ota_pass = "admin";
                 saveConfig();
-                dbg::warn(CAT_CONFIG, "Web-Credentials zurueckgesetzt auf admin/admin");
-                display::showMessage("Passwort-Reset", "Zurueckgesetzt!", "admin / admin");
+                dbg::warn(CAT_CONFIG, "Alle Credentials zurueckgesetzt auf admin");
+                display::showMessage("Passwort-Reset", "Zurueckgesetzt!", "admin / admin / admin");
                 delay(2000);
             }
         }
@@ -974,7 +1000,14 @@ void setup() {
     setupWiFi();
     setupWebServer();
 
-    ArduinoOTA.setHostname("io-hutschiene");
+    if (MDNS.begin("HS-IO")) {
+        MDNS.addService("http", "tcp", 80);
+        dbg::info(CAT_WIFI, "mDNS: hs-io.local");
+    } else {
+        dbg::warn(CAT_WIFI, "mDNS start fehlgeschlagen");
+    }
+
+    ArduinoOTA.setHostname("HS-IO");
     ArduinoOTA.setPassword(ota_pass.c_str());
     ArduinoOTA.onStart([]() { dbg::info(CAT_SYSTEM, "ArduinoOTA Start"); });
     ArduinoOTA.onEnd([]()   { dbg::info(CAT_SYSTEM, "ArduinoOTA Ende"); });
@@ -1012,6 +1045,15 @@ void loop() {
 
     ArduinoOTA.handle();
     ElegantOTA.loop();
+
+    if (pendingAllOff) {
+        pendingAllOff = false;
+        dbg::info(CAT_RELAY, "Alle Relais AUS");
+        for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+            if (relayState[i]) setRelay(i, false, true);
+        }
+        sendState();
+    }
 
     ws.cleanupClients();
     statusled::update();

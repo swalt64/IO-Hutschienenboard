@@ -17,7 +17,8 @@
         .led-off { background: #334155; }
         .led-on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .led-input-on { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
-        select, input[type=number] { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 100%; }
+        select { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 100%; }
+        input[type=text].timer-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 80px; font-family: monospace; text-align: center; }
         input[type=text].name-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 120px; }
         button { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
         button:hover { background: #0284c7; }
@@ -47,7 +48,7 @@
                     <th>&#8594; Ausgang</th>
                     <th>Name</th>
                     <th>Relais</th>
-                    <th>Auto-Aus (s)</th>
+                    <th>Auto-Aus</th>
                     <th>Manuell</th>
                 </tr>
             </thead>
@@ -108,7 +109,11 @@ function initTable() {
             </td>
             <td><span class="led led-off" id="out-${i}"></span></td>
             <td>
-                <input type="number" id="timer-${i}" min="0" max="86400" value="0" onchange="setTimer(${i}, this.value)">
+                <input type="text" class="timer-input" id="timer-${i}" value="00:00:00"
+                       placeholder="hh:mm:ss"
+                       onfocus="this.select()"
+                       onkeydown="timerKey(event,${i})"
+                       onchange="setTimer(${i}, hmsToSecs(this.value))">
                 <div class="remaining" id="remaining-${i}">Rest: --</div>
             </td>
             <td><button id="btn-${i}" onclick="toggleRelay(${i})">Toggle</button></td>
@@ -117,11 +122,46 @@ function initTable() {
     }
 }
 
+function timerKey(e, i) {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const input = document.getElementById(`timer-${i}`);
+    let secs = hmsToSecs(input.value) + (e.key === 'ArrowUp' ? 600 : -600);
+    secs = Math.max(0, Math.min(secs, 604800));
+    input.value = secsToHMS(secs);
+    setTimer(i, secs);
+}
+
+function secsToHMS(secs) {
+    if (!secs || secs <= 0) return '00:00:00';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function hmsToSecs(str) {
+    str = str.trim().toLowerCase();
+    // Unit-Suffixe: 4h, 30m, 1h30m, 4h30m20s ...
+    if (/\d[hms]/.test(str)) {
+        const h = (str.match(/(\d+)\s*h/) || [0,0])[1];
+        const m = (str.match(/(\d+)\s*m/) || [0,0])[1];
+        const s = (str.match(/(\d+)\s*s/) || [0,0])[1];
+        return Math.min(+h*3600 + +m*60 + +s, 604800);
+    }
+    // Doppelpunkt-Format: hh:mm:ss oder mm:ss
+    if (str.includes(':')) {
+        const parts = str.split(':').map(v => parseInt(v) || 0);
+        if (parts.length >= 3) return Math.min(parts[0]*3600 + parts[1]*60 + parts[2], 604800);
+        return Math.min(parts[0]*60 + (parts[1]||0), 604800);
+    }
+    // Reine Zahl = Sekunden
+    return Math.min(parseInt(str) || 0, 604800);
+}
+
 function formatRemaining(seconds) {
-    if (!Number.isFinite(seconds) || seconds <= 0) return '0s';
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return m > 0 ? `${m}m ${s}s` : `${s}s`;
+    if (!Number.isFinite(seconds) || seconds <= 0) return '00:00:00';
+    return secsToHMS(seconds);
 }
 
 function tickCountdown() {
@@ -152,7 +192,7 @@ function updateUI() {
 
         const timerInput = document.getElementById(`timer-${i}`);
         if (document.activeElement !== timerInput) {
-            timerInput.value = state.timers[i];
+            timerInput.value = secsToHMS(state.timers[i]);
         }
 
         const remainingEl = document.getElementById(`remaining-${i}`);

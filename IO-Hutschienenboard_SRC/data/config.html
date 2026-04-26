@@ -115,8 +115,13 @@ function applyState(data) {
     if (data.input_names) state.input_names = data.input_names;
 }
 
+function wsSend(msg) {
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+}
+
 function connectWS() {
-    ws = new WebSocket(`ws://${location.host}/ws`);
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${proto}//${location.host}/ws`);
     ws.onopen = () => {
         document.getElementById('connection-status').textContent = 'Verbunden';
         document.getElementById('connection-status').className = 'connected';
@@ -126,11 +131,11 @@ function connectWS() {
         document.getElementById('connection-status').className = 'disconnected';
         setTimeout(connectWS, 2000);
     };
-    ws.onmessage = (evt) => { applyState(JSON.parse(evt.data)); updateUI(); };
+    ws.onmessage = (evt) => { try { applyState(JSON.parse(evt.data)); updateUI(); } catch(e) { console.warn('WS parse error', e); } };
 }
 
-function setName(ch, val) { ws.send(JSON.stringify({cmd:'name', ch, name: val.trim()})); }
-function setInputName(ch, val) { ws.send(JSON.stringify({cmd:'iname', ch, name: val.trim()})); }
+function setName(ch, val) { wsSend({cmd:'name', ch, name: val.trim()}); }
+function setInputName(ch, val) { wsSend({cmd:'iname', ch, name: val.trim()}); }
 
 function saveWifi() {
     const ssid = document.getElementById('wifi-ssid').value;
@@ -144,7 +149,7 @@ function saveWifi() {
     if (uiUser)  msg.ui_user  = uiUser;
     if (uiPass)  msg.ui_pass  = uiPass;
     if (otaPass) msg.ota_pass = otaPass;
-    ws.send(JSON.stringify(msg));
+    wsSend(msg);
 }
 
 fetch('/api/state').then(r => r.json()).then(data => {
@@ -157,7 +162,7 @@ fetch('/api/state').then(r => r.json()).then(data => {
         `AP: ${data.ap_ip} | STA: ${data.sta_ip} (${data.sta_ssid || 'nicht konfiguriert'})`;
     if (data.version)
         document.getElementById('fw-version').textContent = `Firmware: v${data.version}`;
-});
+}).catch(e => console.warn('fetch /api/state failed', e));
 
 initTables();
 updateUI();

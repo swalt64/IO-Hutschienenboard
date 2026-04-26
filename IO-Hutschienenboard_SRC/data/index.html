@@ -38,7 +38,7 @@
     <h1>IO-Hutschienenboard</h1>
     <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
     <div class="nav">
-        <span class="ui-version">UI v1.1</span>
+        <span class="ui-version">UI v1.2</span>
         <a href="/config.html">&#9881; Konfiguration</a>
     </div>
 
@@ -160,7 +160,6 @@ function tickCountdown() {
 }
 
 function updateUI() {
-    updateDropdownLabels();
     for (let i = 0; i < NUM_CH; i++) {
         document.getElementById(`in-${i}`).className =
             state.inputs[i] ? 'led led-input-on' : 'led led-off';
@@ -185,12 +184,17 @@ function applyState(data) {
     if (data.mappings)    state.mappings    = data.mappings;
     if (data.timers)      state.timers      = data.timers;
     if (data.remaining)   state.remaining   = data.remaining;
-    if (data.names)       state.names       = data.names;
+    if (data.names)       { state.names       = data.names;       updateDropdownLabels(); }
     if (data.input_names) state.input_names = data.input_names;
 }
 
+function wsSend(msg) {
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+}
+
 function connectWS() {
-    ws = new WebSocket(`ws://${location.host}/ws`);
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${proto}//${location.host}/ws`);
     ws.onopen = () => {
         document.getElementById('connection-status').textContent = 'Verbunden';
         document.getElementById('connection-status').className = 'connected';
@@ -200,14 +204,14 @@ function connectWS() {
         document.getElementById('connection-status').className = 'disconnected';
         setTimeout(connectWS, 2000);
     };
-    ws.onmessage = (evt) => { applyState(JSON.parse(evt.data)); updateUI(); };
+    ws.onmessage = (evt) => { try { applyState(JSON.parse(evt.data)); updateUI(); } catch(e) { console.warn('WS parse error', e); } };
 }
 
-function toggleRelay(ch) { ws.send(JSON.stringify({cmd:'toggle', ch})); }
-function setMapping(input, output) { ws.send(JSON.stringify({cmd:'map', input, output: parseInt(output)})); }
-function setTimer(ch, secs) { ws.send(JSON.stringify({cmd:'timer', ch, secs: parseInt(secs)})); }
+function toggleRelay(ch) { wsSend({cmd:'toggle', ch}); }
+function setMapping(input, output) { wsSend({cmd:'map', input, output: parseInt(output)}); }
+function setTimer(ch, secs) { wsSend({cmd:'timer', ch, secs: parseInt(secs)}); }
 
-fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateUI(); });
+fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateUI(); }).catch(e => console.warn('fetch /api/state failed', e));
 
 initTable();
 updateUI();

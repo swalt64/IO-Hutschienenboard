@@ -114,8 +114,10 @@ volatile bool topBtnFlag = false;
 volatile bool pendingAllOff = false;
 void IRAM_ATTR topBtnISR() { topBtnFlag = true; }
 
-bool relayState[NUM_CHANNELS] = {false};
-bool inputState[NUM_CHANNELS] = {false};
+bool   relayState[NUM_CHANNELS] = {false};
+bool   inputState[NUM_CHANNELS] = {false};
+time_t lastInputTime[NUM_CHANNELS]  = {0};  // Unix-Timestamp letzte Betätigung
+time_t lastOutputTime[NUM_CHANNELS] = {0};  // Unix-Timestamp letzte Relais-Aktion
 
 enum InputDetState : uint8_t { DET_IDLE = 0, DET_DETECTING, DET_COUNTING, DET_LOCKED };
 InputDetState inputDetState[NUM_CHANNELS]    = {};
@@ -125,7 +127,7 @@ unsigned long inputFirstEdgeMs[NUM_CHANNELS] = {};
 unsigned long inputLastEdgeMs[NUM_CHANNELS]  = {};
 bool          inputRawPrev[NUM_CHANNELS]     = {};
 
-int8_t inputMapping[NUM_CHANNELS];
+uint16_t inputMapping[NUM_CHANNELS]; // Bitmask: Bit j = Eingang steuert Ausgang j
 
 uint32_t autoOffSeconds[NUM_CHANNELS] = {0};
 unsigned long relayOnTimestamp[NUM_CHANNELS] = {0};
@@ -377,6 +379,7 @@ void setRelay(uint8_t ch, bool on, bool saveTimerAdjust = false) {
     timerFreezeExpiry[ch] = 0;
     relayState[ch] = on;
     relayOnTimestamp[ch] = on ? millis() : 0;
+    lastOutputTime[ch] = time(nullptr);
     dbg::info(CAT_RELAY, "Relais %d: %s", ch + 1, on ? "EIN" : "AUS");
 
     updateLedState();
@@ -399,8 +402,8 @@ void loadConfig() {
     ota_pass = prefs.getString("ota_pass", "admin");
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-        String key = "map" + String(i);
-        inputMapping[i] = prefs.getChar(key.c_str(), -1);
+        String key = "mm" + String(i);   // "mm" = multi-map bitmask (uint16)
+        inputMapping[i] = prefs.getUShort(key.c_str(), 0);
         key = "auto" + String(i);
         autoOffSeconds[i] = prefs.getUInt(key.c_str(), 0);
         key = "name" + String(i);
@@ -428,8 +431,8 @@ void saveConfig() {
     prefs.putString("ota_pass", ota_pass);
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-        String key = "map" + String(i);
-        prefs.putChar(key.c_str(), inputMapping[i]);
+        String key = "mm" + String(i);
+        prefs.putUShort(key.c_str(), inputMapping[i]);
         key = "auto" + String(i);
         prefs.putUInt(key.c_str(), autoOffSeconds[i]);
     }
@@ -449,17 +452,21 @@ String buildStateJson() {
     JsonArray remaining = doc["remaining"].to<JsonArray>();
     JsonArray names = doc["names"].to<JsonArray>();
     JsonArray inames = doc["input_names"].to<JsonArray>();
+    JsonArray lastIn  = doc["last_input"].to<JsonArray>();
+    JsonArray lastOut = doc["last_output"].to<JsonArray>();
     JsonArray mcpStatus = doc["mcp"].to<JsonArray>();
     unsigned long now = millis();
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         inputs.add(inputState[i]);
         outputs.add(relayState[i]);
-        mappings.add(inputMapping[i]);
+        mappings.add((uint16_t)inputMapping[i]);
         timers.add(autoOffSeconds[i]);
         remaining.add(getRemainingAutoOffSeconds(i, now));
         names.add(channelNames[i]);
         inames.add(inputNames[i]);
+        lastIn.add((uint32_t)lastInputTime[i]);
+        lastOut.add((uint32_t)lastOutputTime[i]);
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
@@ -507,14 +514,17 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             bool val = doc["val"];
             if (ch < NUM_CHANNELS) setRelay(ch, val, !val);
         } else if (strcmp(cmd, "map") == 0) {
-            uint8_t input = doc["input"];
-            int8_t output = doc["output"];
-            if (input < NUM_CHANNELS && output >= -1 && output < (int8_t)NUM_CHANNELS) {
-                inputMapping[input] = output;
-                if (output == -1)
-                    dbg::info(CAT_CONFIG, "Mapping E%d -> keine", input + 1);
-                else
-                    dbg::info(CAT_CONFIG, "Mapping E%d -> A%d", input + 1, output + 1);
+            uint8_t input  = doc["input"];
+            uint8_t output = doc["output"];
+            bool    active = doc["active"] | false;
+            if (input < NUM_CHANNELS && output < NUM_CHANNELS) {
+                if (active) {
+                    inputMapping[input] |=  (1u << output);
+                    dbg::info(CAT_CONFIG, "Mapping E%d +-> A%d", input + 1, output + 1);
+                } else {
+                    inputMapping[input] &= ~(1u << output);
+                    dbg::info(CAT_CONFIG, "Mapping E%d -/- A%d", input + 1, output + 1);
+                }
                 saveConfig();
             }
         } else if (strcmp(cmd, "timer") == 0) {
@@ -551,6 +561,70 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
         } else if (strcmp(cmd, "alloff") == 0) {
             pendingAllOff = true;  // in loop() ausführen; sendState() folgt dort
             doSendState = false;
+        } else if (strcmp(cmd, "load_config") == 0) {
+            // Komplette E/A-Konfiguration laden (Namen, Zuordnungen, Timer)
+            JsonArray jNames    = doc["names"];
+            JsonArray jINames   = doc["input_names"];
+            JsonArray jMappings = doc["mappings"];
+            JsonArray jTimers   = doc["timers"];
+
+            if (jNames.size() < NUM_CHANNELS || jINames.size() < NUM_CHANNELS ||
+                jMappings.size() < NUM_CHANNELS || jTimers.size() < NUM_CHANNELS) {
+                dbg::warn(CAT_CONFIG, "load_config abgelehnt: unvollstaendige E/A-Konfiguration");
+            } else {
+                const uint16_t validMappingMask = (uint16_t)((1u << NUM_CHANNELS) - 1u);
+                prefs.begin("io-config", false);
+                for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+                    const char* outName = jNames[i];
+                    if (outName) {
+                        strncpy(channelNames[i], outName, CH_NAME_MAX_LEN);
+                        channelNames[i][CH_NAME_MAX_LEN] = '\0';
+                        prefs.putString(("name" + String(i)).c_str(), channelNames[i]);
+                    }
+
+                    const char* inName = jINames[i];
+                    if (inName) {
+                        strncpy(inputNames[i], inName, CH_NAME_MAX_LEN);
+                        inputNames[i][CH_NAME_MAX_LEN] = '\0';
+                        prefs.putString(("iname" + String(i)).c_str(), inputNames[i]);
+                    }
+
+                    // Bits auf NUM_CHANNELS begrenzen
+                    int32_t rawMapping = jMappings[i].as<int32_t>();
+                    inputMapping[i] = rawMapping > 0 ? ((uint16_t)rawMapping & validMappingMask) : 0;
+                    prefs.putUShort(("mm" + String(i)).c_str(), inputMapping[i]);
+
+                    int64_t rawSecs = jTimers[i].as<int64_t>();
+                    uint32_t secs = 0;
+                    if (rawSecs > 0) secs = rawSecs > 604800 ? 604800 : (uint32_t)rawSecs;
+                    autoOffSeconds[i]   = secs;
+                    tempTimeAdjustMs[i] = 0;
+                    timerFreezeStart[i]  = 0;
+                    timerFreezeExpiry[i] = 0;
+                    if (relayState[i]) relayOnTimestamp[i] = millis();  // Timer ab jetzt
+                    prefs.putUInt(("auto" + String(i)).c_str(), secs);
+                }
+                prefs.end();
+                dbg::info(CAT_CONFIG, "E/A-Konfiguration via load_config geladen");
+            }
+        } else if (strcmp(cmd, "reset_io") == 0) {
+            // Werkseinstellung E/A: alle Relais aus, dann Namen/Zuordnungen/Timer zurücksetzen
+            for (uint8_t i = 0; i < NUM_CHANNELS; i++)
+                if (relayState[i]) setRelay(i, false);
+            prefs.begin("io-config", false);
+            for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+                inputMapping[i]    = 0;
+                autoOffSeconds[i]  = 0;
+                tempTimeAdjustMs[i] = 0;
+                snprintf(channelNames[i], CH_NAME_MAX_LEN + 1, "Ausgang %d", i + 1);
+                snprintf(inputNames[i],   CH_NAME_MAX_LEN + 1, "Eingang %d", i + 1);
+                prefs.putUShort(("mm"    + String(i)).c_str(), 0);
+                prefs.putUInt  (("auto"  + String(i)).c_str(), 0);
+                prefs.putString(("name"  + String(i)).c_str(), channelNames[i]);
+                prefs.putString(("iname" + String(i)).c_str(), inputNames[i]);
+            }
+            prefs.end();
+            dbg::info(CAT_CONFIG, "Werkseinstellung E/A durchgeführt");
         } else if (strcmp(cmd, "name") == 0) {
             uint8_t ch = doc["ch"];
             const char* nm = doc["name"];
@@ -888,7 +962,7 @@ void setupWebServer() {
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
             outputs.add(relayState[i]);
-            mappings.add(inputMapping[i]);
+            mappings.add((uint16_t)inputMapping[i]);
             timers.add(autoOffSeconds[i]);
             remaining.add(getRemainingAutoOffSeconds(i, now));
             names.add(channelNames[i]);
@@ -1004,6 +1078,39 @@ void setup() {
                 saveConfig();
                 dbg::warn(CAT_CONFIG, "Alle Credentials zurueckgesetzt auf admin");
                 display::showMessage("Passwort-Reset", "Zurueckgesetzt!", "admin / admin / admin");
+                delay(2000);
+            }
+        }
+
+        // E/A-Werkseinstellung: DOWN beim Boot 5s gehalten → Namen, Zuordnungen, Timer zurücksetzen
+        gpioVal = mcpTop.readGPIOAB();
+        if (!((gpioVal >> BTN_DOWN) & 1u)) {  // DOWN aktiv-low
+            bool held = true;
+            for (int s = 5; s > 0 && held; s--) {
+                char buf[22];
+                snprintf(buf, sizeof(buf), "DOWN halten: %d s", s);
+                display::showMessage("E/A-Reset", buf, "Loslassen = Abbruch");
+                unsigned long t = millis();
+                while (millis() - t < 1000) {
+                    if ((mcpTop.readGPIOAB() >> BTN_DOWN) & 1u) { held = false; break; }
+                    delay(50);
+                }
+            }
+            if (held) {
+                prefs.begin("io-config", false);
+                for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+                    inputMapping[i]   = 0;
+                    autoOffSeconds[i] = 0;
+                    snprintf(channelNames[i], CH_NAME_MAX_LEN + 1, "Ausgang %d", i + 1);
+                    snprintf(inputNames[i],   CH_NAME_MAX_LEN + 1, "Eingang %d", i + 1);
+                    prefs.putUShort(("mm"    + String(i)).c_str(), 0);
+                    prefs.putUInt  (("auto"  + String(i)).c_str(), 0);
+                    prefs.putString(("name"  + String(i)).c_str(), channelNames[i]);
+                    prefs.putString(("iname" + String(i)).c_str(), inputNames[i]);
+                }
+                prefs.end();
+                dbg::warn(CAT_CONFIG, "E/A-Werkseinstellung durchgefuehrt");
+                display::showMessage("E/A-Reset", "Zurueckgesetzt!", "Namen + Zuordnungen");
                 delay(2000);
             }
         }
@@ -1174,8 +1281,17 @@ void loop() {
             if (inputEdgeCnt[i] >= (inputIsAC[i] ? 4u : 2u)) {
                 dbg::info(CAT_INPUT, "Eingang %d Trigger (%s, %d Flanken)",
                           i+1, inputIsAC[i] ? "AC" : "DC", inputEdgeCnt[i]);
-                if (inputMapping[i] >= 0 && inputMapping[i] < NUM_CHANNELS) {
-                    toggleRelay(inputMapping[i]);
+                lastInputTime[i] = time(nullptr);
+                if (inputMapping[i]) {
+                    // OR-Logik: irgendein Ausgang AN → alle AUS; alle AUS → alle AN
+                    bool anyOn = false;
+                    for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
+                        if ((inputMapping[i] & (1u << j)) && relayState[j]) { anyOn = true; break; }
+                    }
+                    bool newState = !anyOn;
+                    for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
+                        if (inputMapping[i] & (1u << j)) setRelay(j, newState, !newState);
+                    }
                 }
                 inputDetState[i] = DET_LOCKED;
                 stateChanged     = true;

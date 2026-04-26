@@ -17,22 +17,45 @@
         input[type=text].name-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 100%; }
         input[type=text], input[type=password] { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 6px; width: 200px; margin: 4px; }
         button { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
-        button:hover { background: #0284c7; }
+        button:hover { opacity: 0.85; }
         .status { text-align: center; padding: 8px; font-size: 0.85rem; color: #94a3b8; }
         #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; }
         .connected { color: #22c55e; }
         .disconnected { color: #ef4444; }
-        .nav { text-align: left; margin-bottom: 8px; }
+        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .nav a { color: #0ea5e9; font-size: 0.85rem; text-decoration: none; }
         .nav a:hover { text-decoration: underline; }
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+            z-index: 100; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+            padding: 28px 28px 20px; max-width: 420px; width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .modal-title { font-size: 1.05rem; font-weight: 600; color: #e2e8f0; margin-bottom: 10px; }
+        .modal-msg { font-size: 0.88rem; color: #94a3b8; line-height: 1.5; margin-bottom: 22px; }
+        .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-btns button { padding: 8px 20px; font-size: 0.9rem; border-radius: 6px; }
+        .btn-cancel  { background: #374151; color: #d1d5db; }
+        .btn-confirm { background: #0ea5e9; color: #fff; }
+        .btn-danger  { background: #dc2626; color: #fff; }
     </style>
 </head>
 <body>
     <h1>Konfiguration</h1>
     <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
-    <div class="nav"><a href="/">&#8592; Zurück zur Übersicht</a></div>
+    <div class="nav">
+        <a href="/">&#8592; Übersicht</a>
+        <a href="/mapping.html">&#8660; Zuordnung</a>
+    </div>
 
     <div class="two-col">
         <div class="section">
@@ -73,6 +96,38 @@
         <div class="status" id="fw-version" style="color:#4b5563;font-size:0.75rem;"></div>
     </div>
 
+    <div class="section">
+        <h2>Konfiguration sichern</h2>
+        <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:10px;">
+            Speichert/lädt Namen, Zuordnungen und Auto-Aus-Timer als JSON-Datei.<br>
+            WiFi und Zugangsdaten sind nicht enthalten.
+        </p>
+        <button onclick="exportConfig()" style="background:#16a34a;">&#8659; Konfiguration speichern</button>
+        <button onclick="importConfig()" style="background:#7c3aed;margin-left:8px;">&#8657; Konfiguration laden</button>
+        <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+
+    <div class="section">
+        <h2>Werkseinstellung</h2>
+        <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:10px;">
+            Setzt Eingangs-/Ausgangs-Namen, Zuordnungen und Auto-Aus-Timer zurück.<br>
+            WiFi und Zugangsdaten bleiben erhalten.
+        </p>
+        <button onclick="resetIO()" style="background:#dc2626;">Werkseinstellung E/A</button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-msg" id="modal-msg"></div>
+            <div class="modal-btns">
+                <button class="btn-cancel" onclick="modalClose()">Abbrechen</button>
+                <button id="modal-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
 <script>
 const NUM_CH = 12;
 let ws;
@@ -81,6 +136,35 @@ let state = {
     input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1))
 };
 
+// ---- Modal ----
+const modalEl     = document.getElementById('modal');
+const modalOkBtn  = document.getElementById('modal-ok');
+const modalCanBtn = document.querySelector('.btn-cancel');
+
+function modalClose() { modalEl.classList.remove('active'); modalCanBtn.style.display = ''; }
+modalEl.addEventListener('click', e => { if (e.target === modalEl) modalClose(); });
+
+function showConfirm(title, msg, callback, danger = false) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-msg').textContent   = msg;
+    modalOkBtn.className   = danger ? 'btn-danger' : 'btn-confirm';
+    modalOkBtn.textContent = danger ? 'Zurücksetzen' : 'Bestätigen';
+    modalOkBtn.onclick = () => { modalClose(); callback(); };
+    modalCanBtn.style.display = '';
+    modalEl.classList.add('active');
+}
+
+function showAlert(title, msg) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-msg').textContent   = msg;
+    modalOkBtn.className   = 'btn-confirm';
+    modalOkBtn.textContent = 'OK';
+    modalOkBtn.onclick = () => modalClose();
+    modalCanBtn.style.display = 'none';
+    modalEl.classList.add('active');
+}
+
+// ---- Tables ----
 function initTables() {
     const itbody = document.getElementById('iname-table');
     const otbody = document.getElementById('name-table');
@@ -137,19 +221,114 @@ function connectWS() {
 function setName(ch, val) { wsSend({cmd:'name', ch, name: val.trim()}); }
 function setInputName(ch, val) { wsSend({cmd:'iname', ch, name: val.trim()}); }
 
+async function saveJsonFile(filename, jsonText) {
+    if (window.showSaveFilePicker) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                id: 'hs-io-config',
+                suggestedName: filename,
+                types: [{
+                    description: 'JSON-Konfiguration',
+                    accept: {'application/json': ['.json']}
+                }]
+            });
+            const writable = await handle.createWritable();
+            await writable.write(jsonText);
+            await writable.close();
+            return;
+        } catch (e) {
+            if (e && e.name === 'AbortError') return;
+            console.warn('Save picker failed, using download fallback', e);
+        }
+    }
+
+    const blob = new Blob([jsonText], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+function exportConfig() {
+    fetch('/api/state').then(r => r.json()).then(data => {
+        const ts = new Date().toISOString().slice(0, 19).replace('T', '_').replaceAll(':', '-');
+        const cfg = {
+            version: 1,
+            names:       data.names,
+            input_names: data.input_names,
+            mappings:    data.mappings,
+            timers:      data.timers
+        };
+        saveJsonFile(`hs-io-config_${ts}.json`, JSON.stringify(cfg, null, 2));
+    }).catch(() => showAlert('Fehler', 'Konfiguration konnte nicht geladen werden.'));
+}
+
+function importConfig() {
+    const fileInput = document.getElementById('import-file');
+    fileInput.value = '';
+    fileInput.onchange = () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            let cfg;
+            try { cfg = JSON.parse(e.target.result); } catch {
+                showAlert('Fehler', 'Datei ist kein gültiges JSON.');
+                return;
+            }
+            const hasFullArray = key => Array.isArray(cfg[key]) && cfg[key].length >= NUM_CH;
+            if (!hasFullArray('names') || !hasFullArray('input_names') ||
+                !hasFullArray('mappings') || !hasFullArray('timers')) {
+                showAlert('Fehler', 'Datei enthaelt keine vollstaendige HS-IO-Konfiguration fuer 12 Kanaele.');
+                return;
+            }
+            const mappingMask = (1 << NUM_CH) - 1;
+            const normalized = {
+                names:       cfg.names.slice(0, NUM_CH).map(v => String(v ?? '')),
+                input_names: cfg.input_names.slice(0, NUM_CH).map(v => String(v ?? '')),
+                mappings:    cfg.mappings.slice(0, NUM_CH).map(v => (Number(v) || 0) & mappingMask),
+                timers:      cfg.timers.slice(0, NUM_CH).map(v => Math.min(Math.max(Number(v) || 0, 0), 604800))
+            };
+            showConfirm(
+                'Konfiguration laden',
+                `„${file.name}" laden? Aktuelle Namen, Zuordnungen und Timer werden überschrieben.`,
+                () => wsSend({cmd:'load_config', ...normalized})
+            );
+        };
+        reader.readAsText(file);
+    };
+    fileInput.click();
+}
+
+function resetIO() {
+    const msg = 'Alle Ausgaenge werden ausgeschaltet. Eingangs-/Ausgangs-Namen, Zuordnungen und Auto-Aus-Timer werden auf Werkseinstellung zurueckgesetzt. WiFi und Zugangsdaten bleiben erhalten.';
+    showConfirm(
+        'Werkseinstellung E/A',
+        msg,
+        () => wsSend({cmd:'reset_io'}),
+        true
+    );
+}
+
 function saveWifi() {
     const ssid = document.getElementById('wifi-ssid').value;
     const pass = document.getElementById('wifi-pass').value;
     const uiUser = document.getElementById('ui-user').value.trim();
     const uiPass = document.getElementById('ui-pass').value;
     const otaPass = document.getElementById('ota-pass').value;
-    if (!confirm(`WiFi auf '${ssid}' setzen und ESP neu starten?`)) return;
-    const msg = {cmd:'wifi', ssid};
-    if (pass)    msg.pass     = pass;
-    if (uiUser)  msg.ui_user  = uiUser;
-    if (uiPass)  msg.ui_pass  = uiPass;
-    if (otaPass) msg.ota_pass = otaPass;
-    wsSend(msg);
+    showConfirm(
+        'WiFi & Neustart',
+        `WiFi auf „${ssid}" setzen und ESP32 neu starten?`,
+        () => {
+            const msg = {cmd:'wifi', ssid};
+            if (pass)    msg.pass     = pass;
+            if (uiUser)  msg.ui_user  = uiUser;
+            if (uiPass)  msg.ui_pass  = uiPass;
+            if (otaPass) msg.ota_pass = otaPass;
+            wsSend(msg);
+        }
+    );
 }
 
 fetch('/api/state').then(r => r.json()).then(data => {

@@ -8,27 +8,30 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 16px; }
         h1 { text-align: center; margin-bottom: 16px; color: #0f3460; background: #e0e0e0; padding: 12px; border-radius: 8px; }
-        .section { background: #16213e; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .section { background: #16213e; border-radius: 8px; padding: 16px; }
         .section h2 { margin-bottom: 12px; color: #0ea5e9; font-size: 1.1rem; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #1e3a5f; white-space: nowrap; }
-        th { color: #94a3b8; font-size: 0.85rem; }
-        td.col-iname { text-align: left; color: #cbd5e1; font-size: 0.9rem; }
-        td.col-map { width: 99%; }
-        td.col-timer { }
-        .led { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; }
+        th, td { padding: 7px 5px; border-bottom: 1px solid #1e3a5f; white-space: nowrap; }
+        th { color: #94a3b8; font-size: 0.8rem; text-align: center; }
+        td.col-name { width: 99%; text-align: left; color: #cbd5e1; font-size: 0.9rem; white-space: normal; }
+        td.col-time { text-align: right; color: #64748b; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+        td.col-rest { text-align: right; color: #93c5fd; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+        td.col-nr { color: #64748b; font-size: 0.8rem; text-align: center; }
+        .led { display: inline-block; width: 13px; height: 13px; border-radius: 50%; vertical-align: middle; }
         .led-off      { background: #374151; border: 2px solid #6b7280; }
         .led-on       { background: #22c55e; box-shadow: 0 0 6px #22c55e; border: 2px solid #16a34a; }
         .led-input-on { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; border: 2px solid #d97706; }
-        select { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 100%; }
-        input[type=text].timer-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 80px; font-family: monospace; text-align: center; }
-        button { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
-        button:hover { background: #0284c7; }
-        .remaining { margin-top: 4px; font-size: 0.75rem; color: #93c5fd; min-height: 1em; }
-        #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; }
+        button.toggle { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82rem; }
+        button.toggle:hover { background: #0284c7; }
+        button.alloff { background: #dc2626; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 0.9rem; }
+        button.alloff:hover { background: #b91c1c; }
+        #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; margin-bottom: 8px; }
         .connected { color: #22c55e; }
         .disconnected { color: #ef4444; }
         .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .nav-links { display: flex; gap: 12px; }
         .nav a { color: #0ea5e9; font-size: 0.85rem; text-decoration: none; }
         .nav a:hover { text-decoration: underline; }
         .ui-version { font-size: 0.75rem; color: #4b5563; }
@@ -38,26 +41,36 @@
     <h1>IO-Hutschienenboard</h1>
     <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
     <div class="nav">
-        <span class="ui-version">UI v1.2</span>
-        <a href="/config.html">&#9881; Konfiguration</a>
+        <span class="ui-version">UI v2.0</span>
+        <div class="nav-links">
+            <a href="/mapping.html">&#8660; Zuordnung</a>
+            <a href="/config.html">&#9881; Konfiguration</a>
+        </div>
     </div>
 
-    <div class="section">
-        <h2>Kanal-Zuordnung &amp; Status</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-nr">Nr.</th>
-                    <th class="col-iname">Eingang</th>
-                    <th class="col-st">Status</th>
-                    <th class="col-map">&#8594; Ausgang</th>
-                    <th class="col-rel">Relais</th>
-                    <th class="col-timer">Auto-Aus</th>
-                    <th class="col-btn">Manuell</th>
-                </tr>
-            </thead>
-            <tbody id="channel-table"></tbody>
-        </table>
+    <div style="text-align:center;margin-bottom:12px;">
+        <button class="alloff" onclick="allOff()">&#9209; Alle Ausgänge AUS</button>
+    </div>
+
+    <div class="two-col">
+        <div class="section">
+            <h2>Eingänge</h2>
+            <table>
+                <thead><tr>
+                    <th>Nr.</th><th></th><th style="text-align:left">Name</th><th>Letzte Betätigung</th>
+                </tr></thead>
+                <tbody id="input-table"></tbody>
+            </table>
+        </div>
+        <div class="section">
+            <h2>Ausgänge</h2>
+            <table>
+                <thead><tr>
+                    <th>Nr.</th><th></th><th style="text-align:left">Name</th><th>Letzte Aktion</th><th>Restzeit</th><th></th>
+                </tr></thead>
+                <tbody id="output-table"></tbody>
+            </table>
+        </div>
     </div>
 
 <script>
@@ -66,86 +79,49 @@ let ws;
 let state = {
     inputs:      Array(NUM_CH).fill(false),
     outputs:     Array(NUM_CH).fill(false),
-    mappings:    Array(NUM_CH).fill(-1),
-    timers:      Array(NUM_CH).fill(0),
     remaining:   Array(NUM_CH).fill(0),
     names:       Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
-    input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1))
+    input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1)),
+    last_input:  Array(NUM_CH).fill(0),
+    last_output: Array(NUM_CH).fill(0)
 };
 
-function initTable() {
-    const tbody = document.getElementById('channel-table');
-    for (let i = 0; i < NUM_CH; i++) {
-        const tr = document.createElement('tr');
-        const opts = Array.from({length: NUM_CH}, (_, j) =>
-            `<option value="${j}" id="mapopt-${i}-${j}">A${j+1}</option>`
-        ).join('');
-        tr.innerHTML = `
-            <td class="col-nr" style="color:#64748b;font-size:0.8rem">E${i+1}</td>
-            <td class="col-iname" id="iname-label-${i}">Eingang ${i+1}</td>
-            <td class="col-st"><span class="led led-off" id="in-${i}"></span></td>
-            <td class="col-map">
-                <select id="map-${i}" onchange="setMapping(${i}, this.value)">
-                    <option value="-1">-- keine --</option>
-                    ${opts}
-                </select>
-            </td>
-            <td class="col-rel"><span class="led led-off" id="out-${i}"></span></td>
-            <td class="col-timer">
-                <input type="text" class="timer-input" id="timer-${i}" value="00:00:00"
-                       placeholder="hh:mm:ss"
-                       onfocus="this.select()"
-                       onkeydown="timerKey(event,${i})"
-                       onchange="setTimer(${i}, hmsToSecs(this.value))">
-                <div class="remaining" id="remaining-${i}">Rest: --</div>
-            </td>
-            <td class="col-btn"><button onclick="toggleRelay(${i})">Toggle</button></td>
-        `;
-        tbody.appendChild(tr);
-    }
-}
-
-function updateDropdownLabels() {
-    for (let i = 0; i < NUM_CH; i++) {
-        for (let j = 0; j < NUM_CH; j++) {
-            const opt = document.getElementById(`mapopt-${i}-${j}`);
-            if (opt) opt.textContent = `A${j+1}: ${state.names[j]}`;
-        }
-    }
+function formatTime(ts) {
+    if (!ts) return '–';
+    const d = new Date(ts * 1000);
+    return d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
 }
 
 function secsToHMS(secs) {
-    if (!secs || secs <= 0) return '00:00:00';
+    if (!secs || secs <= 0) return '';
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
     const s = secs % 60;
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-function hmsToSecs(str) {
-    str = str.trim().toLowerCase();
-    if (/\d[hms]/.test(str)) {
-        const h = (str.match(/(\d+)\s*h/) || [0,0])[1];
-        const m = (str.match(/(\d+)\s*m/) || [0,0])[1];
-        const s = (str.match(/(\d+)\s*s/) || [0,0])[1];
-        return Math.min(+h*3600 + +m*60 + +s, 604800);
-    }
-    if (str.includes(':')) {
-        const parts = str.split(':').map(v => parseInt(v) || 0);
-        if (parts.length >= 3) return Math.min(parts[0]*3600 + parts[1]*60 + parts[2], 604800);
-        return Math.min(parts[0]*60 + (parts[1]||0), 604800);
-    }
-    return Math.min(parseInt(str) || 0, 604800);
-}
+function initTables() {
+    const itbody = document.getElementById('input-table');
+    const otbody = document.getElementById('output-table');
+    for (let i = 0; i < NUM_CH; i++) {
+        const itr = document.createElement('tr');
+        itr.innerHTML = `
+            <td class="col-nr">E${i+1}</td>
+            <td><span class="led led-off" id="in-led-${i}"></span></td>
+            <td class="col-name" id="in-name-${i}">Eingang ${i+1}</td>
+            <td class="col-time" id="in-time-${i}">–</td>`;
+        itbody.appendChild(itr);
 
-function timerKey(e, i) {
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-    e.preventDefault();
-    const input = document.getElementById(`timer-${i}`);
-    let secs = hmsToSecs(input.value) + (e.key === 'ArrowUp' ? 600 : -600);
-    secs = Math.max(0, Math.min(secs, 604800));
-    input.value = secsToHMS(secs);
-    setTimer(i, secs);
+        const otr = document.createElement('tr');
+        otr.innerHTML = `
+            <td class="col-nr">A${i+1}</td>
+            <td><span class="led led-off" id="out-led-${i}"></span></td>
+            <td class="col-name" id="out-name-${i}">Ausgang ${i+1}</td>
+            <td class="col-time" id="out-time-${i}">–</td>
+            <td class="col-rest" id="out-rest-${i}"></td>
+            <td><button class="toggle" onclick="toggleRelay(${i})">Toggle</button></td>`;
+        otbody.appendChild(otr);
+    }
 }
 
 function tickCountdown() {
@@ -156,36 +132,40 @@ function tickCountdown() {
             changed = true;
         }
     }
-    if (changed) updateUI();
+    if (changed) updateRemaining();
+}
+
+function updateRemaining() {
+    for (let i = 0; i < NUM_CH; i++) {
+        const el = document.getElementById(`out-rest-${i}`);
+        el.textContent = (state.outputs[i] && state.remaining[i] > 0)
+            ? secsToHMS(state.remaining[i]) : '';
+    }
 }
 
 function updateUI() {
     for (let i = 0; i < NUM_CH; i++) {
-        document.getElementById(`in-${i}`).className =
+        document.getElementById(`in-led-${i}`).className =
             state.inputs[i] ? 'led led-input-on' : 'led led-off';
-        document.getElementById(`out-${i}`).className =
+        document.getElementById(`in-name-${i}`).textContent = state.input_names[i];
+        document.getElementById(`in-time-${i}`).textContent = formatTime(state.last_input[i]);
+
+        document.getElementById(`out-led-${i}`).className =
             state.outputs[i] ? 'led led-on' : 'led led-off';
-        document.getElementById(`map-${i}`).value = state.mappings[i];
-        document.getElementById(`iname-label-${i}`).textContent = state.input_names[i];
-
-        const timerInput = document.getElementById(`timer-${i}`);
-        if (document.activeElement !== timerInput)
-            timerInput.value = secsToHMS(state.timers[i]);
-
-        const rem = document.getElementById(`remaining-${i}`);
-        rem.textContent = (state.outputs[i] && state.remaining[i] > 0)
-            ? `Rest: ${secsToHMS(state.remaining[i])}` : 'Rest: --';
+        document.getElementById(`out-name-${i}`).textContent = state.names[i];
+        document.getElementById(`out-time-${i}`).textContent = formatTime(state.last_output[i]);
     }
+    updateRemaining();
 }
 
 function applyState(data) {
     if (data.inputs)      state.inputs      = data.inputs;
     if (data.outputs)     state.outputs     = data.outputs;
-    if (data.mappings)    state.mappings    = data.mappings;
-    if (data.timers)      state.timers      = data.timers;
     if (data.remaining)   state.remaining   = data.remaining;
-    if (data.names)       { state.names       = data.names;       updateDropdownLabels(); }
+    if (data.names)       state.names       = data.names;
     if (data.input_names) state.input_names = data.input_names;
+    if (data.last_input)  state.last_input  = data.last_input;
+    if (data.last_output) state.last_output = data.last_output;
 }
 
 function wsSend(msg) {
@@ -204,16 +184,18 @@ function connectWS() {
         document.getElementById('connection-status').className = 'disconnected';
         setTimeout(connectWS, 2000);
     };
-    ws.onmessage = (evt) => { try { applyState(JSON.parse(evt.data)); updateUI(); } catch(e) { console.warn('WS parse error', e); } };
+    ws.onmessage = (evt) => {
+        try { applyState(JSON.parse(evt.data)); updateUI(); } catch(e) { console.warn('WS parse error', e); }
+    };
 }
 
 function toggleRelay(ch) { wsSend({cmd:'toggle', ch}); }
-function setMapping(input, output) { wsSend({cmd:'map', input, output: parseInt(output)}); }
-function setTimer(ch, secs) { wsSend({cmd:'timer', ch, secs: parseInt(secs)}); }
+function allOff() { wsSend({cmd:'alloff'}); }
 
-fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateUI(); }).catch(e => console.warn('fetch /api/state failed', e));
+fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateUI(); })
+    .catch(e => console.warn('fetch /api/state failed', e));
 
-initTable();
+initTables();
 updateUI();
 setInterval(tickCountdown, 1000);
 connectWS();

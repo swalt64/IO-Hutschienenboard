@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IO-Hutschienenboard – Zuordnung</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 16px; }
+        h1 { text-align: center; margin-bottom: 16px; color: #0f3460; background: #e0e0e0; padding: 12px; border-radius: 8px; }
+        .section { background: #16213e; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .section h2 { margin-bottom: 12px; color: #0ea5e9; font-size: 1.1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px 6px; border-bottom: 1px solid #1e3a5f; vertical-align: middle; }
+        th { color: #94a3b8; font-size: 0.8rem; text-align: center; white-space: nowrap; }
+        td.col-nr { width: 1px; white-space: nowrap; color: #64748b; font-size: 0.8rem; text-align: center; padding-right: 8px; }
+        td.col-name { white-space: nowrap; color: #cbd5e1; font-size: 0.9rem; }
+        td.col-inputs { width: 99%; }
+        td.col-timer { white-space: nowrap; }
+        .tags { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+        .tag { display: inline-flex; align-items: center; background: #1e3a5f; border: 1px solid #2563eb; border-radius: 12px; padding: 2px 10px 2px 8px; font-size: 0.8rem; color: #93c5fd; white-space: nowrap; }
+        .tag-remove { background: none; border: none; color: #6b7280; cursor: pointer; margin-left: 5px; font-size: 1rem; line-height: 1; padding: 0; }
+        .tag-remove:hover { color: #ef4444; }
+        .add-select { background: #1e293b; color: #6b7280; border: 1px dashed #475569; border-radius: 12px; padding: 3px 8px; font-size: 0.8rem; max-width: 180px; }
+        .add-select:focus { outline: none; border-color: #0ea5e9; color: #eee; }
+        input[type=text].timer-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 90px; font-family: monospace; text-align: center; font-size: 0.9rem; }
+        #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; margin-bottom: 8px; }
+        .connected { color: #22c55e; }
+        .disconnected { color: #ef4444; }
+        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .nav-links { display: flex; gap: 12px; }
+        .nav a { color: #0ea5e9; font-size: 0.85rem; text-decoration: none; }
+        .nav a:hover { text-decoration: underline; }
+        .hint { font-size: 0.75rem; color: #4b5563; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Zuordnung</h1>
+    <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
+    <div class="nav">
+        <a href="/">&#8592; Übersicht</a>
+        <div class="nav-links">
+            <a href="/config.html">&#9881; Konfiguration</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Eingang &#8594; Ausgang &amp; Auto-Aus</h2>
+        <table>
+            <thead><tr>
+                <th class="col-nr">Nr.</th>
+                <th class="col-name" style="text-align:left">Ausgang</th>
+                <th class="col-inputs" style="text-align:left">&#8592; gesteuert durch Eingang</th>
+                <th class="col-timer">Auto-Aus</th>
+            </tr></thead>
+            <tbody id="mapping-table"></tbody>
+        </table>
+        <p class="hint">Ein Eingang kann mehreren Ausgängen zugeordnet sein und umgekehrt. Beim Betätigen: wenn irgendein zugeordneter Ausgang aktiv ist → alle aus; alle inaktiv → alle ein.</p>
+    </div>
+
+<script>
+const NUM_CH = 12;
+let ws;
+let state = {
+    mappings:    Array(NUM_CH).fill(0),  // Bitmask: Bit j = Eingang i steuert Ausgang j
+    timers:      Array(NUM_CH).fill(0),
+    names:       Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
+    input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1))
+};
+
+function initTable() {
+    const tbody = document.getElementById('mapping-table');
+    for (let i = 0; i < NUM_CH; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="col-nr">A${i+1}</td>
+            <td class="col-name" id="out-name-${i}">Ausgang ${i+1}</td>
+            <td class="col-inputs"><div class="tags" id="tags-${i}"></div></td>
+            <td class="col-timer">
+                <input type="text" class="timer-input" id="timer-${i}" value="00:00:00"
+                       placeholder="hh:mm:ss"
+                       onfocus="this.select()"
+                       onkeydown="timerKey(event,${i})"
+                       onchange="setTimer(${i}, hmsToSecs(this.value))">
+            </td>`;
+        tbody.appendChild(tr);
+    }
+}
+
+function secsToHMS(secs) {
+    if (!secs || secs <= 0) return '00:00:00';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function hmsToSecs(str) {
+    str = str.trim().toLowerCase();
+    if (/\d[hms]/.test(str)) {
+        const h = (str.match(/(\d+)\s*h/) || [0,0])[1];
+        const m = (str.match(/(\d+)\s*m/) || [0,0])[1];
+        const s = (str.match(/(\d+)\s*s/) || [0,0])[1];
+        return Math.min(+h*3600 + +m*60 + +s, 604800);
+    }
+    if (str.includes(':')) {
+        const parts = str.split(':').map(v => parseInt(v) || 0);
+        if (parts.length >= 3) return Math.min(parts[0]*3600 + parts[1]*60 + parts[2], 604800);
+        return Math.min(parts[0]*60 + (parts[1]||0), 604800);
+    }
+    return Math.min(parseInt(str) || 0, 604800);
+}
+
+function timerKey(e, i) {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const input = document.getElementById(`timer-${i}`);
+    let secs = hmsToSecs(input.value) + (e.key === 'ArrowUp' ? 600 : -600);
+    secs = Math.max(0, Math.min(secs, 604800));
+    input.value = secsToHMS(secs);
+    setTimer(i, secs);
+}
+
+// Liefert true wenn Eingang inputIdx dem Ausgang outputIdx zugeordnet ist
+function isMapped(inputIdx, outputIdx) {
+    return !!(state.mappings[inputIdx] & (1 << outputIdx));
+}
+
+function rebuildTags(outputIdx) {
+    const container = document.getElementById(`tags-${outputIdx}`);
+    container.innerHTML = '';
+
+    // Tags für alle Eingänge die diesem Ausgang zugeordnet sind
+    for (let j = 0; j < NUM_CH; j++) {
+        if (isMapped(j, outputIdx)) {
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.innerHTML =
+                `E${j+1}: ${state.input_names[j]}` +
+                `<button class="tag-remove" onclick="removeInput(${j},${outputIdx})" title="Entfernen">×</button>`;
+            container.appendChild(tag);
+        }
+    }
+
+    // Dropdown: Eingänge die noch NICHT diesem Ausgang zugeordnet sind
+    const sel = document.createElement('select');
+    sel.className = 'add-select';
+    sel.id = `add-${outputIdx}`;
+    sel.innerHTML = '<option value="-1">+ Eingang…</option>';
+    for (let j = 0; j < NUM_CH; j++) {
+        if (!isMapped(j, outputIdx)) {
+            const opt = document.createElement('option');
+            opt.value = j;
+            // Zeige wo der Eingang aktuell noch zugeordnet ist
+            const others = [];
+            for (let k = 0; k < NUM_CH; k++) {
+                if (k !== outputIdx && isMapped(j, k)) others.push(`A${k+1}`);
+            }
+            const hint = others.length ? ` (auch → ${others.join(', ')})` : '';
+            opt.textContent = `E${j+1}: ${state.input_names[j]}${hint}`;
+            sel.appendChild(opt);
+        }
+    }
+    sel.onchange = () => {
+        const inp = parseInt(sel.value);
+        if (inp >= 0) { wsSend({cmd:'map', input: inp, output: outputIdx, active: true}); sel.value = -1; }
+    };
+    container.appendChild(sel);
+}
+
+function removeInput(inputIdx, outputIdx) {
+    wsSend({cmd:'map', input: inputIdx, output: outputIdx, active: false});
+}
+
+function updateUI() {
+    for (let i = 0; i < NUM_CH; i++) {
+        document.getElementById(`out-name-${i}`).textContent = state.names[i];
+        const timerEl = document.getElementById(`timer-${i}`);
+        if (document.activeElement !== timerEl) timerEl.value = secsToHMS(state.timers[i]);
+        rebuildTags(i);
+    }
+}
+
+function applyState(data) {
+    if (data.mappings)    state.mappings    = data.mappings;
+    if (data.timers)      state.timers      = data.timers;
+    if (data.names)       state.names       = data.names;
+    if (data.input_names) state.input_names = data.input_names;
+}
+
+function wsSend(msg) {
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+}
+
+function connectWS() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${proto}//${location.host}/ws`);
+    ws.onopen = () => {
+        document.getElementById('connection-status').textContent = 'Verbunden';
+        document.getElementById('connection-status').className = 'connected';
+    };
+    ws.onclose = () => {
+        document.getElementById('connection-status').textContent = 'Verbindung getrennt – Neuverbindung...';
+        document.getElementById('connection-status').className = 'disconnected';
+        setTimeout(connectWS, 2000);
+    };
+    ws.onmessage = (evt) => {
+        try { applyState(JSON.parse(evt.data)); updateUI(); } catch(e) { console.warn('WS parse error', e); }
+    };
+}
+
+function setTimer(ch, secs) { wsSend({cmd:'timer', ch, secs: parseInt(secs)}); }
+
+fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateUI(); })
+    .catch(e => console.warn('fetch /api/state failed', e));
+
+initTable();
+updateUI();
+connectWS();
+</script>
+</body>
+</html>

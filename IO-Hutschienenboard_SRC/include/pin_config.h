@@ -87,7 +87,7 @@ static const uint8_t RESET_PERIPHERIE_PIN = 2;
 
 // OLED display
 static const uint8_t OLED_ADDR       = 0x3C;
-static const uint8_t CH_NAME_MAX_LEN = 20;
+static const uint8_t CH_NAME_MAX_LEN = 60;
 
 // Free ESP32 GPIOs:
 // GPIO0, 1, 2, 14, 21, 35, 36, 37, 38, 39, 40, 41, 42, 45, 46, 47, 48

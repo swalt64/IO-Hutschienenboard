@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -11,104 +11,87 @@
         .section { background: #16213e; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
         .section h2 { margin-bottom: 12px; color: #0ea5e9; font-size: 1.1rem; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #1e3a5f; }
+        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #1e3a5f; white-space: nowrap; }
         th { color: #94a3b8; font-size: 0.85rem; }
-        .led { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
-        .led-off { background: #334155; }
-        .led-on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
-        .led-input-on { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        td.col-iname { text-align: left; color: #cbd5e1; font-size: 0.9rem; }
+        td.col-map { width: 99%; }
+        td.col-timer { }
+        .led { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; }
+        .led-off      { background: #374151; border: 2px solid #6b7280; }
+        .led-on       { background: #22c55e; box-shadow: 0 0 6px #22c55e; border: 2px solid #16a34a; }
+        .led-input-on { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; border: 2px solid #d97706; }
         select { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 100%; }
         input[type=text].timer-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 80px; font-family: monospace; text-align: center; }
-        input[type=text].name-input { background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; width: 120px; }
         button { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
         button:hover { background: #0284c7; }
-        .btn-on { background: #22c55e; }
-        .btn-off { background: #ef4444; }
-        .status { text-align: center; padding: 8px; font-size: 0.85rem; color: #94a3b8; }
         .remaining { margin-top: 4px; font-size: 0.75rem; color: #93c5fd; min-height: 1em; }
-        .wifi-section input[type=text], .wifi-section input[type=password] {
-            background: #1e293b; color: #eee; border: 1px solid #334155; border-radius: 4px; padding: 6px; width: 200px; margin: 4px;
-        }
         #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; }
         .connected { color: #22c55e; }
         .disconnected { color: #ef4444; }
+        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .nav a { color: #0ea5e9; font-size: 0.85rem; text-decoration: none; }
+        .nav a:hover { text-decoration: underline; }
+        .ui-version { font-size: 0.75rem; color: #4b5563; }
     </style>
 </head>
 <body>
     <h1>IO-Hutschienenboard</h1>
     <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
+    <div class="nav">
+        <span class="ui-version">UI v1.1</span>
+        <a href="/config.html">&#9881; Konfiguration</a>
+    </div>
 
     <div class="section">
         <h2>Kanal-Zuordnung &amp; Status</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Eingang</th>
-                    <th>Status</th>
-                    <th>&#8594; Ausgang</th>
-                    <th>Name</th>
-                    <th>Relais</th>
-                    <th>Auto-Aus</th>
-                    <th>Manuell</th>
+                    <th class="col-nr">Nr.</th>
+                    <th class="col-iname">Eingang</th>
+                    <th class="col-st">Status</th>
+                    <th class="col-map">&#8594; Ausgang</th>
+                    <th class="col-rel">Relais</th>
+                    <th class="col-timer">Auto-Aus</th>
+                    <th class="col-btn">Manuell</th>
                 </tr>
             </thead>
             <tbody id="channel-table"></tbody>
         </table>
     </div>
 
-    <div class="section wifi-section">
-        <h2>WiFi-Konfiguration</h2>
-        <div>
-            <label>SSID: <input type="text" id="wifi-ssid"></label>
-            <label>Passwort: <input type="password" id="wifi-pass" placeholder="(leer = unverändert)"></label>
-        </div>
-        <div style="margin-top:8px;">
-            <label>Web-Benutzer: <input type="text" id="ui-user" placeholder="(leer = unverändert)" autocomplete="username"></label>
-            <label>Web-Passwort: <input type="password" id="ui-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
-        </div>
-        <div style="margin-top:8px;">
-            <label>OTA-Passwort: <input type="password" id="ota-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
-            <span style="font-size:0.75rem;color:#6b7280;margin-left:4px;">→ --auth in platformio.ini anpassen</span>
-        </div>
-        <div style="margin-top:8px;">
-            <button onclick="saveWifi()">Speichern &amp; Neustart</button>
-            <button onclick="location.href='/update'" style="background:#6366f1;margin-left:8px;">Firmware Update</button>
-        </div>
-        <div class="status" id="wifi-info"></div>
-        <div class="status" id="fw-version" style="color:#4b5563;font-size:0.75rem;"></div>
-    </div>
-
 <script>
 const NUM_CH = 12;
 let ws;
 let state = {
-    inputs: Array(NUM_CH).fill(false),
-    outputs: Array(NUM_CH).fill(false),
-    mappings: Array(NUM_CH).fill(-1),
-    timers: Array(NUM_CH).fill(0),
-    remaining: Array(NUM_CH).fill(0),
-    names: Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1))
+    inputs:      Array(NUM_CH).fill(false),
+    outputs:     Array(NUM_CH).fill(false),
+    mappings:    Array(NUM_CH).fill(-1),
+    timers:      Array(NUM_CH).fill(0),
+    remaining:   Array(NUM_CH).fill(0),
+    names:       Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
+    input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1))
 };
 
 function initTable() {
     const tbody = document.getElementById('channel-table');
     for (let i = 0; i < NUM_CH; i++) {
         const tr = document.createElement('tr');
+        const opts = Array.from({length: NUM_CH}, (_, j) =>
+            `<option value="${j}" id="mapopt-${i}-${j}">A${j+1}</option>`
+        ).join('');
         tr.innerHTML = `
-            <td>E${i+1}</td>
-            <td><span class="led led-off" id="in-${i}"></span></td>
-            <td>
+            <td class="col-nr" style="color:#64748b;font-size:0.8rem">E${i+1}</td>
+            <td class="col-iname" id="iname-label-${i}">Eingang ${i+1}</td>
+            <td class="col-st"><span class="led led-off" id="in-${i}"></span></td>
+            <td class="col-map">
                 <select id="map-${i}" onchange="setMapping(${i}, this.value)">
                     <option value="-1">-- keine --</option>
-                    ${Array.from({length: NUM_CH}, (_, j) => `<option value="${j}">A${j+1}</option>`).join('')}
+                    ${opts}
                 </select>
             </td>
-            <td>
-                <input type="text" class="name-input" id="name-${i}" maxlength="20" value="Ausgang ${i+1}"
-                       onchange="setName(${i}, this.value)">
-            </td>
-            <td><span class="led led-off" id="out-${i}"></span></td>
-            <td>
+            <td class="col-rel"><span class="led led-off" id="out-${i}"></span></td>
+            <td class="col-timer">
                 <input type="text" class="timer-input" id="timer-${i}" value="00:00:00"
                        placeholder="hh:mm:ss"
                        onfocus="this.select()"
@@ -116,20 +99,19 @@ function initTable() {
                        onchange="setTimer(${i}, hmsToSecs(this.value))">
                 <div class="remaining" id="remaining-${i}">Rest: --</div>
             </td>
-            <td><button id="btn-${i}" onclick="toggleRelay(${i})">Toggle</button></td>
+            <td class="col-btn"><button onclick="toggleRelay(${i})">Toggle</button></td>
         `;
         tbody.appendChild(tr);
     }
 }
 
-function timerKey(e, i) {
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-    e.preventDefault();
-    const input = document.getElementById(`timer-${i}`);
-    let secs = hmsToSecs(input.value) + (e.key === 'ArrowUp' ? 600 : -600);
-    secs = Math.max(0, Math.min(secs, 604800));
-    input.value = secsToHMS(secs);
-    setTimer(i, secs);
+function updateDropdownLabels() {
+    for (let i = 0; i < NUM_CH; i++) {
+        for (let j = 0; j < NUM_CH; j++) {
+            const opt = document.getElementById(`mapopt-${i}-${j}`);
+            if (opt) opt.textContent = `A${j+1}: ${state.names[j]}`;
+        }
+    }
 }
 
 function secsToHMS(secs) {
@@ -142,26 +124,28 @@ function secsToHMS(secs) {
 
 function hmsToSecs(str) {
     str = str.trim().toLowerCase();
-    // Unit-Suffixe: 4h, 30m, 1h30m, 4h30m20s ...
     if (/\d[hms]/.test(str)) {
         const h = (str.match(/(\d+)\s*h/) || [0,0])[1];
         const m = (str.match(/(\d+)\s*m/) || [0,0])[1];
         const s = (str.match(/(\d+)\s*s/) || [0,0])[1];
         return Math.min(+h*3600 + +m*60 + +s, 604800);
     }
-    // Doppelpunkt-Format: hh:mm:ss oder mm:ss
     if (str.includes(':')) {
         const parts = str.split(':').map(v => parseInt(v) || 0);
         if (parts.length >= 3) return Math.min(parts[0]*3600 + parts[1]*60 + parts[2], 604800);
         return Math.min(parts[0]*60 + (parts[1]||0), 604800);
     }
-    // Reine Zahl = Sekunden
     return Math.min(parseInt(str) || 0, 604800);
 }
 
-function formatRemaining(seconds) {
-    if (!Number.isFinite(seconds) || seconds <= 0) return '00:00:00';
-    return secsToHMS(seconds);
+function timerKey(e, i) {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const input = document.getElementById(`timer-${i}`);
+    let secs = hmsToSecs(input.value) + (e.key === 'ArrowUp' ? 600 : -600);
+    secs = Math.max(0, Math.min(secs, 604800));
+    input.value = secsToHMS(secs);
+    setTimer(i, secs);
 }
 
 function tickCountdown() {
@@ -176,109 +160,54 @@ function tickCountdown() {
 }
 
 function updateUI() {
+    updateDropdownLabels();
     for (let i = 0; i < NUM_CH; i++) {
-        const inLed = document.getElementById(`in-${i}`);
-        inLed.className = state.inputs[i] ? 'led led-input-on' : 'led led-off';
-
-        const outLed = document.getElementById(`out-${i}`);
-        outLed.className = state.outputs[i] ? 'led led-on' : 'led led-off';
-
+        document.getElementById(`in-${i}`).className =
+            state.inputs[i] ? 'led led-input-on' : 'led led-off';
+        document.getElementById(`out-${i}`).className =
+            state.outputs[i] ? 'led led-on' : 'led led-off';
         document.getElementById(`map-${i}`).value = state.mappings[i];
-
-        const nameInput = document.getElementById(`name-${i}`);
-        if (document.activeElement !== nameInput) {
-            nameInput.value = state.names[i];
-        }
+        document.getElementById(`iname-label-${i}`).textContent = state.input_names[i];
 
         const timerInput = document.getElementById(`timer-${i}`);
-        if (document.activeElement !== timerInput) {
+        if (document.activeElement !== timerInput)
             timerInput.value = secsToHMS(state.timers[i]);
-        }
 
-        const remainingEl = document.getElementById(`remaining-${i}`);
-        if (state.outputs[i] && state.remaining[i] > 0) {
-            remainingEl.textContent = `Rest: ${formatRemaining(state.remaining[i])}`;
-        } else {
-            remainingEl.textContent = 'Rest: --';
-        }
+        const rem = document.getElementById(`remaining-${i}`);
+        rem.textContent = (state.outputs[i] && state.remaining[i] > 0)
+            ? `Rest: ${secsToHMS(state.remaining[i])}` : 'Rest: --';
     }
 }
 
-function connectWS() {
-    const loc = window.location;
-    ws = new WebSocket(`ws://${loc.host}/ws`);
+function applyState(data) {
+    if (data.inputs)      state.inputs      = data.inputs;
+    if (data.outputs)     state.outputs     = data.outputs;
+    if (data.mappings)    state.mappings    = data.mappings;
+    if (data.timers)      state.timers      = data.timers;
+    if (data.remaining)   state.remaining   = data.remaining;
+    if (data.names)       state.names       = data.names;
+    if (data.input_names) state.input_names = data.input_names;
+}
 
+function connectWS() {
+    ws = new WebSocket(`ws://${location.host}/ws`);
     ws.onopen = () => {
         document.getElementById('connection-status').textContent = 'Verbunden';
         document.getElementById('connection-status').className = 'connected';
     };
-
     ws.onclose = () => {
-        document.getElementById('connection-status').textContent = 'Verbindung getrennt - Neuverbindung...';
+        document.getElementById('connection-status').textContent = 'Verbindung getrennt – Neuverbindung...';
         document.getElementById('connection-status').className = 'disconnected';
         setTimeout(connectWS, 2000);
     };
-
-    ws.onmessage = (evt) => {
-        const data = JSON.parse(evt.data);
-        if (data.inputs) state.inputs = data.inputs;
-        if (data.outputs) state.outputs = data.outputs;
-        if (data.mappings) state.mappings = data.mappings;
-        if (data.timers) state.timers = data.timers;
-        if (data.remaining) state.remaining = data.remaining;
-        if (data.names) state.names = data.names;
-        updateUI();
-    };
+    ws.onmessage = (evt) => { applyState(JSON.parse(evt.data)); updateUI(); };
 }
 
-function toggleRelay(ch) {
-    ws.send(JSON.stringify({cmd: 'toggle', ch: ch}));
-}
+function toggleRelay(ch) { ws.send(JSON.stringify({cmd:'toggle', ch})); }
+function setMapping(input, output) { ws.send(JSON.stringify({cmd:'map', input, output: parseInt(output)})); }
+function setTimer(ch, secs) { ws.send(JSON.stringify({cmd:'timer', ch, secs: parseInt(secs)})); }
 
-function setMapping(input, output) {
-    ws.send(JSON.stringify({cmd: 'map', input: input, output: parseInt(output)}));
-}
-
-function setTimer(ch, secs) {
-    ws.send(JSON.stringify({cmd: 'timer', ch: ch, secs: parseInt(secs)}));
-}
-
-function setName(ch, val) {
-    ws.send(JSON.stringify({cmd: 'name', ch: ch, name: val.trim()}));
-}
-
-function saveWifi() {
-    const ssid = document.getElementById('wifi-ssid').value;
-    const pass = document.getElementById('wifi-pass').value;
-    const uiUser = document.getElementById('ui-user').value.trim();
-    const uiPass = document.getElementById('ui-pass').value;
-    const otaPass = document.getElementById('ota-pass').value;
-    if (!confirm(`WiFi auf '${ssid}' setzen und ESP neu starten?`)) return;
-    const msg = {cmd: 'wifi', ssid: ssid};
-    if (pass)    msg.pass     = pass;
-    if (uiUser)  msg.ui_user  = uiUser;
-    if (uiPass)  msg.ui_pass  = uiPass;
-    if (otaPass) msg.ota_pass = otaPass;
-    ws.send(JSON.stringify(msg));
-}
-
-// Load current WiFi info
-fetch('/api/state').then(r => r.json()).then(data => {
-    if (data.inputs) state.inputs = data.inputs;
-    if (data.outputs) state.outputs = data.outputs;
-    if (data.mappings) state.mappings = data.mappings;
-    if (data.timers) state.timers = data.timers;
-    if (data.remaining) state.remaining = data.remaining;
-    if (data.names) state.names = data.names;
-    updateUI();
-
-    document.getElementById('wifi-ssid').value = data.sta_ssid || '';
-    if (data.sta_pass_set)
-        document.getElementById('wifi-pass').placeholder = '(gespeichert – leer lassen zum Beibehalten)';
-    document.getElementById('wifi-info').textContent =
-        `AP: ${data.ap_ip} | STA: ${data.sta_ip} (${data.sta_ssid || 'nicht konfiguriert'})`;
-    if (data.version) document.getElementById('fw-version').textContent = `Firmware: v${data.version}`;
-});
+fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateUI(); });
 
 initTable();
 updateUI();

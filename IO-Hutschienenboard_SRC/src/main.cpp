@@ -138,6 +138,7 @@ static inline unsigned long getTimerEffectiveNow(uint8_t ch) {
 }
 
 char channelNames[NUM_CHANNELS][CH_NAME_MAX_LEN + 1];
+char inputNames[NUM_CHANNELS][CH_NAME_MAX_LEN + 1];
 uint8_t displayChannel = 0;
 
 uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
@@ -407,6 +408,12 @@ void loadConfig() {
         String name = prefs.getString(key.c_str(), defaultName);
         strncpy(channelNames[i], name.c_str(), CH_NAME_MAX_LEN);
         channelNames[i][CH_NAME_MAX_LEN] = '\0';
+
+        key = "iname" + String(i);
+        String defaultIName = "Eingang " + String(i + 1);
+        String iname = prefs.getString(key.c_str(), defaultIName);
+        strncpy(inputNames[i], iname.c_str(), CH_NAME_MAX_LEN);
+        inputNames[i][CH_NAME_MAX_LEN] = '\0';
     }
     prefs.end();
     dbg::info(CAT_CONFIG, "Konfiguration geladen (SSID: '%s')", sta_ssid.c_str());
@@ -441,6 +448,7 @@ String buildStateJson() {
     JsonArray timers = doc["timers"].to<JsonArray>();
     JsonArray remaining = doc["remaining"].to<JsonArray>();
     JsonArray names = doc["names"].to<JsonArray>();
+    JsonArray inames = doc["input_names"].to<JsonArray>();
     JsonArray mcpStatus = doc["mcp"].to<JsonArray>();
     unsigned long now = millis();
 
@@ -451,6 +459,7 @@ String buildStateJson() {
         timers.add(autoOffSeconds[i]);
         remaining.add(getRemainingAutoOffSeconds(i, now));
         names.add(channelNames[i]);
+        inames.add(inputNames[i]);
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
@@ -553,6 +562,17 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 prefs.putString(("name" + String(ch)).c_str(), channelNames[ch]);
                 prefs.end();
                 if (ch == displayChannel) updateDisplay();
+            }
+        } else if (strcmp(cmd, "iname") == 0) {
+            uint8_t ch = doc["ch"];
+            const char* nm = doc["name"];
+            if (ch < NUM_CHANNELS && nm) {
+                strncpy(inputNames[ch], nm, CH_NAME_MAX_LEN);
+                inputNames[ch][CH_NAME_MAX_LEN] = '\0';
+                dbg::info(CAT_CONFIG, "Eingangsname %d: '%s'", ch + 1, inputNames[ch]);
+                prefs.begin("io-config", false);
+                prefs.putString(("iname" + String(ch)).c_str(), inputNames[ch]);
+                prefs.end();
             }
         }
 
@@ -863,6 +883,7 @@ void setupWebServer() {
         JsonArray timers = doc["timers"].to<JsonArray>();
         JsonArray remaining = doc["remaining"].to<JsonArray>();
         JsonArray names = doc["names"].to<JsonArray>();
+        JsonArray inames = doc["input_names"].to<JsonArray>();
         unsigned long now = millis();
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
@@ -871,6 +892,7 @@ void setupWebServer() {
             timers.add(autoOffSeconds[i]);
             remaining.add(getRemainingAutoOffSeconds(i, now));
             names.add(channelNames[i]);
+            inames.add(inputNames[i]);
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();

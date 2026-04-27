@@ -78,7 +78,10 @@
         <h2>WLAN-Einstellungen</h2>
         <div>
             <label>SSID: <input type="text" id="wifi-ssid"></label>
-            <label>Passwort: <input type="text" id="wifi-pass" placeholder="(leer = unverändert)"></label>
+            <label>Passwort:
+                <input type="password" id="wifi-pass" placeholder="(leer = unverändert)">
+                <button type="button" onclick="togglePassVis('wifi-pass',this)" style="background:#334155;padding:4px 8px;margin-left:4px;">👁</button>
+            </label>
         </div>
         <div style="margin-top:8px;">
             <button onclick="saveWifi()">Speichern &amp; Neustart</button>
@@ -342,6 +345,12 @@ function resetIO() {
         () => wsSend({cmd:'reset_io'}),
         true
     );
+}
+
+function togglePassVis(id, btn) {
+    const el = document.getElementById(id);
+    if (el.type === 'password') { el.type = 'text';     btn.textContent = '🙈'; }
+    else                        { el.type = 'password'; btn.textContent = '👁';  }
 }
 
 function saveWifi() {

@@ -103,6 +103,16 @@ AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 Preferences prefs;
 
+static AsyncCallbackWebHandler* g_apiHandler    = nullptr;
+static AsyncStaticWebHandler*   g_staticHandler = nullptr;
+
+static void applyWebAuth() {
+    if (g_apiHandler)    g_apiHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
+    if (g_staticHandler) g_staticHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
+    ws.setAuthentication(ui_user.c_str(), ui_pass.c_str());
+    ElegantOTA.setAuth(ui_user.c_str(), ui_pass.c_str());
+}
+
 #if !SIMULATE_HW
 Adafruit_MCP23X17 mcp[2];
 Adafruit_MCP23X17 mcpTop;
@@ -541,16 +551,31 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 dbg::info(CAT_TIMER, "Auto-Aus A%d: %u s", ch + 1, secs);
                 saveConfig();
             }
+        } else if (strcmp(cmd, "set_web_creds") == 0) {
+            String newUser = doc["ui_user"].as<String>();
+            String newPass = doc["ui_pass"].as<String>();
+            if (newUser.length() > 0) ui_user = newUser;
+            if (newPass.length() > 0) ui_pass = newPass;
+            saveConfig();
+            applyWebAuth();
+            dbg::info(CAT_CONFIG, "Web-Zugangsdaten geaendert: '%s'", ui_user.c_str());
+            client->text("{\"type\":\"creds_updated\"}");
+            doSendState = false;
+        } else if (strcmp(cmd, "set_ota_pass") == 0) {
+            String newOta = doc["ota_pass"].as<String>();
+            if (newOta.length() > 0) {
+                ota_pass = newOta;
+                saveConfig();
+                ArduinoOTA.setPassword(ota_pass.c_str());
+                dbg::info(CAT_CONFIG, "OTA-Passwort geaendert");
+                client->text("{\"type\":\"ota_pass_saved\"}");
+            }
+            doSendState = false;
         } else if (strcmp(cmd, "wifi") == 0) {
-            sta_ssid = doc["ssid"].as<String>();
+            String newSsid = doc["ssid"].as<String>();
+            if (newSsid.length() > 0) sta_ssid = newSsid;
             String newPass = doc["pass"].as<String>();
-            if (newPass.length() > 0) sta_pass = newPass;   // leer = unverändert
-            if (doc["ui_user"].as<String>().length() > 0)
-                ui_user = doc["ui_user"].as<String>();
-            if (doc["ui_pass"].as<String>().length() > 0)
-                ui_pass = doc["ui_pass"].as<String>();
-            if (doc["ota_pass"].as<String>().length() > 0)
-                ota_pass = doc["ota_pass"].as<String>();
+            if (newPass.length() > 0) sta_pass = newPass;
             dbg::info(CAT_WIFI, "WiFi-Konfiguration geaendert: '%s'", sta_ssid.c_str());
             saveConfig();
             dbg::warn(CAT_SYSTEM, "Neustart in 1s...");
@@ -949,7 +974,7 @@ void setupWiFi() {
 // Web Server
 // ============================================================
 void setupWebServer() {
-    server.on("/api/state", HTTP_GET, [](AsyncWebServerRequest* req) {
+    g_apiHandler = &server.on("/api/state", HTTP_GET, [](AsyncWebServerRequest* req) {
         JsonDocument doc;
         JsonArray inputs = doc["inputs"].to<JsonArray>();
         JsonArray outputs = doc["outputs"].to<JsonArray>();
@@ -970,8 +995,8 @@ void setupWebServer() {
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
-        doc["sta_ssid"]     = sta_ssid;
-        doc["sta_pass_set"] = sta_pass.length() > 0;
+        doc["sta_ssid"] = sta_ssid;
+        doc["sta_pass"] = sta_pass;
         doc["version"] = FW_VERSION;
         doc["mcp1"] = mcpReady[0];
         doc["mcp2"] = mcpReady[1];
@@ -984,7 +1009,8 @@ void setupWebServer() {
         String json;
         serializeJson(doc, json);
         req->send(200, "application/json", json);
-    }).setAuthentication(ui_user.c_str(), ui_pass.c_str());
+    });
+    g_apiHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
     server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest* req) {
         req->send(204);
     });
@@ -997,8 +1023,8 @@ void setupWebServer() {
     ws.setAuthentication(ui_user.c_str(), ui_pass.c_str());
     server.addHandler(&ws);
 
-    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html")
-          .setAuthentication(ui_user.c_str(), ui_pass.c_str());
+    g_staticHandler = &server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+    g_staticHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
 
     server.begin();
     dbg::info(CAT_WEB, "Webserver gestartet auf Port 80");

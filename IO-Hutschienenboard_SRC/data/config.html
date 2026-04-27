@@ -75,25 +75,40 @@
     </div>
 
     <div class="section">
-        <h2>WiFi &amp; Zugangsdaten</h2>
+        <h2>WLAN-Einstellungen</h2>
         <div>
             <label>SSID: <input type="text" id="wifi-ssid"></label>
-            <label>Passwort: <input type="password" id="wifi-pass" placeholder="(leer = unverändert)"></label>
-        </div>
-        <div style="margin-top:8px;">
-            <label>Web-Benutzer: <input type="text" id="ui-user" placeholder="(leer = unverändert)" autocomplete="username"></label>
-            <label>Web-Passwort: <input type="password" id="ui-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
-        </div>
-        <div style="margin-top:8px;">
-            <label>OTA-Passwort: <input type="password" id="ota-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
-            <span style="font-size:0.75rem;color:#6b7280;margin-left:4px;">→ ota_pass.txt aktualisieren</span>
+            <label>Passwort: <input type="text" id="wifi-pass" placeholder="(leer = unverändert)"></label>
         </div>
         <div style="margin-top:8px;">
             <button onclick="saveWifi()">Speichern &amp; Neustart</button>
-            <button onclick="location.href='/update'" style="background:#6366f1;margin-left:8px;">Firmware Update</button>
         </div>
         <div class="status" id="wifi-info"></div>
         <div class="status" id="fw-version" style="color:#4b5563;font-size:0.75rem;"></div>
+    </div>
+
+    <div class="section">
+        <h2>Web-Zugangsdaten</h2>
+        <div>
+            <label>Benutzer: <input type="text" id="ui-user" placeholder="(leer = unverändert)" autocomplete="username"></label>
+            <label>Passwort: <input type="password" id="ui-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
+        </div>
+        <div style="margin-top:8px;">
+            <button onclick="saveWebCreds()">Speichern</button>
+        </div>
+        <div class="status" id="creds-status"></div>
+    </div>
+
+    <div class="section">
+        <h2>OTA-Passwort</h2>
+        <div>
+            <label>Passwort: <input type="password" id="ota-pass" placeholder="(leer = unverändert)" autocomplete="new-password"></label>
+        </div>
+        <div style="margin-top:8px;">
+            <button onclick="saveOtaPass()">Speichern</button>
+        </div>
+        <div class="status" id="ota-status"></div>
+        <div style="font-size:0.75rem;color:#6b7280;margin-top:4px;">Nach Änderung: ota_pass.txt auf dem Entwicklungsrechner aktualisieren.</div>
     </div>
 
     <div class="section">
@@ -104,6 +119,7 @@
         </p>
         <button onclick="exportConfig()" style="background:#16a34a;">&#8659; Konfiguration speichern</button>
         <button onclick="importConfig()" style="background:#7c3aed;margin-left:8px;">&#8657; Konfiguration laden</button>
+        <button onclick="location.href='/update'" style="background:#6366f1;margin-left:8px;">Firmware Update</button>
         <input type="file" id="import-file" accept=".json" style="display:none">
     </div>
 
@@ -215,7 +231,24 @@ function connectWS() {
         document.getElementById('connection-status').className = 'disconnected';
         setTimeout(connectWS, 2000);
     };
-    ws.onmessage = (evt) => { try { applyState(JSON.parse(evt.data)); updateUI(); } catch(e) { console.warn('WS parse error', e); } };
+    ws.onmessage = (evt) => {
+        try {
+            const data = JSON.parse(evt.data);
+            if (data.type === 'creds_updated') {
+                document.getElementById('creds-status').textContent = 'Gespeichert – Login erforderlich...';
+                document.getElementById('ui-user').value = '';
+                document.getElementById('ui-pass').value = '';
+                setTimeout(() => location.reload(), 1500);
+                return;
+            }
+            if (data.type === 'ota_pass_saved') {
+                document.getElementById('ota-status').textContent = 'Gespeichert – ota_pass.txt aktualisieren!';
+                document.getElementById('ota-pass').value = '';
+                return;
+            }
+            applyState(data); updateUI();
+        } catch(e) { console.warn('WS parse error', e); }
+    };
 }
 
 function setName(ch, val) { wsSend({cmd:'name', ch, name: val.trim()}); }
@@ -314,20 +347,39 @@ function resetIO() {
 function saveWifi() {
     const ssid = document.getElementById('wifi-ssid').value;
     const pass = document.getElementById('wifi-pass').value;
-    const uiUser = document.getElementById('ui-user').value.trim();
-    const uiPass = document.getElementById('ui-pass').value;
-    const otaPass = document.getElementById('ota-pass').value;
     showConfirm(
-        'WiFi & Neustart',
-        `WiFi auf „${ssid}" setzen und ESP32 neu starten?`,
+        'WLAN & Neustart',
+        `WLAN auf „${ssid}" setzen und ESP32 neu starten?`,
         () => {
-            const msg = {cmd:'wifi', ssid};
-            if (pass)    msg.pass     = pass;
-            if (uiUser)  msg.ui_user  = uiUser;
-            if (uiPass)  msg.ui_pass  = uiPass;
-            if (otaPass) msg.ota_pass = otaPass;
+            const msg = {cmd: 'wifi'};
+            if (ssid) msg.ssid = ssid;
+            if (pass) msg.pass = pass;
             wsSend(msg);
         }
+    );
+}
+
+function saveWebCreds() {
+    const uiUser = document.getElementById('ui-user').value.trim();
+    const uiPass = document.getElementById('ui-pass').value;
+    if (!uiUser && !uiPass) { showAlert('Hinweis', 'Kein Benutzer oder Passwort eingegeben.'); return; }
+    showConfirm(
+        'Web-Zugangsdaten',
+        'Zugangsdaten ändern? Nach dem Speichern erscheint der Login-Dialog.',
+        () => {
+            const msg = {cmd: 'set_web_creds'};
+            if (uiUser) msg.ui_user = uiUser;
+            if (uiPass) msg.ui_pass = uiPass;
+            wsSend(msg);
+        }
+    );
+}
+
+function saveOtaPass() {
+    const otaPass = document.getElementById('ota-pass').value;
+    if (!otaPass) { showAlert('Hinweis', 'Kein OTA-Passwort eingegeben.'); return; }
+    showConfirm('OTA-Passwort', 'OTA-Passwort ändern?',
+        () => wsSend({cmd: 'set_ota_pass', ota_pass: otaPass})
     );
 }
 
@@ -335,8 +387,7 @@ fetch('/api/state').then(r => r.json()).then(data => {
     applyState(data);
     updateUI();
     document.getElementById('wifi-ssid').value = data.sta_ssid || '';
-    if (data.sta_pass_set)
-        document.getElementById('wifi-pass').placeholder = '(gespeichert – leer lassen zum Beibehalten)';
+    document.getElementById('wifi-pass').value = data.sta_pass || '';
     document.getElementById('wifi-info').textContent =
         `AP: ${data.ap_ip} | STA: ${data.sta_ip} (${data.sta_ssid || 'nicht konfiguriert'})`;
     if (data.version)

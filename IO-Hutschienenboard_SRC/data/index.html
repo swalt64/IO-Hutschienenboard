@@ -23,8 +23,11 @@
         .led-off      { background: #374151; border: 2px solid #6b7280; }
         .led-on       { background: #22c55e; box-shadow: 0 0 6px #22c55e; border: 2px solid #16a34a; }
         .led-input-on { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; border: 2px solid #d97706; }
-        button.toggle { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82rem; }
+        button.toggle { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82rem; width: 58px; }
         button.toggle:hover { background: #0284c7; }
+        button.toggle.taster { background: #dc2626; }
+        button.toggle.taster:hover { background: #b91c1c; }
+        button.toggle.taster:active { background: #991b1b; }
         button.alloff { background: #dc2626; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 0.9rem; }
         button.alloff:hover { background: #b91c1c; }
         #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; margin-bottom: 8px; }
@@ -83,7 +86,8 @@ let state = {
     names:       Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
     input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1)),
     last_input:  Array(NUM_CH).fill(0),
-    last_output: Array(NUM_CH).fill(0)
+    last_output: Array(NUM_CH).fill(0),
+    out_modes:   Array(NUM_CH).fill(0)
 };
 
 function formatTime(ts) {
@@ -119,7 +123,7 @@ function initTables() {
             <td class="col-name" id="out-name-${i}">Ausgang ${i+1}</td>
             <td class="col-time" id="out-time-${i}">–</td>
             <td class="col-rest" id="out-rest-${i}"></td>
-            <td><button class="toggle" onclick="toggleRelay(${i})">Toggle</button></td>`;
+            <td><button class="toggle" id="out-btn-${i}">Toggle</button></td>`;
         otbody.appendChild(otr);
     }
 }
@@ -158,7 +162,67 @@ function updateUI() {
     updateRemaining();
 }
 
+function bindButton(i) {
+    const btn = document.getElementById(`out-btn-${i}`);
+    if (!btn) return;
+    const isTaster = state.out_modes[i] === 1;
+    // Remove old listeners by replacing the node
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.textContent = isTaster ? 'Taster' : 'Toggle';
+    newBtn.className = isTaster ? 'toggle taster' : 'toggle';
+    if (isTaster) {
+        const press   = (e) => { e.preventDefault(); wsSend({cmd:'set', ch:i, val:true}); };
+        const release = (e) => { e.preventDefault(); wsSend({cmd:'set', ch:i, val:false}); };
+        newBtn.addEventListener('mousedown',   press);
+        newBtn.addEventListener('touchstart',  press,   {passive:false});
+        newBtn.addEventListener('mouseup',     release);
+        newBtn.addEventListener('mouseleave',  release);
+        newBtn.addEventListener('touchend',    release, {passive:false});
+        newBtn.addEventListener('touchcancel', release, {passive:false});
+    } else {
+        const LONG_MS = 2000;
+        let pressTimer = null;
+        const onDown = (e) => {
+            if (e.type === 'touchstart') e.preventDefault();
+            newBtn.style.transition = `background-color ${LONG_MS}ms linear`;
+            newBtn.style.backgroundColor = '#dc2626';
+            pressTimer = setTimeout(() => {
+                pressTimer = null;
+                newBtn.style.transition = '';
+                newBtn.style.backgroundColor = '';
+                wsSend({cmd: 'alloff'});
+            }, LONG_MS);
+        };
+        const onUp = (e) => {
+            if (e.type === 'touchend') e.preventDefault();
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+                newBtn.style.transition = '';
+                newBtn.style.backgroundColor = '';
+                wsSend({cmd: 'toggle', ch: i});
+            }
+        };
+        const onCancel = () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+                newBtn.style.transition = '';
+                newBtn.style.backgroundColor = '';
+            }
+        };
+        newBtn.addEventListener('mousedown',   onDown);
+        newBtn.addEventListener('touchstart',  onDown,   {passive: false});
+        newBtn.addEventListener('mouseup',     onUp);
+        newBtn.addEventListener('touchend',    onUp,     {passive: false});
+        newBtn.addEventListener('mouseleave',  onCancel);
+        newBtn.addEventListener('touchcancel', onCancel);
+    }
+}
+
 function applyState(data) {
+    const modesChanged = data.out_modes && JSON.stringify(data.out_modes) !== JSON.stringify(state.out_modes);
     if (data.inputs)      state.inputs      = data.inputs;
     if (data.outputs)     state.outputs     = data.outputs;
     if (data.remaining)   state.remaining   = data.remaining;
@@ -166,6 +230,8 @@ function applyState(data) {
     if (data.input_names) state.input_names = data.input_names;
     if (data.last_input)  state.last_input  = data.last_input;
     if (data.last_output) state.last_output = data.last_output;
+    if (data.out_modes)   state.out_modes   = data.out_modes;
+    if (modesChanged) for (let i = 0; i < NUM_CH; i++) bindButton(i);
 }
 
 function wsSend(msg) {
@@ -196,6 +262,7 @@ fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateU
     .catch(e => console.warn('fetch /api/state failed', e));
 
 initTables();
+for (let i = 0; i < NUM_CH; i++) bindButton(i);
 updateUI();
 setInterval(tickCountdown, 1000);
 connectWS();

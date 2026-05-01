@@ -61,14 +61,14 @@
         <div class="section">
             <h2>Eingangs-Namen</h2>
             <table>
-                <thead><tr><th class="col-nr">Nr.</th><th>Name</th></tr></thead>
+                <thead><tr><th class="col-nr">Nr.</th><th>Name</th><th style="width:90px">Modus</th></tr></thead>
                 <tbody id="iname-table"></tbody>
             </table>
         </div>
         <div class="section">
             <h2>Ausgangs-Namen</h2>
             <table>
-                <thead><tr><th class="col-nr">Nr.</th><th>Name</th></tr></thead>
+                <thead><tr><th class="col-nr">Nr.</th><th>Name</th><th style="width:90px">Modus</th></tr></thead>
                 <tbody id="name-table"></tbody>
             </table>
         </div>
@@ -152,7 +152,9 @@ const NUM_CH = 12;
 let ws;
 let state = {
     names:       Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
-    input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1))
+    input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1)),
+    out_modes:   Array(NUM_CH).fill(0),
+    in_modes:    Array(NUM_CH).fill(0)
 };
 
 // ---- Modal ----
@@ -192,14 +194,22 @@ function initTables() {
         itr.innerHTML = `
             <td class="col-nr">E${i+1}</td>
             <td class="col-name"><input type="text" class="name-input" id="iname-${i}" maxlength="60"
-                       value="Eingang ${i+1}" onchange="setInputName(${i}, this.value)"></td>`;
+                       value="Eingang ${i+1}" onchange="setInputName(${i}, this.value)"></td>
+            <td><select id="inmode-${i}" onchange="setInMode(${i}, this.value)" style="background:#1e293b;color:#eee;border:1px solid #334155;border-radius:4px;padding:3px;">
+                <option value="0">Toggle</option>
+                <option value="1">Taster</option>
+            </select></td>`;
         itbody.appendChild(itr);
 
         const otr = document.createElement('tr');
         otr.innerHTML = `
             <td class="col-nr">A${i+1}</td>
             <td class="col-name"><input type="text" class="name-input" id="name-${i}" maxlength="60"
-                       value="Ausgang ${i+1}" onchange="setName(${i}, this.value)"></td>`;
+                       value="Ausgang ${i+1}" onchange="setName(${i}, this.value)"></td>
+            <td><select id="outmode-${i}" onchange="setOutMode(${i}, this.value)" style="background:#1e293b;color:#eee;border:1px solid #334155;border-radius:4px;padding:3px;">
+                <option value="0">Toggle</option>
+                <option value="1">Taster</option>
+            </select></td>`;
         otbody.appendChild(otr);
     }
 }
@@ -210,12 +220,18 @@ function updateUI() {
         if (document.activeElement !== inEl) inEl.value = state.input_names[i];
         const outEl = document.getElementById(`name-${i}`);
         if (document.activeElement !== outEl) outEl.value = state.names[i];
+        const modeEl = document.getElementById(`outmode-${i}`);
+        if (modeEl && document.activeElement !== modeEl) modeEl.value = state.out_modes[i];
+        const inModeEl = document.getElementById(`inmode-${i}`);
+        if (inModeEl && document.activeElement !== inModeEl) inModeEl.value = state.in_modes[i];
     }
 }
 
 function applyState(data) {
     if (data.names)       state.names       = data.names;
     if (data.input_names) state.input_names = data.input_names;
+    if (data.out_modes)   state.out_modes   = data.out_modes;
+    if (data.in_modes)    state.in_modes    = data.in_modes;
 }
 
 function wsSend(msg) {
@@ -256,6 +272,8 @@ function connectWS() {
 
 function setName(ch, val) { wsSend({cmd:'name', ch, name: val.trim()}); }
 function setInputName(ch, val) { wsSend({cmd:'iname', ch, name: val.trim()}); }
+function setOutMode(ch, val) { wsSend({cmd:'out_mode', ch, mode: parseInt(val)}); }
+function setInMode(ch, val)  { wsSend({cmd:'in_mode',  ch, mode: parseInt(val)}); }
 
 async function saveJsonFile(filename, jsonText) {
     if (window.showSaveFilePicker) {
@@ -294,7 +312,9 @@ function exportConfig() {
             names:       data.names,
             input_names: data.input_names,
             mappings:    data.mappings,
-            timers:      data.timers
+            timers:      data.timers,
+            out_modes:   data.out_modes,
+            in_modes:    data.in_modes
         };
         saveJsonFile(`hs-io-config_${ts}.json`, JSON.stringify(cfg, null, 2));
     }).catch(() => showAlert('Fehler', 'Konfiguration konnte nicht geladen werden.'));
@@ -324,7 +344,13 @@ function importConfig() {
                 names:       cfg.names.slice(0, NUM_CH).map(v => String(v ?? '')),
                 input_names: cfg.input_names.slice(0, NUM_CH).map(v => String(v ?? '')),
                 mappings:    cfg.mappings.slice(0, NUM_CH).map(v => (Number(v) || 0) & mappingMask),
-                timers:      cfg.timers.slice(0, NUM_CH).map(v => Math.min(Math.max(Number(v) || 0, 0), 604800))
+                timers:      cfg.timers.slice(0, NUM_CH).map(v => Math.min(Math.max(Number(v) || 0, 0), 604800)),
+                out_modes:   (Array.isArray(cfg.out_modes) && cfg.out_modes.length >= NUM_CH)
+                    ? cfg.out_modes.slice(0, NUM_CH).map(v => Number(v) > 0 ? 1 : 0)
+                    : Array(NUM_CH).fill(0),
+                in_modes:    (Array.isArray(cfg.in_modes) && cfg.in_modes.length >= NUM_CH)
+                    ? cfg.in_modes.slice(0, NUM_CH).map(v => Number(v) > 0 ? 1 : 0)
+                    : Array(NUM_CH).fill(0)
             };
             showConfirm(
                 'Konfiguration laden',

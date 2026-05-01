@@ -4,3 +4,11 @@
 # Altium Designer log files (automatisch generiert)
 **/*.LOG
 **/Project Logs for */
+
+# Android local/build files
+AndroidApp/local.properties
+AndroidApp/.idea/
+AndroidApp/.gradle/
+AndroidApp/.gradle-user/
+AndroidApp/**/build/
+AndroidApp/apk/

@@ -104,10 +104,12 @@ AsyncWebSocket ws("/ws");
 Preferences prefs;
 
 static AsyncCallbackWebHandler* g_apiHandler    = nullptr;
+static AsyncCallbackWebHandler* g_cmdHandler    = nullptr;
 static AsyncStaticWebHandler*   g_staticHandler = nullptr;
 
 static void applyWebAuth() {
     if (g_apiHandler)    g_apiHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
+    if (g_cmdHandler)    g_cmdHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
     if (g_staticHandler) g_staticHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
     ws.setAuthentication(ui_user.c_str(), ui_pass.c_str());
     ElegantOTA.setAuth(ui_user.c_str(), ui_pass.c_str());
@@ -530,7 +532,13 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
 
         if (strcmp(cmd, "toggle") == 0) {
             uint8_t ch = doc["ch"];
-            if (ch < NUM_CHANNELS) toggleRelay(ch);
+            if (ch < NUM_CHANNELS) {
+                if (outputMode[ch] == 0) {
+                    toggleRelay(ch);
+                } else {
+                    dbg::warn(CAT_WEB, "Toggle fuer A%d ignoriert (Ausgang im Taster-Modus)", ch + 1);
+                }
+            }
         } else if (strcmp(cmd, "set") == 0) {
             uint8_t ch = doc["ch"];
             bool val = doc["val"];
@@ -628,6 +636,8 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             JsonArray jINames   = doc["input_names"];
             JsonArray jMappings = doc["mappings"];
             JsonArray jTimers   = doc["timers"];
+            JsonArray jOutModes = doc["out_modes"];
+            JsonArray jInModes  = doc["in_modes"];
 
             if (jNames.size() < NUM_CHANNELS || jINames.size() < NUM_CHANNELS ||
                 jMappings.size() < NUM_CHANNELS || jTimers.size() < NUM_CHANNELS) {
@@ -664,6 +674,13 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                     timerFreezeExpiry[i] = 0;
                     if (relayState[i]) relayOnTimestamp[i] = millis();  // Timer ab jetzt
                     prefs.putUInt(("auto" + String(i)).c_str(), secs);
+
+                    uint8_t outMode = jOutModes.size() > i ? (uint8_t)(jOutModes[i].as<uint8_t>() > 0 ? 1 : 0) : outputMode[i];
+                    uint8_t inMode  = jInModes.size()  > i ? (uint8_t)(jInModes[i].as<uint8_t>()  > 0 ? 1 : 0) : inputMode[i];
+                    outputMode[i] = outMode;
+                    inputMode[i]  = inMode;
+                    prefs.putUChar(("outmode" + String(i)).c_str(), outputMode[i]);
+                    prefs.putUChar(("inmode"  + String(i)).c_str(), inputMode[i]);
                 }
                 prefs.end();
                 dbg::info(CAT_CONFIG, "E/A-Konfiguration via load_config geladen");
@@ -683,6 +700,8 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 snprintf(inputNames[i],   CH_NAME_MAX_LEN + 1, "Eingang %d", i + 1);
                 prefs.putUShort(("mm"    + String(i)).c_str(), 0);
                 prefs.putUInt  (("auto"  + String(i)).c_str(), 0);
+                prefs.putUChar (("outmode" + String(i)).c_str(), 0);
+                prefs.putUChar (("inmode"  + String(i)).c_str(), 0);
                 prefs.putString(("name"  + String(i)).c_str(), channelNames[i]);
                 prefs.putString(("iname" + String(i)).c_str(), inputNames[i]);
             }
@@ -1021,6 +1040,8 @@ void setupWebServer() {
         JsonArray remaining = doc["remaining"].to<JsonArray>();
         JsonArray names = doc["names"].to<JsonArray>();
         JsonArray inames = doc["input_names"].to<JsonArray>();
+        JsonArray outModes = doc["out_modes"].to<JsonArray>();
+        JsonArray inModes = doc["in_modes"].to<JsonArray>();
         unsigned long now = millis();
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
@@ -1030,6 +1051,8 @@ void setupWebServer() {
             remaining.add(getRemainingAutoOffSeconds(i, now));
             names.add(channelNames[i]);
             inames.add(inputNames[i]);
+            outModes.add(outputMode[i]);
+            inModes.add(inputMode[i]);
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
@@ -1049,6 +1072,51 @@ void setupWebServer() {
         req->send(200, "application/json", json);
     });
     g_apiHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
+
+    g_cmdHandler = &server.on("/api/cmd", HTTP_GET, [](AsyncWebServerRequest* req) {
+        if (!req->hasParam("cmd")) {
+            req->send(400, "application/json", "{\"ok\":false,\"error\":\"missing cmd\"}");
+            return;
+        }
+
+        String cmd = req->getParam("cmd")->value();
+        bool ok = true;
+
+        if (cmd == "toggle") {
+            if (!req->hasParam("ch")) {
+                ok = false;
+            } else {
+                uint8_t ch = (uint8_t)req->getParam("ch")->value().toInt();
+                if (ch < NUM_CHANNELS && outputMode[ch] == 0) {
+                    toggleRelay(ch);
+                } else {
+                    ok = false;
+                }
+            }
+        } else if (cmd == "set") {
+            if (!req->hasParam("ch") || !req->hasParam("val")) {
+                ok = false;
+            } else {
+                uint8_t ch = (uint8_t)req->getParam("ch")->value().toInt();
+                bool val = req->getParam("val")->value().toInt() != 0;
+                if (ch < NUM_CHANNELS) setRelay(ch, val, !val);
+                else ok = false;
+            }
+        } else if (cmd == "alloff") {
+            pendingAllOff = true;
+        } else {
+            ok = false;
+        }
+
+        if (ok) {
+            sendState();
+            req->send(200, "application/json", "{\"ok\":true}");
+        } else {
+            req->send(400, "application/json", "{\"ok\":false}");
+        }
+    });
+    g_cmdHandler->setAuthentication(ui_user.c_str(), ui_pass.c_str());
+
     server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest* req) {
         req->send(204);
     });
@@ -1335,9 +1403,17 @@ void loop() {
             longPressFired[i] = false;
             lastInputTime[i]  = time(nullptr);
             if (inputMode[i] == 1) {
-                // Taster: Ausgänge sofort EIN
+                // Eingangs-Tastermodus: alle gemappten Ausgänge folgen dem Eingang.
                 for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
                     if (inputMapping[i] & (1u << j)) setRelay(j, true);
+                }
+                stateChanged = true;
+            } else {
+                // Eingangs-Togglemodus: Ausgänge im Tastermodus folgen trotzdem dem Eingang.
+                for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
+                    if ((inputMapping[i] & (1u << j)) && outputMode[j] == 1) {
+                        setRelay(j, true);
+                    }
                 }
                 stateChanged = true;
             }
@@ -1356,21 +1432,33 @@ void loop() {
 
         if (fallingEdge && !longPressFired[i]) {
             if (inputMode[i] == 1) {
-                // Taster: Ausgänge AUS
+                // Eingangs-Tastermodus: alle gemappten Ausgänge AUS.
                 for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
                     if (inputMapping[i] & (1u << j)) setRelay(j, false);
                 }
             } else {
-                // Toggle: OR-Logik (irgendein Ausgang AN → alle AUS, sonst alle AN)
+                // Ausgänge im Tastermodus AUS; nur Toggle-Ausgänge werden getoggelt.
+                for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
+                    if ((inputMapping[i] & (1u << j)) && outputMode[j] == 1) {
+                        setRelay(j, false);
+                    }
+                }
+
+                // Toggle: OR-Logik über Toggle-Ausgänge (irgendeiner AN → alle AUS, sonst alle AN)
                 if (inputMapping[i]) {
                     bool anyOn = false;
                     for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
-                        if ((inputMapping[i] & (1u << j)) && relayState[j]) { anyOn = true; break; }
+                        if ((inputMapping[i] & (1u << j)) && outputMode[j] == 0 && relayState[j]) {
+                            anyOn = true;
+                            break;
+                        }
                     }
                     bool newState = !anyOn;
                     dbg::info(CAT_INPUT, "Eingang %d Toggle → %s", i+1, newState ? "EIN" : "AUS");
                     for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
-                        if (inputMapping[i] & (1u << j)) setRelay(j, newState, !newState);
+                        if ((inputMapping[i] & (1u << j)) && outputMode[j] == 0) {
+                            setRelay(j, newState, !newState);
+                        }
                     }
                 }
             }

@@ -1,13 +1,19 @@
 package de.hsio.app;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -21,9 +27,11 @@ import android.util.Base64;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewParent;
+import android.view.WindowInsets;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,37 +59,65 @@ import javax.net.ssl.SSLSocketFactory;
 
 public class MainActivity extends Activity {
     private static final int NUM_CH = 12;
+    private static final long STATE_POLL_MS = 2000;
+    private static final long STATE_STALE_MS = 6000;
+    private static final long INITIAL_CONNECT_GRACE_MS = 15000;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final String[] names = new String[NUM_CH];
     private final boolean[] outputs = new boolean[NUM_CH];
     private final int[] outModes = new int[NUM_CH];
+    private final int[] outOrder = new int[NUM_CH];
+    private final boolean[] outEnabled = new boolean[NUM_CH];
+    private final int[] rowChannels = new int[NUM_CH];
+    private final View[] rows = new View[NUM_CH];
     private final View[] leds = new View[NUM_CH];
     private final Button[] buttons = new Button[NUM_CH];
+    private final ObjectAnimator[] labelAnims = new ObjectAnimator[NUM_CH];
+    private final String[] labelAnimTexts = new String[NUM_CH];
+    private final int[] labelAnimWidths = new int[NUM_CH];
 
     private SharedPreferences prefs;
     private WsClient ws;
-    private GridLayout grid;
+    private LinearLayout grid;
+    private TextView header;
     private TextView status;
     private String host;
     private String user;
     private String pass;
+    private String activeHttpBaseUrl;
     private boolean settingsDialogOpen;
+    private boolean errorDialogOpen;
+    private String lastErrorDialogMessage = "";
     private boolean currentConnectionReceivedState;
     private boolean hasSuccessfulConnection;
+    private boolean connected;
+    private long lastStateMs;
+    private long connectStartedMs;
     private SoundPool soundPool;
     private int clickOnSoundId;
     private int clickOffSoundId;
     private boolean clickOnSoundLoaded;
     private boolean clickOffSoundLoaded;
+    private final Runnable statePollTask = new Runnable() {
+        @Override public void run() {
+            fetchState();
+            main.postDelayed(this, STATE_POLL_MS);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("hsio", MODE_PRIVATE);
-        host = prefs.getString("host", "hs-io.local");
-        user = prefs.getString("user", "admin");
+        host = prefs.getString("host", "hs-io.local").trim();
+        user = prefs.getString("user", "admin").trim();
         pass = prefs.getString("pass", "admin");
-        for (int i = 0; i < NUM_CH; i++) names[i] = "Ausgang " + (i + 1);
+        for (int i = 0; i < NUM_CH; i++) {
+            names[i] = "Ausgang " + (i + 1);
+            outOrder[i] = i;
+            outEnabled[i] = true;
+            rowChannels[i] = i;
+        }
         setupSound();
         buildUi();
         connect();
@@ -89,6 +125,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        main.removeCallbacks(statePollTask);
         if (ws != null) ws.close();
         if (soundPool != null) soundPool.release();
         super.onDestroy();
@@ -105,6 +142,21 @@ public class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(15, 23, 42));
+        root.setPadding(0, statusBarHeight(), 0, 0);
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            v.setPadding(0, insets.getSystemWindowInsetTop(), 0, insets.getSystemWindowInsetBottom());
+            return insets;
+        });
+
+        header = new TextView(this);
+        header.setText("HS-IO  v" + appVersion());
+        header.setTextColor(Color.WHITE);
+        header.setTextSize(14);
+        header.setTypeface(Typeface.create(Typeface.SERIF, Typeface.BOLD_ITALIC));
+        header.setShadowLayer(dp(4), dp(3), dp(3), Color.rgb(2, 6, 23));
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(dp(8), dp(6), dp(8), dp(4));
+        root.addView(header, new LinearLayout.LayoutParams(-1, -2));
 
         status = new TextView(this);
         status.setVisibility(View.GONE);
@@ -112,11 +164,10 @@ public class MainActivity extends Activity {
         status.setTextSize(12);
         status.setGravity(Gravity.CENTER);
         status.setPadding(dp(8), dp(6), dp(8), dp(6));
+        root.addView(status, new LinearLayout.LayoutParams(-1, -2));
 
-        grid = new GridLayout(this);
-        boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-        grid.setColumnCount(landscape ? 6 : 1);
-        grid.setRowCount(landscape ? 2 : 12);
+        grid = new LinearLayout(this);
+        grid.setOrientation(LinearLayout.VERTICAL);
         grid.setPadding(dp(4), dp(8), dp(4), dp(8));
         root.addView(grid, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
@@ -124,7 +175,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < NUM_CH; i++) addOutputRow(i);
     }
 
-    private void addOutputRow(int ch) {
+    private void addOutputRow(int pos) {
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(landscape ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
@@ -132,52 +183,54 @@ public class MainActivity extends Activity {
         row.setPadding(dp(5), dp(2), dp(5), dp(2));
         row.setBackground(rowBg());
 
-        GridLayout.LayoutParams gp = new GridLayout.LayoutParams();
-        gp.width = landscape ? 0 : GridLayout.LayoutParams.MATCH_PARENT;
-        gp.height = 0;
-        gp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-        gp.rowSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-        gp.setMargins(dp(2), dp(2), dp(2), dp(2));
-        grid.addView(row, gp);
+        rows[pos] = row;
 
         View led = new View(this);
         LinearLayout.LayoutParams lpLed = new LinearLayout.LayoutParams(dp(20), dp(20));
         lpLed.setMargins(0, 0, landscape ? 0 : dp(8), landscape ? dp(3) : 0);
         row.addView(led, lpLed);
-        leds[ch] = led;
+        leds[pos] = led;
 
         TextView label = new TextView(this);
         label.setTextColor(Color.WHITE);
-        label.setTextSize(landscape ? 9 : 11);
+        label.setTextSize(landscape ? 11 : 14);
+        label.setTypeface(Typeface.create("calibri", Typeface.NORMAL));
+        label.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
         label.setIncludeFontPadding(false);
         label.setSingleLine(true);
-        label.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-        label.setMarqueeRepeatLimit(-1);
+        label.setEllipsize(null);
         label.setHorizontallyScrolling(true);
-        label.setSelected(true);
         label.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        row.addView(label, new LinearLayout.LayoutParams(landscape ? -1 : 0, -2, landscape ? 0 : 1));
+        LinearLayout.LayoutParams lpLabel = new LinearLayout.LayoutParams(landscape ? -1 : 0, -2, landscape ? 0 : 1);
+        lpLabel.setMargins(0, 0, landscape ? 0 : dp(4), 0);
+        row.addView(label, lpLabel);
 
         Button btn = new Button(this);
         btn.setAllCaps(false);
-        btn.setTextSize(landscape ? 9 : 11);
+        btn.setTextSize(landscape ? 11 : 13);
+        btn.setTypeface(Typeface.create("calibri", Typeface.BOLD));
+        btn.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
         btn.setIncludeFontPadding(false);
         btn.setMinWidth(0);
         btn.setMinHeight(0);
         btn.setPadding(dp(2), 0, dp(2), 0);
-        row.addView(btn, new LinearLayout.LayoutParams(landscape ? -1 : dp(78), dp(30)));
-        buttons[ch] = btn;
+        row.addView(btn, new LinearLayout.LayoutParams(landscape ? -1 : dp(86), dp(44)));
+        buttons[pos] = btn;
 
         final Runnable[] longPressTask = new Runnable[1];
         final boolean[] longPressDone = new boolean[1];
         btn.setOnTouchListener((v, event) -> {
+            int ch = rowChannels[pos];
+            if (ch < 0 || ch >= NUM_CH || !connected) return true;
             if (outModes[ch] == 1) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    animateButton(v, true);
                     playClick(true);
                     sendSet(ch, true);
                     return true;
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    animateButton(v, false);
                     playClick(false);
                     sendSet(ch, false);
                     return true;
@@ -185,6 +238,7 @@ public class MainActivity extends Activity {
                 return true;
             }
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                animateButton(v, true);
                 longPressDone[0] = false;
                 longPressTask[0] = () -> {
                     longPressDone[0] = true;
@@ -196,6 +250,7 @@ public class MainActivity extends Activity {
                 return true;
             }
             if (event.getAction() == MotionEvent.ACTION_UP) {
+                animateButton(v, false);
                 if (longPressTask[0] != null) main.removeCallbacks(longPressTask[0]);
                 if (!longPressDone[0]) {
                     playClick(!outputs[ch]);
@@ -205,6 +260,7 @@ public class MainActivity extends Activity {
                 return true;
             }
             if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+                animateButton(v, false);
                 if (longPressTask[0] != null) main.removeCallbacks(longPressTask[0]);
                 longPressTask[0] = null;
                 return true;
@@ -213,11 +269,13 @@ public class MainActivity extends Activity {
         });
 
         row.setTag(label);
-        label.setText("A" + (ch + 1) + "  " + names[ch]);
+        label.setText(labelFor(pos));
         led.setBackground(ledBg(false));
-        btn.setText(outModes[ch] == 1 ? "Taster" : "Toggle");
+        btn.setText(outModes[pos] == 1 ? "Taster" : "Toggle");
         btn.setTextColor(Color.WHITE);
-        btn.setBackgroundColor(outModes[ch] == 1 ? Color.rgb(220, 38, 38) : Color.rgb(14, 165, 233));
+        btn.setBackground(buttonBg(outModes[pos] == 1));
+        btn.setEnabled(false);
+        btn.setAlpha(0.45f);
 
         row.setOnLongClickListener(v -> {
             showSettings();
@@ -227,15 +285,175 @@ public class MainActivity extends Activity {
 
     private void renderState() {
         if (status != null) status.setText("Verbunden mit " + host);
+        if (status != null) status.setVisibility(View.GONE);
+        int visibleCount = assignVisibleRows();
+        boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        int columns = landscape ? Math.max(1, (visibleCount + 1) / 2) : 1;
+
+        grid.removeAllViews();
         for (int i = 0; i < NUM_CH; i++) {
-            View row = (View) leds[i].getParent();
-            TextView label = (TextView) row.getTag();
-            label.setText("A" + (i + 1) + "  " + names[i]);
-            leds[i].setBackground(ledBg(outputs[i]));
-            buttons[i].setText(outModes[i] == 1 ? "Taster" : "Toggle");
-            buttons[i].setBackgroundColor(outModes[i] == 1 ? Color.rgb(220, 38, 38) : Color.rgb(14, 165, 233));
-            buttons[i].setTextColor(Color.WHITE);
+            View row = rows[i];
+            row.setVisibility(View.GONE);
         }
+
+        LinearLayout top = null;
+        LinearLayout bottom = null;
+        if (landscape) {
+            top = outputBand();
+            bottom = outputBand();
+            grid.addView(top, new LinearLayout.LayoutParams(-1, 0, 1));
+            grid.addView(bottom, new LinearLayout.LayoutParams(-1, 0, 1));
+        }
+
+        for (int i = 0; i < visibleCount; i++) {
+            LinearLayout row = (LinearLayout)rows[i];
+            int ch = rowChannels[i];
+            if (ch < 0 || ch >= NUM_CH) continue;
+            ViewParent parent = row.getParent();
+            if (parent instanceof LinearLayout) ((LinearLayout)parent).removeView(row);
+
+            row.setOrientation(landscape ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+            LinearLayout.LayoutParams lp = landscape
+                    ? new LinearLayout.LayoutParams(0, -1, 1)
+                    : new LinearLayout.LayoutParams(-1, 0, 1);
+            lp.setMargins(dp(2), dp(2), dp(2), dp(2));
+            if (landscape) {
+                (i < columns ? top : bottom).addView(row, lp);
+            } else {
+                grid.addView(row, lp);
+            }
+            row.setVisibility(View.VISIBLE);
+
+            TextView label = (TextView) row.getTag();
+            label.setText(labelFor(ch));
+            label.setTextSize(landscape ? 11 : 14);
+            label.setTypeface(Typeface.create("calibri", Typeface.NORMAL));
+            label.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
+            startLabelScroll(i, label);
+            leds[i].setBackground(ledBg(outputs[ch]));
+            buttons[i].setText(outModes[ch] == 1 ? "Taster" : "Toggle");
+            buttons[i].setTextSize(landscape ? 11 : 13);
+            buttons[i].setTypeface(Typeface.create("calibri", Typeface.BOLD));
+            buttons[i].setShadowLayer(0, 0, 0, Color.TRANSPARENT);
+            buttons[i].setBackground(buttonBg(outModes[ch] == 1));
+            buttons[i].setTextColor(Color.WHITE);
+            buttons[i].setEnabled(connected);
+            buttons[i].setAlpha(connected ? 1.0f : 0.45f);
+        }
+    }
+
+    private LinearLayout outputBand() {
+        LinearLayout band = new LinearLayout(this);
+        band.setOrientation(LinearLayout.HORIZONTAL);
+        return band;
+    }
+
+    private int assignVisibleRows() {
+        boolean[] used = new boolean[NUM_CH];
+        int pos = 0;
+        for (int i = 0; i < NUM_CH; i++) {
+            int ch = outOrder[i];
+            if (ch < 0 || ch >= NUM_CH || used[ch] || !outEnabled[ch]) continue;
+            rowChannels[pos++] = ch;
+            used[ch] = true;
+        }
+        for (int ch = 0; ch < NUM_CH; ch++) {
+            if (!used[ch] && outEnabled[ch]) {
+                rowChannels[pos++] = ch;
+                used[ch] = true;
+            }
+        }
+        for (int i = pos; i < NUM_CH; i++) rowChannels[i] = -1;
+        if (pos == 0) {
+            for (int ch = 0; ch < NUM_CH; ch++) rowChannels[ch] = ch;
+            return NUM_CH;
+        }
+        return pos;
+    }
+
+    private boolean jsonBool(JSONArray array, int index, boolean fallback) {
+        Object value = array.opt(index);
+        if (value instanceof Boolean) return (Boolean)value;
+        if (value instanceof Number) return ((Number)value).intValue() != 0;
+        if (value instanceof String) {
+            String s = ((String)value).trim();
+            if ("1".equals(s)) return true;
+            if ("0".equals(s)) return false;
+            if ("true".equalsIgnoreCase(s)) return true;
+            if ("false".equalsIgnoreCase(s)) return false;
+        }
+        return fallback;
+    }
+
+    private String labelFor(int ch) {
+        String name = cleanName(ch);
+        if (hasUniqueConfiguredName(ch, name)) return name;
+        return "A" + (ch + 1) + "  " + name;
+    }
+
+    private boolean hasUniqueConfiguredName(int ch, String name) {
+        if (name.length() == 0 || name.equals("Ausgang " + (ch + 1))) return false;
+        for (int i = 0; i < NUM_CH; i++) {
+            if (i != ch && outEnabled[i] && name.equals(cleanName(i))) return false;
+        }
+        return true;
+    }
+
+    private String cleanName(int ch) {
+        String name = names[ch] == null ? "" : names[ch].trim();
+        return name.length() == 0 ? "Ausgang " + (ch + 1) : name;
+    }
+
+    private void setConnected(boolean value) {
+        connected = value;
+        for (Button button : buttons) {
+            if (button != null) {
+                button.setEnabled(value);
+                button.setAlpha(value ? 1.0f : 0.45f);
+            }
+        }
+    }
+
+    private void animateButton(View v, boolean pressed) {
+        v.animate()
+                .scaleX(pressed ? 0.94f : 1.0f)
+                .scaleY(pressed ? 0.90f : 1.0f)
+                .setDuration(pressed ? 70 : 120)
+                .start();
+    }
+
+    private void startLabelScroll(int pos, TextView label) {
+        label.post(() -> {
+            int width = label.getWidth();
+            String text = label.getText().toString();
+            if (width > 0 && text.equals(labelAnimTexts[pos]) && width == labelAnimWidths[pos] && labelAnims[pos] != null) {
+                return;
+            }
+
+            if (labelAnims[pos] != null) {
+                labelAnims[pos].cancel();
+                labelAnims[pos] = null;
+            }
+            label.setScrollX(0);
+            labelAnimTexts[pos] = text;
+            labelAnimWidths[pos] = width;
+
+            int textWidth = (int)Math.ceil(label.getPaint().measureText(label.getText().toString()));
+            int overflow = Math.max(0, textWidth - width + dp(8));
+            if (width <= 0 || overflow <= 0) {
+                labelAnimTexts[pos] = null;
+                labelAnimWidths[pos] = 0;
+                return;
+            }
+
+            ObjectAnimator anim = ObjectAnimator.ofInt(label, "scrollX", 0, overflow);
+            anim.setDuration(Math.max(4500, overflow * 45L));
+            anim.setRepeatCount(ValueAnimator.INFINITE);
+            anim.setRepeatMode(ValueAnimator.REVERSE);
+            anim.setInterpolator(new LinearInterpolator());
+            labelAnims[pos] = anim;
+            anim.start();
+        });
     }
 
     private void setupSound() {
@@ -325,8 +543,14 @@ public class MainActivity extends Activity {
     }
 
     private void connect() {
+        main.removeCallbacks(statePollTask);
         if (ws != null) ws.close();
         if (status != null) status.setText("Verbinde mit " + host + " ...");
+        if (status != null) status.setVisibility(View.VISIBLE);
+        setConnected(false);
+        lastStateMs = 0;
+        connectStartedMs = System.currentTimeMillis();
+        activeHttpBaseUrl = null;
         currentConnectionReceivedState = false;
         ws = new WsClient(host, user, pass, new WsClient.Listener() {
             @Override public void onOpen() {
@@ -339,12 +563,12 @@ public class MainActivity extends Activity {
 
             @Override public void onClosed(String message) {
                 main.post(() -> {
-                    status.setText(message);
-                    if (!hasSuccessfulConnection && !currentConnectionReceivedState) showSettings();
+                    markDisconnectedIfStale(message);
                 });
             }
         });
         ws.start();
+        main.postDelayed(statePollTask, 3000);
     }
 
     private void applyState(String json) {
@@ -353,17 +577,74 @@ public class MainActivity extends Activity {
             JSONArray outs = o.optJSONArray("outputs");
             JSONArray ns = o.optJSONArray("names");
             JSONArray modes = o.optJSONArray("out_modes");
+            JSONArray order = o.optJSONArray("out_order");
+            JSONArray enabled = o.optJSONArray("out_enabled");
             for (int i = 0; i < NUM_CH; i++) {
                 if (outs != null && outs.length() > i) outputs[i] = outs.optBoolean(i);
                 if (ns != null && ns.length() > i) names[i] = ns.optString(i, names[i]);
                 if (modes != null && modes.length() > i) outModes[i] = modes.optInt(i, 0);
+                if (order != null && order.length() > i) outOrder[i] = order.optInt(i, i);
+                if (enabled != null && enabled.length() > i) outEnabled[i] = jsonBool(enabled, i, true);
             }
             currentConnectionReceivedState = true;
             hasSuccessfulConnection = true;
+            lastStateMs = System.currentTimeMillis();
+            setConnected(true);
             renderState();
         } catch (Exception e) {
-            status.setText("Statusdaten ungueltig");
+            setConnected(false);
+            String message = "Statusdaten ungueltig: " + e.getMessage();
+            if (status != null) {
+                status.setVisibility(View.VISIBLE);
+                status.setText(message);
+            }
+            showError(message);
             if (!hasSuccessfulConnection) showSettings();
+        }
+    }
+
+    private void fetchState() {
+        new Thread(() -> {
+            String lastError = null;
+            String[] bases = httpBaseUrls();
+            for (String base : bases) {
+                try {
+                    HttpURLConnection con = (HttpURLConnection)new URL(base + "/api/state").openConnection();
+                    con.setRequestMethod("GET");
+                    con.setConnectTimeout(2500);
+                    con.setReadTimeout(5000);
+                    con.setRequestProperty("Authorization", "Basic " + Base64.encodeToString((user + ":" + pass).getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP));
+                    int code = con.getResponseCode();
+                    InputStream in = code >= 200 && code < 300 ? con.getInputStream() : con.getErrorStream();
+                    String body = in == null ? "" : readAll(in);
+                    con.disconnect();
+                    if (code >= 200 && code < 300) {
+                        activeHttpBaseUrl = base;
+                        main.post(() -> applyState(body));
+                        return;
+                    }
+                    lastError = "Status HTTP " + code;
+                } catch (Exception e) {
+                    lastError = "Getrennt: " + e.getMessage();
+                }
+            }
+            String message = lastError == null ? "Getrennt" : lastError;
+            main.post(() -> markDisconnectedIfStale(message));
+        }).start();
+    }
+
+    private void markDisconnectedIfStale(String message) {
+        long last = lastStateMs;
+        long now = System.currentTimeMillis();
+        if (last == 0 && now - connectStartedMs < INITIAL_CONNECT_GRACE_MS) return;
+        if (last == 0 || now - last > STATE_STALE_MS) {
+            setConnected(false);
+            if (status != null) {
+                status.setVisibility(View.VISIBLE);
+                status.setText(message);
+            }
+            showError(message);
+            if (!hasSuccessfulConnection && !currentConnectionReceivedState) showSettings();
         }
     }
 
@@ -393,22 +674,45 @@ public class MainActivity extends Activity {
     }
 
     private String commandUrl(JSONObject cmd) throws Exception {
-        URI uri = URI.create(host.contains("://") ? host : "http://" + host);
-        String scheme = uri.getScheme() == null ? "http" : uri.getScheme().toLowerCase(Locale.US);
-        boolean tls = "https".equals(scheme) || "wss".equals(scheme);
-        String h = uri.getHost();
-        int port = uri.getPort();
-        StringBuilder url = new StringBuilder();
-        url.append(tls ? "https" : "http").append("://").append(h);
-        if (port > 0) url.append(":").append(port);
+        StringBuilder url = new StringBuilder(activeHttpBaseUrl != null ? activeHttpBaseUrl : httpBaseUrls()[0]);
         url.append("/api/cmd?cmd=").append(enc(cmd.optString("cmd")));
         if (cmd.has("ch")) url.append("&ch=").append(cmd.optInt("ch"));
         if (cmd.has("val")) url.append("&val=").append(cmd.optBoolean("val") ? "1" : "0");
         return url.toString();
     }
 
+    private String[] httpBaseUrls() {
+        URI uri = URI.create(host.contains("://") ? host : "http://" + host);
+        String scheme = uri.getScheme() == null ? "http" : uri.getScheme().toLowerCase(Locale.US);
+        boolean tls = "https".equals(scheme) || "wss".equals(scheme);
+        String h = uri.getHost();
+        int port = uri.getPort();
+        if (host.contains("://")) {
+            return new String[] { buildBaseUrl(tls, h, port) };
+        }
+        return new String[] {
+                buildBaseUrl(true, h, port),
+                buildBaseUrl(false, h, port)
+        };
+    }
+
+    private String buildBaseUrl(boolean tls, String h, int port) {
+        StringBuilder url = new StringBuilder();
+        url.append(tls ? "https" : "http").append("://").append(h);
+        if (port > 0) url.append(":").append(port);
+        return url.toString();
+    }
+
     private static String enc(String value) throws Exception {
         return URLEncoder.encode(value, "UTF-8");
+    }
+
+    private static String readAll(InputStream in) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buf = new byte[1024];
+        int n;
+        while ((n = in.read(buf)) >= 0) out.write(buf, 0, n);
+        return out.toString("UTF-8");
     }
 
     private void showSettings() {
@@ -440,12 +744,46 @@ public class MainActivity extends Activity {
                 .show();
     }
 
+    private void showError(String message) {
+        if (message == null || message.length() == 0) return;
+        if (errorDialogOpen || message.equals(lastErrorDialogMessage)) return;
+        lastErrorDialogMessage = message;
+        errorDialogOpen = true;
+
+        TextView text = new TextView(this);
+        text.setText(message);
+        text.setTextIsSelectable(true);
+        text.setTextSize(14);
+        text.setPadding(dp(18), dp(10), dp(18), 0);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Verbindungsfehler")
+                .setView(text)
+                .setPositiveButton("OK", (d, w) -> errorDialogOpen = false)
+                .setNeutralButton("Kopieren", (d, w) -> {
+                    ClipboardManager cb = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (cb != null) cb.setPrimaryClip(ClipData.newPlainText("HS-IO Fehler", message));
+                    Toast.makeText(this, "Fehler kopiert", Toast.LENGTH_SHORT).show();
+                    errorDialogOpen = false;
+                })
+                .setOnCancelListener(d -> errorDialogOpen = false)
+                .show();
+    }
+
     private EditText edit(String hint, String value, int type) {
         EditText e = new EditText(this);
         e.setHint(hint);
         e.setText(value);
         e.setInputType(type);
         return e;
+    }
+
+    private String appVersion() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            return "1.0";
+        }
     }
 
     private GradientDrawable rowBg() {
@@ -471,8 +809,41 @@ public class MainActivity extends Activity {
         return layers;
     }
 
+    private StateListDrawable buttonBg(boolean taster) {
+        int base = taster ? Color.rgb(220, 38, 38) : Color.rgb(14, 165, 233);
+        int pressed = taster ? Color.rgb(127, 29, 29) : Color.rgb(3, 105, 161);
+        int disabled = Color.rgb(71, 85, 105);
+
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[] { -android.R.attr.state_enabled }, roundedButton(disabled, Color.rgb(51, 65, 85), 1, 0));
+        states.addState(new int[] { android.R.attr.state_pressed }, roundedButton(pressed, Color.rgb(15, 23, 42), 2, 3));
+        states.addState(new int[] { }, roundedButton(base, Color.argb(150, 255, 255, 255), 1, 0));
+        return states;
+    }
+
+    private LayerDrawable roundedButton(int fill, int stroke, int strokeDp, int topInsetDp) {
+        GradientDrawable shadow = new GradientDrawable();
+        shadow.setColor(Color.argb(90, 0, 0, 0));
+        shadow.setCornerRadius(dp(9));
+
+        GradientDrawable face = new GradientDrawable();
+        face.setColor(fill);
+        face.setCornerRadius(dp(9));
+        face.setStroke(dp(strokeDp), stroke);
+
+        LayerDrawable layer = new LayerDrawable(new android.graphics.drawable.Drawable[] { shadow, face });
+        layer.setLayerInset(0, 0, dp(topInsetDp + 2), 0, 0);
+        layer.setLayerInset(1, 0, dp(topInsetDp), 0, dp(topInsetDp == 0 ? 2 : 0));
+        return layer;
+    }
+
     private int dp(int v) {
         return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private int statusBarHeight() {
+        int id = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        return id > 0 ? getResources().getDimensionPixelSize(id) : 0;
     }
 
     private static final class WsClient extends Thread {
@@ -502,7 +873,7 @@ public class MainActivity extends Activity {
         @Override
         public void run() {
             try {
-                URI uri = URI.create(hostText.contains("://") ? hostText : "ws://" + hostText + "/ws");
+                URI uri = URI.create(hostText.contains("://") ? hostText : "wss://" + hostText + "/ws");
                 String scheme = uri.getScheme() == null ? "ws" : uri.getScheme().toLowerCase(Locale.US);
                 boolean tls = "wss".equals(scheme) || "https".equals(scheme);
                 String host = uri.getHost();

@@ -12,3 +12,4 @@ AndroidApp/.gradle/
 AndroidApp/.gradle-user/
 AndroidApp/**/build/
 AndroidApp/apk/
+AndroidApp/gradle/gradle-daemon-jvm.properties

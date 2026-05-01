@@ -1343,7 +1343,7 @@ void loop() {
             (nowIn - pressStartMs[i] >= IN_LONGPRESS_MS)) {
             dbg::info(CAT_INPUT, "Eingang %d: Langdruck → Alle Ausgaenge AUS", i+1);
             for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
-                if (relayState[j]) setRelay(j, false);
+                if (relayState[j]) setRelay(j, false, true);
             }
             longPressFired[i] = true;
             stateChanged = true;

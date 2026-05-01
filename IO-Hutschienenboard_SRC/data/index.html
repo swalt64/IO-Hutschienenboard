@@ -38,9 +38,10 @@
         .nav a { color: #0ea5e9; font-size: 0.85rem; text-decoration: none; }
         .nav a:hover { text-decoration: underline; }
         .ui-version { font-size: 0.75rem; color: #4b5563; }
+        body.offline button { opacity: 0.35; pointer-events: none; cursor: not-allowed; }
     </style>
 </head>
-<body>
+<body class="offline">
     <h1>IO-Hutschienenboard</h1>
     <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
     <div class="nav">
@@ -244,10 +245,12 @@ function connectWS() {
     ws.onopen = () => {
         document.getElementById('connection-status').textContent = 'Verbunden';
         document.getElementById('connection-status').className = 'connected';
+        document.body.classList.remove('offline');
     };
     ws.onclose = () => {
         document.getElementById('connection-status').textContent = 'Verbindung getrennt – Neuverbindung...';
         document.getElementById('connection-status').className = 'disconnected';
+        document.body.classList.add('offline');
         setTimeout(connectWS, 2000);
     };
     ws.onmessage = (evt) => {

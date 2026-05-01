@@ -129,15 +129,15 @@ bool   inputState[NUM_CHANNELS] = {false};
 time_t lastInputTime[NUM_CHANNELS]  = {0};  // Unix-Timestamp letzte Betätigung
 time_t lastOutputTime[NUM_CHANNELS] = {0};  // Unix-Timestamp letzte Relais-Aktion
 
-enum InputDetState : uint8_t { DET_IDLE = 0, DET_DETECTING, DET_COUNTING, DET_LOCKED };
-InputDetState inputDetState[NUM_CHANNELS]    = {};
-uint8_t       inputEdgeCnt[NUM_CHANNELS]     = {};
-bool          inputIsAC[NUM_CHANNELS]        = {};
-unsigned long inputFirstEdgeMs[NUM_CHANNELS] = {};
 unsigned long inputLastEdgeMs[NUM_CHANNELS]  = {};
 bool          inputRawPrev[NUM_CHANNELS]     = {};
+unsigned long pressStartMs[NUM_CHANNELS]     = {};
+bool          signalActivePrev[NUM_CHANNELS] = {};
+bool          longPressFired[NUM_CHANNELS]   = {};
 
 uint16_t inputMapping[NUM_CHANNELS]; // Bitmask: Bit j = Eingang steuert Ausgang j
+uint8_t  outputMode[NUM_CHANNELS]  = {0}; // 0=Toggle, 1=Taster
+uint8_t  inputMode[NUM_CHANNELS]   = {0}; // 0=Toggle, 1=Taster
 
 uint32_t autoOffSeconds[NUM_CHANNELS] = {0};
 unsigned long relayOnTimestamp[NUM_CHANNELS] = {0};
@@ -416,6 +416,10 @@ void loadConfig() {
         inputMapping[i] = prefs.getUShort(key.c_str(), 0);
         key = "auto" + String(i);
         autoOffSeconds[i] = prefs.getUInt(key.c_str(), 0);
+        key = "outmode" + String(i);
+        outputMode[i] = prefs.getUChar(key.c_str(), 0);
+        key = "inmode" + String(i);
+        inputMode[i] = prefs.getUChar(key.c_str(), 0);
         key = "name" + String(i);
         String defaultName = "Ausgang " + String(i + 1);
         String name = prefs.getString(key.c_str(), defaultName);
@@ -445,6 +449,10 @@ void saveConfig() {
         prefs.putUShort(key.c_str(), inputMapping[i]);
         key = "auto" + String(i);
         prefs.putUInt(key.c_str(), autoOffSeconds[i]);
+        key = "outmode" + String(i);
+        prefs.putUChar(key.c_str(), outputMode[i]);
+        key = "inmode" + String(i);
+        prefs.putUChar(key.c_str(), inputMode[i]);
     }
     prefs.end();
     dbg::debug(CAT_CONFIG, "Konfiguration gespeichert");
@@ -462,8 +470,10 @@ String buildStateJson() {
     JsonArray remaining = doc["remaining"].to<JsonArray>();
     JsonArray names = doc["names"].to<JsonArray>();
     JsonArray inames = doc["input_names"].to<JsonArray>();
-    JsonArray lastIn  = doc["last_input"].to<JsonArray>();
-    JsonArray lastOut = doc["last_output"].to<JsonArray>();
+    JsonArray lastIn    = doc["last_input"].to<JsonArray>();
+    JsonArray lastOut   = doc["last_output"].to<JsonArray>();
+    JsonArray outModes  = doc["out_modes"].to<JsonArray>();
+    JsonArray inModes   = doc["in_modes"].to<JsonArray>();
     JsonArray mcpStatus = doc["mcp"].to<JsonArray>();
     unsigned long now = millis();
 
@@ -477,6 +487,8 @@ String buildStateJson() {
         inames.add(inputNames[i]);
         lastIn.add((uint32_t)lastInputTime[i]);
         lastOut.add((uint32_t)lastOutputTime[i]);
+        outModes.add(outputMode[i]);
+        inModes.add(inputMode[i]);
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
@@ -571,6 +583,30 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 client->text("{\"type\":\"ota_pass_saved\"}");
             }
             doSendState = false;
+        } else if (strcmp(cmd, "out_mode") == 0) {
+            uint8_t ch   = doc["ch"]   | 0;
+            uint8_t mode = doc["mode"] | 0;
+            if (ch < NUM_CHANNELS && mode <= 1) {
+                outputMode[ch] = mode;
+                prefs.begin("io-config", false);
+                prefs.putUChar(("outmode" + String(ch)).c_str(), outputMode[ch]);
+                prefs.end();
+                dbg::info(CAT_CONFIG, "Ausgangs-Modus A%d: %s", ch + 1, mode ? "Taster" : "Toggle");
+            }
+        } else if (strcmp(cmd, "in_mode") == 0) {
+            uint8_t ch   = doc["ch"]   | 0;
+            uint8_t mode = doc["mode"] | 0;
+            if (ch < NUM_CHANNELS && mode <= 1) {
+                inputMode[ch] = mode;
+                // Zustand zurücksetzen damit kein Restaustand bleibt
+                signalActivePrev[ch] = false;
+                longPressFired[ch]   = false;
+                inputState[ch]       = false;
+                prefs.begin("io-config", false);
+                prefs.putUChar(("inmode" + String(ch)).c_str(), inputMode[ch]);
+                prefs.end();
+                dbg::info(CAT_CONFIG, "Eingangs-Modus E%d: %s", ch + 1, mode ? "Taster" : "Toggle");
+            }
         } else if (strcmp(cmd, "wifi") == 0) {
             String newSsid = doc["ssid"].as<String>();
             if (newSsid.length() > 0) sta_ssid = newSsid;
@@ -640,6 +676,8 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
                 inputMapping[i]    = 0;
                 autoOffSeconds[i]  = 0;
+                outputMode[i]      = 0;
+                inputMode[i]       = 0;
                 tempTimeAdjustMs[i] = 0;
                 snprintf(channelNames[i], CH_NAME_MAX_LEN + 1, "Ausgang %d", i + 1);
                 snprintf(inputNames[i],   CH_NAME_MAX_LEN + 1, "Eingang %d", i + 1);
@@ -1260,87 +1298,78 @@ void loop() {
 
     bool stateChanged = false;
 
-    // Eingangserkennung: State Machine pro Kanal
-    // IDLE → erste Flanke → DETECTING (20ms Typ-Erkennung: ≥2 Flanken=AC, sonst DC)
-    // DETECTING → COUNTING → 4 Flanken → Toggle + LOCKED
-    // LOCKED → 500ms ohne Flanke → IDLE
-    static const uint32_t IN_AC_DETECT_MS       = 20;
-    static const uint32_t IN_LOCKOUT_MS         = 500;
-    static const uint32_t IN_DC_COUNTING_TIMEOUT = 2000;
+    // Eingangserkennung: einheitliche Signal-Erkennung für DC und 8VAC (50Hz)
+    // signalActive = HIGH (DC) ODER letzte Flanke < 30ms her (AC-Halbwellen-Lücke)
+    // Gemeinsame Press-State-Machine für Toggle- und Taster-Modus:
+    //   Steigende Flanke  → pressStartMs merken, longPressFired löschen
+    //   Während aktiv     → nach 2s alle Ausgänge AUS (Langdruck), einmalig
+    //   Fallende Flanke   → Toggle: OR-Toggle; Taster: Ausgänge AUS (nur wenn kein Langdruck)
+    static const uint32_t IN_ACTIVE_HOLD_MS = 30;    // Halbwellen-Lücke AC
+    static const uint32_t IN_LONGPRESS_MS   = 2000;  // Langdruck-Schwelle
     unsigned long nowIn = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         bool raw  = digitalRead(INPUT_PINS[i]);
         bool edge = (raw != inputRawPrev[i]);
         inputRawPrev[i] = raw;
 
-        switch (inputDetState[i]) {
-        case DET_IDLE:
-            if (edge) {
-                inputEdgeCnt[i]     = 1;
-                inputFirstEdgeMs[i] = nowIn;
-                inputLastEdgeMs[i]  = nowIn;
-                inputDetState[i]    = DET_DETECTING;
-                inputState[i]       = true;
-                stateChanged        = true;
-            }
-            break;
+        if (edge) inputLastEdgeMs[i] = nowIn;
 
-        case DET_DETECTING:
-            if (edge) {
-                inputEdgeCnt[i]++;
-                inputLastEdgeMs[i] = nowIn;
-            }
-            if (nowIn - inputFirstEdgeMs[i] >= IN_AC_DETECT_MS) {
-                inputIsAC[i] = (inputEdgeCnt[i] >= 2);
-                dbg::debug(CAT_INPUT, "Eingang %d: %s (%d Flanken in 20ms)",
-                           i+1, inputIsAC[i] ? "AC" : "DC", inputEdgeCnt[i]);
-                inputDetState[i] = DET_COUNTING;
-            }
-            break;
+        bool signalActive = raw || (nowIn - inputLastEdgeMs[i] < IN_ACTIVE_HOLD_MS);
+        bool risingEdge   =  signalActive && !signalActivePrev[i];
+        bool fallingEdge  = !signalActive &&  signalActivePrev[i];
+        signalActivePrev[i] = signalActive;
 
-        case DET_COUNTING:
-            if (edge) {
-                inputEdgeCnt[i]++;
-                inputLastEdgeMs[i] = nowIn;
+        // UI: Eingangs-LED folgt signalActive
+        if (signalActive != inputState[i]) {
+            inputState[i] = signalActive;
+            stateChanged  = true;
+        }
+
+        if (risingEdge) {
+            pressStartMs[i]   = nowIn;
+            longPressFired[i] = false;
+            lastInputTime[i]  = time(nullptr);
+            if (inputMode[i] == 1) {
+                // Taster: Ausgänge sofort EIN
+                for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
+                    if (inputMapping[i] & (1u << j)) setRelay(j, true);
+                }
+                stateChanged = true;
             }
-            // DC: 2 Flanken genügen (1× drücken+loslassen); AC: 4 Flanken (2 Halbwellen)
-            if (inputEdgeCnt[i] >= (inputIsAC[i] ? 4u : 2u)) {
-                dbg::info(CAT_INPUT, "Eingang %d Trigger (%s, %d Flanken)",
-                          i+1, inputIsAC[i] ? "AC" : "DC", inputEdgeCnt[i]);
-                lastInputTime[i] = time(nullptr);
+        }
+
+        // Langdruck (beide Modi): nach 2s alle Ausgänge AUS
+        if (signalActive && !longPressFired[i] &&
+            (nowIn - pressStartMs[i] >= IN_LONGPRESS_MS)) {
+            dbg::info(CAT_INPUT, "Eingang %d: Langdruck → Alle Ausgaenge AUS", i+1);
+            for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
+                if (relayState[j]) setRelay(j, false);
+            }
+            longPressFired[i] = true;
+            stateChanged = true;
+        }
+
+        if (fallingEdge && !longPressFired[i]) {
+            if (inputMode[i] == 1) {
+                // Taster: Ausgänge AUS
+                for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
+                    if (inputMapping[i] & (1u << j)) setRelay(j, false);
+                }
+            } else {
+                // Toggle: OR-Logik (irgendein Ausgang AN → alle AUS, sonst alle AN)
                 if (inputMapping[i]) {
-                    // OR-Logik: irgendein Ausgang AN → alle AUS; alle AUS → alle AN
                     bool anyOn = false;
                     for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
                         if ((inputMapping[i] & (1u << j)) && relayState[j]) { anyOn = true; break; }
                     }
                     bool newState = !anyOn;
+                    dbg::info(CAT_INPUT, "Eingang %d Toggle → %s", i+1, newState ? "EIN" : "AUS");
                     for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
                         if (inputMapping[i] & (1u << j)) setRelay(j, newState, !newState);
                     }
                 }
-                inputDetState[i] = DET_LOCKED;
-                stateChanged     = true;
-            } else if (!inputIsAC[i] &&
-                       (nowIn - inputLastEdgeMs[i] >= IN_DC_COUNTING_TIMEOUT)) {
-                // Rückflanke blieb aus (dauerhaftes Signal) → zurück nach IDLE
-                dbg::debug(CAT_INPUT, "Eingang %d: DC-Timeout in COUNTING, Reset", i+1);
-                inputDetState[i] = DET_IDLE;
-                inputEdgeCnt[i]  = 0;
-                inputState[i]    = false;
-                stateChanged     = true;
             }
-            break;
-
-        case DET_LOCKED:
-            if (edge) inputLastEdgeMs[i] = nowIn;
-            if (nowIn - inputLastEdgeMs[i] >= IN_LOCKOUT_MS) {
-                inputDetState[i] = DET_IDLE;
-                inputEdgeCnt[i]  = 0;
-                inputState[i]    = false;
-                stateChanged     = true;
-            }
-            break;
+            stateChanged = true;
         }
     }
 

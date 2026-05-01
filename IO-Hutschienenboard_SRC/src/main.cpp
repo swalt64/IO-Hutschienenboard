@@ -1072,9 +1072,13 @@ void setupWebServer() {
 // Input Pins
 // ============================================================
 void setupInputPins() {
+    unsigned long now = millis();
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
         pinMode(INPUT_PINS[i], INPUT);
-        inputRawPrev[i] = digitalRead(INPUT_PINS[i]);
+        bool r = digitalRead(INPUT_PINS[i]);
+        inputRawPrev[i]      = r;
+        inputLastEdgeMs[i]   = now - 200;   // Holdoff-Fenster ab erstem loop() abgelaufen
+        signalActivePrev[i]  = !r;          // initiales signalActive vorab setzen
     }
 }
 
@@ -1314,7 +1318,8 @@ void loop() {
 
         if (edge) inputLastEdgeMs[i] = nowIn;
 
-        bool signalActive = raw || (nowIn - inputLastEdgeMs[i] < IN_ACTIVE_HOLD_MS);
+        // GPIO ist aktiv-LOW (Schmitt-Inverter invertiert Optokoppler-Ausgang)
+        bool signalActive = !raw || (nowIn - inputLastEdgeMs[i] < IN_ACTIVE_HOLD_MS);
         bool risingEdge   =  signalActive && !signalActivePrev[i];
         bool fallingEdge  = !signalActive &&  signalActivePrev[i];
         signalActivePrev[i] = signalActive;

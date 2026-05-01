@@ -132,7 +132,7 @@ function rebuildOutputTable() {
         otr.innerHTML = `
             <td class="col-nr">A${i+1}</td>
             <td><span class="led led-off" id="out-led-${i}"></span></td>
-            <td class="col-name" id="out-name-${i}">Ausgang ${i+1}</td>
+            <td class="col-name" id="out-name-${i}">${state.names[i]}</td>
             <td class="col-time" id="out-time-${i}">–</td>
             <td class="col-rest" id="out-rest-${i}"></td>
             <td><button class="toggle" id="out-btn-${i}">Toggle</button></td>`;
@@ -156,7 +156,7 @@ function tickCountdown() {
 function updateRemaining() {
     for (let i = 0; i < NUM_CH; i++) {
         const el = document.getElementById(`out-rest-${i}`);
-        el.textContent = (state.outputs[i] && state.remaining[i] > 0)
+        if (el) el.textContent = (state.outputs[i] && state.remaining[i] > 0)
             ? secsToHMS(state.remaining[i]) : '';
     }
 }
@@ -168,10 +168,12 @@ function updateUI() {
         document.getElementById(`in-name-${i}`).textContent = state.input_names[i];
         document.getElementById(`in-time-${i}`).textContent = formatTime(state.last_input[i]);
 
-        document.getElementById(`out-led-${i}`).className =
-            state.outputs[i] ? 'led led-on' : 'led led-off';
-        document.getElementById(`out-name-${i}`).textContent = state.names[i];
-        document.getElementById(`out-time-${i}`).textContent = formatTime(state.last_output[i]);
+        const outLed  = document.getElementById(`out-led-${i}`);
+        const outName = document.getElementById(`out-name-${i}`);
+        const outTime = document.getElementById(`out-time-${i}`);
+        if (outLed)  outLed.className   = state.outputs[i] ? 'led led-on' : 'led led-off';
+        if (outName) outName.textContent = state.names[i];
+        if (outTime) outTime.textContent = formatTime(state.last_output[i]);
     }
     updateRemaining();
 }

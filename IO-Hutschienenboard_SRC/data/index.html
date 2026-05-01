@@ -88,7 +88,9 @@ let state = {
     input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1)),
     last_input:  Array(NUM_CH).fill(0),
     last_output: Array(NUM_CH).fill(0),
-    out_modes:   Array(NUM_CH).fill(0)
+    out_modes:   Array(NUM_CH).fill(0),
+    out_order:   Array(NUM_CH).fill(0).map((_,i)=>i),
+    out_enabled: Array(NUM_CH).fill(true)
 };
 
 function formatTime(ts) {
@@ -117,6 +119,15 @@ function initTables() {
             <td class="col-time" id="in-time-${i}">–</td>`;
         itbody.appendChild(itr);
 
+    }
+}
+
+function rebuildOutputTable() {
+    const otbody = document.getElementById('output-table');
+    otbody.innerHTML = '';
+    for (let pos = 0; pos < NUM_CH; pos++) {
+        const i = state.out_order[pos];
+        if (!state.out_enabled[i]) continue;
         const otr = document.createElement('tr');
         otr.innerHTML = `
             <td class="col-nr">A${i+1}</td>
@@ -126,7 +137,9 @@ function initTables() {
             <td class="col-rest" id="out-rest-${i}"></td>
             <td><button class="toggle" id="out-btn-${i}">Toggle</button></td>`;
         otbody.appendChild(otr);
+        bindButton(i);
     }
+    updateUI();
 }
 
 function tickCountdown() {
@@ -223,7 +236,9 @@ function bindButton(i) {
 }
 
 function applyState(data) {
-    const modesChanged = data.out_modes && JSON.stringify(data.out_modes) !== JSON.stringify(state.out_modes);
+    const modesChanged   = data.out_modes   && JSON.stringify(data.out_modes)   !== JSON.stringify(state.out_modes);
+    const orderChanged   = data.out_order   && JSON.stringify(data.out_order)   !== JSON.stringify(state.out_order);
+    const enabledChanged = data.out_enabled && JSON.stringify(data.out_enabled) !== JSON.stringify(state.out_enabled);
     if (data.inputs)      state.inputs      = data.inputs;
     if (data.outputs)     state.outputs     = data.outputs;
     if (data.remaining)   state.remaining   = data.remaining;
@@ -232,7 +247,10 @@ function applyState(data) {
     if (data.last_input)  state.last_input  = data.last_input;
     if (data.last_output) state.last_output = data.last_output;
     if (data.out_modes)   state.out_modes   = data.out_modes;
-    if (modesChanged) for (let i = 0; i < NUM_CH; i++) bindButton(i);
+    if (data.out_order)   state.out_order   = data.out_order;
+    if (data.out_enabled) state.out_enabled = data.out_enabled;
+    if (orderChanged || enabledChanged) rebuildOutputTable();
+    else if (modesChanged) for (let i = 0; i < NUM_CH; i++) bindButton(i);
 }
 
 function wsSend(msg) {
@@ -265,7 +283,7 @@ fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateU
     .catch(e => console.warn('fetch /api/state failed', e));
 
 initTables();
-for (let i = 0; i < NUM_CH; i++) bindButton(i);
+rebuildOutputTable();
 updateUI();
 setInterval(tickCountdown, 1000);
 connectWS();

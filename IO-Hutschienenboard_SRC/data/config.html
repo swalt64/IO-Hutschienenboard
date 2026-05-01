@@ -68,7 +68,7 @@
         <div class="section">
             <h2>Ausgangs-Namen</h2>
             <table>
-                <thead><tr><th class="col-nr">Nr.</th><th>Name</th><th style="width:90px">Modus</th></tr></thead>
+                <thead><tr><th style="width:44px"></th><th class="col-nr">Nr.</th><th>Name</th><th style="width:90px">Modus</th><th style="width:46px">Aktiv</th></tr></thead>
                 <tbody id="name-table"></tbody>
             </table>
         </div>
@@ -154,7 +154,9 @@ let state = {
     names:       Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
     input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1)),
     out_modes:   Array(NUM_CH).fill(0),
-    in_modes:    Array(NUM_CH).fill(0)
+    in_modes:    Array(NUM_CH).fill(0),
+    out_order:   Array(NUM_CH).fill(0).map((_,i)=>i),
+    out_enabled: Array(NUM_CH).fill(true)
 };
 
 // ---- Modal ----
@@ -201,25 +203,61 @@ function initTables() {
             </select></td>`;
         itbody.appendChild(itr);
 
+    }
+}
+
+const BTN_STYLE = 'background:#1e293b;color:#eee;border:1px solid #334155;border-radius:3px;padding:2px 5px;cursor:pointer;font-size:0.8rem;';
+const SEL_STYLE = 'background:#1e293b;color:#eee;border:1px solid #334155;border-radius:4px;padding:3px;';
+
+function rebuildOutNameTable() {
+    const otbody = document.getElementById('name-table');
+    otbody.innerHTML = '';
+    for (let pos = 0; pos < NUM_CH; pos++) {
+        const i = state.out_order[pos];
+        const isFirst = pos === 0, isLast = pos === NUM_CH - 1;
+        const dimmed = !state.out_enabled[i] ? 'opacity:0.45;' : '';
         const otr = document.createElement('tr');
+        otr.id = `out-row-${i}`;
+        otr.style.cssText = dimmed;
         otr.innerHTML = `
+            <td style="white-space:nowrap">
+                <button onclick="moveOut(${pos},-1)" ${isFirst?'disabled':''} style="${BTN_STYLE}">↑</button>
+                <button onclick="moveOut(${pos}, 1)" ${isLast ?'disabled':''} style="${BTN_STYLE}">↓</button>
+            </td>
             <td class="col-nr">A${i+1}</td>
             <td class="col-name"><input type="text" class="name-input" id="name-${i}" maxlength="60"
-                       value="Ausgang ${i+1}" onchange="setName(${i}, this.value)"></td>
-            <td><select id="outmode-${i}" onchange="setOutMode(${i}, this.value)" style="background:#1e293b;color:#eee;border:1px solid #334155;border-radius:4px;padding:3px;">
+                       value="${state.names[i].replace(/"/g,'&quot;')}" onchange="setName(${i}, this.value)"></td>
+            <td><select id="outmode-${i}" onchange="setOutMode(${i}, this.value)" style="${SEL_STYLE}">
                 <option value="0">Toggle</option>
                 <option value="1">Taster</option>
-            </select></td>`;
+            </select></td>
+            <td style="text-align:center"><input type="checkbox" id="ena-${i}" ${state.out_enabled[i]?'checked':''}
+                onchange="setOutEnabled(${i}, this.checked)"></td>`;
         otbody.appendChild(otr);
+        document.getElementById(`outmode-${i}`).value = state.out_modes[i];
     }
+}
+
+function moveOut(pos, delta) {
+    const newPos = pos + delta;
+    if (newPos < 0 || newPos >= NUM_CH) return;
+    [state.out_order[pos], state.out_order[newPos]] = [state.out_order[newPos], state.out_order[pos]];
+    wsSend({cmd: 'set_out_order', order: state.out_order});
+    rebuildOutNameTable();
+}
+
+function setOutEnabled(ch, ena) {
+    state.out_enabled[ch] = ena;
+    wsSend({cmd: 'set_out_enabled', ch, enabled: ena});
+    rebuildOutNameTable();
 }
 
 function updateUI() {
     for (let i = 0; i < NUM_CH; i++) {
         const inEl = document.getElementById(`iname-${i}`);
-        if (document.activeElement !== inEl) inEl.value = state.input_names[i];
+        if (inEl && document.activeElement !== inEl) inEl.value = state.input_names[i];
         const outEl = document.getElementById(`name-${i}`);
-        if (document.activeElement !== outEl) outEl.value = state.names[i];
+        if (outEl && document.activeElement !== outEl) outEl.value = state.names[i];
         const modeEl = document.getElementById(`outmode-${i}`);
         if (modeEl && document.activeElement !== modeEl) modeEl.value = state.out_modes[i];
         const inModeEl = document.getElementById(`inmode-${i}`);
@@ -228,10 +266,15 @@ function updateUI() {
 }
 
 function applyState(data) {
+    const orderChanged   = data.out_order   && JSON.stringify(data.out_order)   !== JSON.stringify(state.out_order);
+    const enabledChanged = data.out_enabled && JSON.stringify(data.out_enabled) !== JSON.stringify(state.out_enabled);
     if (data.names)       state.names       = data.names;
     if (data.input_names) state.input_names = data.input_names;
     if (data.out_modes)   state.out_modes   = data.out_modes;
     if (data.in_modes)    state.in_modes    = data.in_modes;
+    if (data.out_order)   state.out_order   = data.out_order;
+    if (data.out_enabled) state.out_enabled = data.out_enabled;
+    if (orderChanged || enabledChanged) rebuildOutNameTable();
 }
 
 function wsSend(msg) {
@@ -314,7 +357,9 @@ function exportConfig() {
             mappings:    data.mappings,
             timers:      data.timers,
             out_modes:   data.out_modes,
-            in_modes:    data.in_modes
+            in_modes:    data.in_modes,
+            out_order:   data.out_order,
+            out_enabled: data.out_enabled
         };
         saveJsonFile(`hs-io-config_${ts}.json`, JSON.stringify(cfg, null, 2));
     }).catch(() => showAlert('Fehler', 'Konfiguration konnte nicht geladen werden.'));
@@ -350,7 +395,13 @@ function importConfig() {
                     : Array(NUM_CH).fill(0),
                 in_modes:    (Array.isArray(cfg.in_modes) && cfg.in_modes.length >= NUM_CH)
                     ? cfg.in_modes.slice(0, NUM_CH).map(v => Number(v) > 0 ? 1 : 0)
-                    : Array(NUM_CH).fill(0)
+                    : Array(NUM_CH).fill(0),
+                out_order:   (Array.isArray(cfg.out_order) && cfg.out_order.length >= NUM_CH)
+                    ? cfg.out_order.slice(0, NUM_CH).map(v => Math.min(Math.max(Number(v)||0,0), NUM_CH-1))
+                    : Array(NUM_CH).fill(0).map((_,i)=>i),
+                out_enabled: (Array.isArray(cfg.out_enabled) && cfg.out_enabled.length >= NUM_CH)
+                    ? cfg.out_enabled.slice(0, NUM_CH).map(v => v !== false && Number(v) !== 0)
+                    : Array(NUM_CH).fill(true)
             };
             showConfirm(
                 'Konfiguration laden',
@@ -430,6 +481,7 @@ fetch('/api/state').then(r => r.json()).then(data => {
 }).catch(e => console.warn('fetch /api/state failed', e));
 
 initTables();
+rebuildOutNameTable();
 updateUI();
 connectWS();
 </script>

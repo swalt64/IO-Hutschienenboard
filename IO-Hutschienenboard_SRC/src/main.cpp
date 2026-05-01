@@ -155,6 +155,9 @@ char channelNames[NUM_CHANNELS][CH_NAME_MAX_LEN + 1];
 char inputNames[NUM_CHANNELS][CH_NAME_MAX_LEN + 1];
 uint8_t displayChannel = 0;
 
+uint8_t outDisplayOrder[NUM_CHANNELS] = {0,1,2,3,4,5,6,7,8,9,10,11};
+bool    outChEnabled[NUM_CHANNELS]    = {true,true,true,true,true,true,true,true,true,true,true,true};
+
 uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
     if (ch >= NUM_CHANNELS) return 0;
     if (!relayState[ch]) return 0;
@@ -422,6 +425,11 @@ void loadConfig() {
         outputMode[i] = prefs.getUChar(key.c_str(), 0);
         key = "inmode" + String(i);
         inputMode[i] = prefs.getUChar(key.c_str(), 0);
+        key = "ord" + String(i);
+        outDisplayOrder[i] = prefs.getUChar(key.c_str(), i);
+        if (outDisplayOrder[i] >= NUM_CHANNELS) outDisplayOrder[i] = i;
+        key = "ena" + String(i);
+        outChEnabled[i] = prefs.getUChar(key.c_str(), 1) != 0;
         key = "name" + String(i);
         String defaultName = "Ausgang " + String(i + 1);
         String name = prefs.getString(key.c_str(), defaultName);
@@ -455,6 +463,10 @@ void saveConfig() {
         prefs.putUChar(key.c_str(), outputMode[i]);
         key = "inmode" + String(i);
         prefs.putUChar(key.c_str(), inputMode[i]);
+        key = "ord" + String(i);
+        prefs.putUChar(key.c_str(), outDisplayOrder[i]);
+        key = "ena" + String(i);
+        prefs.putUChar(key.c_str(), outChEnabled[i] ? 1 : 0);
     }
     prefs.end();
     dbg::debug(CAT_CONFIG, "Konfiguration gespeichert");
@@ -474,9 +486,11 @@ String buildStateJson() {
     JsonArray inames = doc["input_names"].to<JsonArray>();
     JsonArray lastIn    = doc["last_input"].to<JsonArray>();
     JsonArray lastOut   = doc["last_output"].to<JsonArray>();
-    JsonArray outModes  = doc["out_modes"].to<JsonArray>();
-    JsonArray inModes   = doc["in_modes"].to<JsonArray>();
-    JsonArray mcpStatus = doc["mcp"].to<JsonArray>();
+    JsonArray outModes    = doc["out_modes"].to<JsonArray>();
+    JsonArray inModes     = doc["in_modes"].to<JsonArray>();
+    JsonArray outOrder    = doc["out_order"].to<JsonArray>();
+    JsonArray outEnabledA = doc["out_enabled"].to<JsonArray>();
+    JsonArray mcpStatus   = doc["mcp"].to<JsonArray>();
     unsigned long now = millis();
 
     for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
@@ -491,6 +505,8 @@ String buildStateJson() {
         lastOut.add((uint32_t)lastOutputTime[i]);
         outModes.add(outputMode[i]);
         inModes.add(inputMode[i]);
+        outOrder.add(outDisplayOrder[i]);
+        outEnabledA.add(outChEnabled[i]);
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
@@ -615,6 +631,36 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 prefs.end();
                 dbg::info(CAT_CONFIG, "Eingangs-Modus E%d: %s", ch + 1, mode ? "Taster" : "Toggle");
             }
+        } else if (strcmp(cmd, "set_out_order") == 0) {
+            JsonArray arr = doc["order"];
+            if (arr.size() == NUM_CHANNELS) {
+                bool used[NUM_CHANNELS] = {};
+                bool valid = true;
+                for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+                    uint8_t v = arr[i].as<uint8_t>();
+                    if (v >= NUM_CHANNELS || used[v]) { valid = false; break; }
+                    used[v] = true;
+                }
+                if (valid) {
+                    prefs.begin("io-config", false);
+                    for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+                        outDisplayOrder[i] = arr[i].as<uint8_t>();
+                        prefs.putUChar(("ord" + String(i)).c_str(), outDisplayOrder[i]);
+                    }
+                    prefs.end();
+                    dbg::info(CAT_CONFIG, "Ausgangs-Reihenfolge aktualisiert");
+                }
+            }
+        } else if (strcmp(cmd, "set_out_enabled") == 0) {
+            uint8_t ch  = doc["ch"]      | 0;
+            bool    ena = doc["enabled"] | true;
+            if (ch < NUM_CHANNELS) {
+                outChEnabled[ch] = ena;
+                prefs.begin("io-config", false);
+                prefs.putUChar(("ena" + String(ch)).c_str(), ena ? 1 : 0);
+                prefs.end();
+                dbg::info(CAT_CONFIG, "Ausgang A%d: %s", ch + 1, ena ? "aktiv" : "deaktiviert");
+            }
         } else if (strcmp(cmd, "wifi") == 0) {
             String newSsid = doc["ssid"].as<String>();
             if (newSsid.length() > 0) sta_ssid = newSsid;
@@ -636,8 +682,10 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             JsonArray jINames   = doc["input_names"];
             JsonArray jMappings = doc["mappings"];
             JsonArray jTimers   = doc["timers"];
-            JsonArray jOutModes = doc["out_modes"];
-            JsonArray jInModes  = doc["in_modes"];
+            JsonArray jOutModes   = doc["out_modes"];
+            JsonArray jInModes    = doc["in_modes"];
+            JsonArray jOutOrder   = doc["out_order"];
+            JsonArray jOutEnabled = doc["out_enabled"];
 
             if (jNames.size() < NUM_CHANNELS || jINames.size() < NUM_CHANNELS ||
                 jMappings.size() < NUM_CHANNELS || jTimers.size() < NUM_CHANNELS) {
@@ -681,6 +729,16 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                     inputMode[i]  = inMode;
                     prefs.putUChar(("outmode" + String(i)).c_str(), outputMode[i]);
                     prefs.putUChar(("inmode"  + String(i)).c_str(), inputMode[i]);
+
+                    if (jOutOrder.size() == NUM_CHANNELS) {
+                        uint8_t v = jOutOrder[i].as<uint8_t>();
+                        outDisplayOrder[i] = (v < NUM_CHANNELS) ? v : i;
+                        prefs.putUChar(("ord" + String(i)).c_str(), outDisplayOrder[i]);
+                    }
+                    if (jOutEnabled.size() == NUM_CHANNELS) {
+                        outChEnabled[i] = jOutEnabled[i].as<bool>();
+                        prefs.putUChar(("ena" + String(i)).c_str(), outChEnabled[i] ? 1 : 0);
+                    }
                 }
                 prefs.end();
                 dbg::info(CAT_CONFIG, "E/A-Konfiguration via load_config geladen");
@@ -696,12 +754,16 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 outputMode[i]      = 0;
                 inputMode[i]       = 0;
                 tempTimeAdjustMs[i] = 0;
+                outDisplayOrder[i] = i;
+                outChEnabled[i]    = true;
                 snprintf(channelNames[i], CH_NAME_MAX_LEN + 1, "Ausgang %d", i + 1);
                 snprintf(inputNames[i],   CH_NAME_MAX_LEN + 1, "Eingang %d", i + 1);
                 prefs.putUShort(("mm"    + String(i)).c_str(), 0);
                 prefs.putUInt  (("auto"  + String(i)).c_str(), 0);
                 prefs.putUChar (("outmode" + String(i)).c_str(), 0);
                 prefs.putUChar (("inmode"  + String(i)).c_str(), 0);
+                prefs.putUChar (("ord"   + String(i)).c_str(), i);
+                prefs.putUChar (("ena"   + String(i)).c_str(), 1);
                 prefs.putString(("name"  + String(i)).c_str(), channelNames[i]);
                 prefs.putString(("iname" + String(i)).c_str(), inputNames[i]);
             }
@@ -1040,8 +1102,10 @@ void setupWebServer() {
         JsonArray remaining = doc["remaining"].to<JsonArray>();
         JsonArray names = doc["names"].to<JsonArray>();
         JsonArray inames = doc["input_names"].to<JsonArray>();
-        JsonArray outModes = doc["out_modes"].to<JsonArray>();
-        JsonArray inModes = doc["in_modes"].to<JsonArray>();
+        JsonArray outModes    = doc["out_modes"].to<JsonArray>();
+        JsonArray inModes     = doc["in_modes"].to<JsonArray>();
+        JsonArray outOrderA   = doc["out_order"].to<JsonArray>();
+        JsonArray outEnabledA = doc["out_enabled"].to<JsonArray>();
         unsigned long now = millis();
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
@@ -1053,6 +1117,8 @@ void setupWebServer() {
             inames.add(inputNames[i]);
             outModes.add(outputMode[i]);
             inModes.add(inputMode[i]);
+            outOrderA.add(outDisplayOrder[i]);
+            outEnabledA.add(outChEnabled[i]);
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();

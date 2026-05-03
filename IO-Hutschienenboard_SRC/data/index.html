@@ -34,7 +34,11 @@
             font-family: Georgia, "Times New Roman", serif; font-style: italic;
             text-shadow: 2px 2px 4px #020617;
         }
-        .status { grid-area: status; justify-self: end; font-size: 0.78rem; color: #ef4444; white-space: nowrap; }
+        .status {
+            grid-area: status; justify-self: start; min-width: 0; max-width: 100%;
+            overflow: hidden; text-overflow: ellipsis;
+            font-size: 0.78rem; color: #ef4444; white-space: nowrap;
+        }
         .status.connected { color: #22c55e; }
         .nav {
             grid-area: nav; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -166,7 +170,7 @@
 
 <script>
 const NUM_CH = 12;
-const WEB_UI_VERSION = '2.10';
+const WEB_UI_VERSION = '2.12';
 let ws;
 let pressed = null;
 let armedOutputs = Array(NUM_CH).fill(false);
@@ -287,22 +291,28 @@ function updateUI() {
 }
 
 let marqueeFrame = 0;
-function refreshMarquees() {
+let marqueeTimer = 0;
+function refreshMarquees(delay = 0) {
+    clearTimeout(marqueeTimer);
     cancelAnimationFrame(marqueeFrame);
-    marqueeFrame = requestAnimationFrame(() => {
+    const run = () => marqueeFrame = requestAnimationFrame(() => {
         document.querySelectorAll('.name').forEach(name => {
             const marquee = name.querySelector('.marquee');
             if (!marquee) return;
             name.classList.remove('scroll');
             marquee.style.transform = '';
-            const distance = marquee.scrollWidth - name.clientWidth;
-            if (distance > 4) {
+            const nameWidth = name.getBoundingClientRect().width;
+            const textWidth = marquee.getBoundingClientRect().width;
+            const distance = Math.ceil(textWidth - nameWidth);
+            if (nameWidth > 0 && distance > 12) {
                 name.style.setProperty('--scroll-distance', `${distance}px`);
                 name.style.setProperty('--scroll-duration', `${Math.max(4, Math.min(12, distance / 18 + 3)).toFixed(1)}s`);
                 name.classList.add('scroll');
             }
         });
     });
+    if (delay > 0) marqueeTimer = setTimeout(run, delay);
+    else run();
 }
 
 function bindButton(ch) {
@@ -430,9 +440,11 @@ function tickCountdown() {
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+window.addEventListener('resize', () => refreshMarquees(80));
+window.addEventListener('load', () => refreshMarquees(250));
 
 renderRows();
-fetch('/api/state').then(r => r.json()).then(data => { applyState(data); renderRows(); }).catch(() => {});
+fetch('/api/state').then(r => r.json()).then(data => { applyState(data); renderRows(); refreshMarquees(250); }).catch(() => {});
 setInterval(tickCountdown, 1000);
 connectWS();
 </script>

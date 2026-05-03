@@ -1,4 +1,4 @@
-const CACHE = 'hs-io-pwa-v14';
+const CACHE = 'hs-io-pwa-v16';
 const SHELL = ['/', '/index.html', '/status.html', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', event => {

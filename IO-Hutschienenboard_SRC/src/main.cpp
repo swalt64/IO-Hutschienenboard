@@ -1554,11 +1554,12 @@ void loop() {
         }
     }
 
-    // RUN-LED Blinker: alle 250ms aktualisieren
+    // RUN-LED Blinker + Display-Scroll: alle 250ms aktualisieren
     static unsigned long lastLedTick = 0;
     if (now - lastLedTick >= 250) {
         lastLedTick = now;
         updateTopLeds();
+        display::tick(now);
     }
 
     // Display jede Sekunde aktualisieren (Countdown)

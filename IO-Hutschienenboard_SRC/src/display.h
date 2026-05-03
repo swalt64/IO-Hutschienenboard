@@ -12,4 +12,5 @@ namespace display {
 
     void show(uint8_t ch, const char* name, bool relayOn,
               uint32_t remainSecs, bool hasTimer, uint16_t stateMask = 0);
+    void tick(uint32_t nowMs);
 }

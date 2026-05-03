@@ -65,6 +65,7 @@ public class MainActivity extends Activity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final String[] names = new String[NUM_CH];
     private final boolean[] outputs = new boolean[NUM_CH];
+    private final int[] remaining = new int[NUM_CH];
     private final int[] outModes = new int[NUM_CH];
     private final int[] outOrder = new int[NUM_CH];
     private final boolean[] outEnabled = new boolean[NUM_CH];
@@ -72,6 +73,7 @@ public class MainActivity extends Activity {
     private final View[] rows = new View[NUM_CH];
     private final View[] leds = new View[NUM_CH];
     private final Button[] buttons = new Button[NUM_CH];
+    private final TextView[] remainingLabels = new TextView[NUM_CH];
     private final ObjectAnimator[] labelAnims = new ObjectAnimator[NUM_CH];
     private final String[] labelAnimTexts = new String[NUM_CH];
     private final int[] labelAnimWidths = new int[NUM_CH];
@@ -91,6 +93,7 @@ public class MainActivity extends Activity {
     private boolean currentConnectionReceivedState;
     private boolean hasSuccessfulConnection;
     private boolean connected;
+    private int momentaryTouchChannel = -1;
     private long lastStateMs;
     private long connectStartedMs;
     private SoundPool soundPool;
@@ -200,10 +203,27 @@ public class MainActivity extends Activity {
         label.setSingleLine(true);
         label.setEllipsize(null);
         label.setHorizontallyScrolling(true);
-        label.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams lpLabel = new LinearLayout.LayoutParams(landscape ? -1 : 0, -2, landscape ? 0 : 1);
-        lpLabel.setMargins(0, 0, landscape ? 0 : dp(4), 0);
-        row.addView(label, lpLabel);
+        label.setGravity(Gravity.START);
+
+        TextView remain = new TextView(this);
+        remain.setTextColor(Color.rgb(148, 163, 184));
+        remain.setTextSize(landscape ? 9 : 11);
+        remain.setTypeface(Typeface.create("calibri", Typeface.NORMAL));
+        remain.setIncludeFontPadding(false);
+        remain.setSingleLine(true);
+        remain.setGravity(Gravity.START);
+        remain.setVisibility(View.GONE);
+        remainingLabels[pos] = remain;
+
+        LinearLayout textBox = new LinearLayout(this);
+        textBox.setOrientation(LinearLayout.VERTICAL);
+        textBox.setGravity(Gravity.CENTER_VERTICAL);
+        textBox.addView(label, new LinearLayout.LayoutParams(-1, -2));
+        textBox.addView(remain, new LinearLayout.LayoutParams(-1, -2));
+
+        LinearLayout.LayoutParams lpText = new LinearLayout.LayoutParams(landscape ? -1 : 0, -2, landscape ? 0 : 1);
+        lpText.setMargins(0, 0, landscape ? 0 : dp(4), 0);
+        row.addView(textBox, lpText);
 
         Button btn = new Button(this);
         btn.setAllCaps(false);
@@ -224,6 +244,7 @@ public class MainActivity extends Activity {
             if (ch < 0 || ch >= NUM_CH || !connected) return true;
             if (outModes[ch] == 1) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    momentaryTouchChannel = ch;
                     animateButton(v, true);
                     playClick(true);
                     sendSet(ch, true);
@@ -233,6 +254,7 @@ public class MainActivity extends Activity {
                     animateButton(v, false);
                     playClick(false);
                     sendSet(ch, false);
+                    if (momentaryTouchChannel == ch) momentaryTouchChannel = -1;
                     return true;
                 }
                 return true;
@@ -286,8 +308,12 @@ public class MainActivity extends Activity {
     private void renderState() {
         if (status != null) status.setText("Verbunden mit " + host);
         if (status != null) status.setVisibility(View.GONE);
-        int visibleCount = assignVisibleRows();
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        if (momentaryTouchChannel >= 0) {
+            updateVisibleRows(landscape);
+            return;
+        }
+        int visibleCount = assignVisibleRows();
         int columns = landscape ? Math.max(1, (visibleCount + 1) / 2) : 1;
 
         grid.removeAllViews();
@@ -324,22 +350,47 @@ public class MainActivity extends Activity {
             }
             row.setVisibility(View.VISIBLE);
 
-            TextView label = (TextView) row.getTag();
-            label.setText(labelFor(ch));
-            label.setTextSize(landscape ? 11 : 14);
-            label.setTypeface(Typeface.create("calibri", Typeface.NORMAL));
-            label.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
-            startLabelScroll(i, label);
-            leds[i].setBackground(ledBg(outputs[ch]));
-            buttons[i].setText(outModes[ch] == 1 ? "Taster" : "Toggle");
-            buttons[i].setTextSize(landscape ? 11 : 13);
-            buttons[i].setTypeface(Typeface.create("calibri", Typeface.BOLD));
-            buttons[i].setShadowLayer(0, 0, 0, Color.TRANSPARENT);
-            buttons[i].setBackground(buttonBg(outModes[ch] == 1));
-            buttons[i].setTextColor(Color.WHITE);
-            buttons[i].setEnabled(connected);
-            buttons[i].setAlpha(connected ? 1.0f : 0.45f);
+            updateRowControls(i, ch, landscape);
         }
+    }
+
+    private void updateVisibleRows(boolean landscape) {
+        for (int i = 0; i < NUM_CH; i++) {
+            View row = rows[i];
+            if (row == null || row.getVisibility() != View.VISIBLE) continue;
+            int ch = rowChannels[i];
+            if (ch < 0 || ch >= NUM_CH) continue;
+            updateRowControls(i, ch, landscape);
+        }
+    }
+
+    private void updateRowControls(int pos, int ch, boolean landscape) {
+        TextView label = (TextView) rows[pos].getTag();
+        label.setText(labelFor(ch));
+        label.setTextSize(landscape ? 11 : 14);
+        label.setTypeface(Typeface.create("calibri", Typeface.NORMAL));
+        label.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
+        startLabelScroll(pos, label);
+        TextView remain = remainingLabels[pos];
+        if (remain != null) {
+            remain.setTextSize(landscape ? 9 : 11);
+            if (outputs[ch] && remaining[ch] > 0) {
+                remain.setText("Restzeit " + formatRemaining(remaining[ch]));
+                remain.setVisibility(View.VISIBLE);
+            } else {
+                remain.setText("");
+                remain.setVisibility(View.GONE);
+            }
+        }
+        leds[pos].setBackground(ledBg(outputs[ch]));
+        buttons[pos].setText(outModes[ch] == 1 ? "Taster" : "Toggle");
+        buttons[pos].setTextSize(landscape ? 11 : 13);
+        buttons[pos].setTypeface(Typeface.create("calibri", Typeface.BOLD));
+        buttons[pos].setShadowLayer(0, 0, 0, Color.TRANSPARENT);
+        buttons[pos].setBackground(buttonBg(outModes[ch] == 1));
+        buttons[pos].setTextColor(Color.WHITE);
+        buttons[pos].setEnabled(connected);
+        buttons[pos].setAlpha(connected ? 1.0f : 0.45f);
     }
 
     private LinearLayout outputBand() {
@@ -389,6 +440,15 @@ public class MainActivity extends Activity {
         String name = cleanName(ch);
         if (hasUniqueConfiguredName(ch, name)) return name;
         return "A" + (ch + 1) + "  " + name;
+    }
+
+    private String formatRemaining(int secs) {
+        if (secs < 0) secs = 0;
+        int h = secs / 3600;
+        int m = (secs % 3600) / 60;
+        int s = secs % 60;
+        if (h > 0) return String.format(Locale.US, "%02d:%02d:%02d", h, m, s);
+        return String.format(Locale.US, "%02d:%02d", m, s);
     }
 
     private boolean hasUniqueConfiguredName(int ch, String name) {
@@ -575,12 +635,14 @@ public class MainActivity extends Activity {
         try {
             JSONObject o = new JSONObject(json);
             JSONArray outs = o.optJSONArray("outputs");
+            JSONArray rem = o.optJSONArray("remaining");
             JSONArray ns = o.optJSONArray("names");
             JSONArray modes = o.optJSONArray("out_modes");
             JSONArray order = o.optJSONArray("out_order");
             JSONArray enabled = o.optJSONArray("out_enabled");
             for (int i = 0; i < NUM_CH; i++) {
                 if (outs != null && outs.length() > i) outputs[i] = outs.optBoolean(i);
+                if (rem != null && rem.length() > i) remaining[i] = Math.max(0, rem.optInt(i, 0));
                 if (ns != null && ns.length() > i) names[i] = ns.optString(i, names[i]);
                 if (modes != null && modes.length() > i) outModes[i] = modes.optInt(i, 0);
                 if (order != null && order.length() > i) outOrder[i] = order.optInt(i, i);

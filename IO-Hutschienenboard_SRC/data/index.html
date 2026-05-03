@@ -2,291 +2,437 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IO-Hutschienenboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="HS-IO">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.svg">
+    <title>HS-IO</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 16px; }
-        h1 { text-align: center; margin-bottom: 16px; color: #0f3460; background: #e0e0e0; padding: 12px; border-radius: 8px; }
-        .section { background: #16213e; border-radius: 8px; padding: 16px; }
-        .section h2 { margin-bottom: 12px; color: #0ea5e9; font-size: 1.1rem; }
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 7px 5px; border-bottom: 1px solid #1e3a5f; white-space: nowrap; }
-        th { color: #94a3b8; font-size: 0.8rem; text-align: center; }
-        td.col-name { width: 99%; text-align: left; color: #cbd5e1; font-size: 0.9rem; white-space: normal; }
-        td.col-time { text-align: right; color: #64748b; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
-        td.col-rest { text-align: right; color: #93c5fd; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
-        td.col-nr { color: #64748b; font-size: 0.8rem; text-align: center; }
-        .led { display: inline-block; width: 13px; height: 13px; border-radius: 50%; vertical-align: middle; }
-        .led-off      { background: #374151; border: 2px solid #6b7280; }
-        .led-on       { background: #22c55e; box-shadow: 0 0 6px #22c55e; border: 2px solid #16a34a; }
-        .led-input-on { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; border: 2px solid #d97706; }
-        button.toggle { background: #0ea5e9; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82rem; width: 58px; }
-        button.toggle:hover { background: #0284c7; }
-        button.toggle.taster { background: #dc2626; }
-        button.toggle.taster:hover { background: #b91c1c; }
-        button.toggle.taster:active { background: #991b1b; }
-        button.alloff { background: #dc2626; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 0.9rem; }
-        button.alloff:hover { background: #b91c1c; }
-        #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; margin-bottom: 8px; }
-        .connected { color: #22c55e; }
-        .disconnected { color: #ef4444; }
-        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .nav-links { display: flex; gap: 12px; }
-        .nav a { color: #0ea5e9; font-size: 0.85rem; text-decoration: none; }
-        .nav a:hover { text-decoration: underline; }
-        .ui-version { font-size: 0.75rem; color: #4b5563; }
-        body.offline button { opacity: 0.35; pointer-events: none; cursor: not-allowed; }
+        * { box-sizing: border-box; }
+        html { height: 100%; background: #0f172a; }
+        body {
+            height: 100vh; height: 100dvh; margin: 0; overflow: hidden;
+            padding: calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+            background: #0f172a; color: #e5e7eb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .app { height: 100%; display: flex; flex-direction: column; min-width: 0; }
+        header {
+            flex: 0 0 auto; display: grid; grid-template-columns: auto 1fr;
+            grid-template-areas: "brand status" "version version" "nav nav";
+            align-items: center; gap: 6px 12px; padding: 3px 4px 7px;
+        }
+        h1 {
+            grid-area: brand;
+            margin: 0; color: #fff; font-size: 1.05rem; font-weight: 700;
+            font-family: Georgia, "Times New Roman", serif; font-style: italic;
+            text-shadow: 2px 2px 4px #020617;
+        }
+        .status { grid-area: status; justify-self: end; font-size: 0.78rem; color: #ef4444; white-space: nowrap; }
+        .status.connected { color: #22c55e; }
+        .nav {
+            grid-area: nav; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px; align-items: center;
+        }
+        .nav a {
+            min-height: 30px; display: inline-flex; align-items: center; justify-content: center;
+            padding: 0 9px; border: 1px solid #334155; border-radius: 6px;
+            color: #bfdbfe; background: #1e293b; font-size: 0.74rem; text-decoration: none;
+            white-space: nowrap;
+        }
+        .rows {
+            flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+            display: flex; flex-direction: column; gap: 5px; padding-right: 1px;
+        }
+        .row {
+            flex: 0 0 auto; min-height: 70px; display: grid;
+            grid-template-columns: 26px minmax(0, 1fr) 88px;
+            align-items: center; column-gap: 10px; row-gap: 5px; padding: 5px 8px;
+            background: #1e293b; border: 1px solid #334155; border-radius: 6px;
+        }
+        .led {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #374151; border: 2px solid #6b7280;
+        }
+        .led.on {
+            background: #22c55e; border-color: #bbf7d0;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+        }
+        .text {
+            grid-column: 2; min-width: 0; width: 100%; max-width: 100%;
+            overflow: hidden; align-self: center; position: relative; z-index: 0;
+            contain: paint;
+        }
+        .name {
+            position: relative; color: #fff; font-size: 0.96rem; line-height: 1.2;
+            white-space: nowrap; overflow: hidden; max-width: 100%;
+            contain: paint; clip-path: inset(0);
+        }
+        .name .marquee {
+            display: inline-block; max-width: none; will-change: transform;
+        }
+        .name.scroll .marquee {
+            padding-right: 24px;
+            animation: marquee-pingpong var(--scroll-duration, 7s) ease-in-out infinite alternate;
+        }
+        @keyframes marquee-pingpong {
+            from { transform: translateX(0); }
+            to { transform: translateX(calc(-1 * var(--scroll-distance, 0px))); }
+        }
+        .rest {
+            min-height: 1.05em; margin-top: 2px; color: #93c5fd;
+            font-size: 0.76rem; line-height: 1.05; font-variant-numeric: tabular-nums;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        button {
+            grid-column: 3; justify-self: end; width: 88px; min-width: 88px; height: 54px; min-height: 54px;
+            border: 0; border-radius: 9px;
+            padding: 0 4px; background: #0ea5e9; color: #fff;
+            font: inherit; font-size: 0.84rem; font-weight: 700;
+            box-shadow: inset 0 1px rgba(255,255,255,0.35), 0 2px 0 rgba(0,0,0,0.35);
+            touch-action: manipulation; position: relative; z-index: 2;
+        }
+        button.taster { background: #dc2626; }
+        button.locked {
+            background: #475569; color: #dbeafe; font-size: 0.64rem; line-height: 1.05;
+            white-space: normal; padding: 0 6px;
+        }
+        button.locked.arming { background: #64748b; }
+        button:active { transform: scale(0.94); filter: brightness(0.82); }
+        body.offline button { opacity: 0.45; pointer-events: none; }
+        .arm { display: none; }
+        .arm input { width: 22px; height: 22px; accent-color: #f59e0b; }
+        .versions {
+            grid-area: version; display: none; justify-self: start;
+            color: #64748b; font-size: 0.63rem; line-height: 1; white-space: nowrap;
+        }
+        @media (orientation: landscape) {
+            header { grid-template-columns: auto 1fr auto; grid-template-areas: "brand nav status" "brand nav version"; }
+            .nav { justify-self: center; width: min(420px, 100%); }
+            .rows { display: grid; grid-template-columns: repeat(6, minmax(112px, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+            .row {
+                min-height: 0; grid-template-columns: 22px minmax(0, 1fr);
+                grid-template-rows: minmax(0, 1fr) 48px; align-content: center;
+            }
+            .text { grid-column: 2; grid-row: 1; }
+            .arm { grid-column: 1; grid-row: 2; }
+            button { grid-column: 2; grid-row: 2; width: 100%; min-width: 0; height: 46px; min-height: 46px; }
+            .name { font-size: 0.78rem; }
+            .rest { font-size: 0.66rem; }
+        }
+        @media (max-width: 420px) {
+            header { gap: 6px 10px; }
+            .versions { justify-self: start; }
+            .nav a { padding: 0 6px; font-size: 0.72rem; }
+            .row { grid-template-columns: 26px minmax(0, 1fr) 82px; min-height: 66px; column-gap: 10px; row-gap: 5px; }
+            button { width: 82px; min-width: 82px; height: 50px; min-height: 50px; font-size: 0.82rem; }
+            button.locked { font-size: 0.61rem; }
+        }
+        @media (max-width: 320px) {
+            .nav {
+                grid-template-columns: 1fr;
+                justify-items: start;
+                gap: 7px;
+            }
+            .nav a {
+                width: 112px;
+                min-height: 30px;
+                justify-content: flex-start;
+                padding: 0 9px;
+            }
+        }
     </style>
 </head>
 <body class="offline">
-    <h1>IO-Hutschienenboard</h1>
-    <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
-    <div class="nav">
-        <span class="ui-version">UI v2.0</span>
-        <div class="nav-links">
-            <a href="/mapping.html">&#8660; Zuordnung</a>
-            <a href="/config.html">&#9881; Konfiguration</a>
-        </div>
-    </div>
-
-    <div style="text-align:center;margin-bottom:12px;">
-        <button class="alloff" onclick="allOff()">&#9209; Alle Ausgänge AUS</button>
-    </div>
-
-    <div class="two-col">
-        <div class="section">
-            <h2>Eingänge</h2>
-            <table>
-                <thead><tr>
-                    <th>Nr.</th><th></th><th style="text-align:left">Name</th><th>Letzte Betätigung</th>
-                </tr></thead>
-                <tbody id="input-table"></tbody>
-            </table>
-        </div>
-        <div class="section">
-            <h2>Ausgänge</h2>
-            <table>
-                <thead><tr>
-                    <th>Nr.</th><th></th><th style="text-align:left">Name</th><th>Letzte Aktion</th><th>Restzeit</th><th></th>
-                </tr></thead>
-                <tbody id="output-table"></tbody>
-            </table>
-        </div>
-    </div>
+<div class="app">
+    <header>
+        <h1>HS-IO</h1>
+        <nav class="nav" aria-label="Navigation">
+            <a href="/status.html">Status</a>
+            <a href="/mapping.html">Zuordnung</a>
+            <a href="/config.html">Konfig</a>
+        </nav>
+        <div id="connection-status" class="status">Verbinde...</div>
+        <div id="version-line" class="versions"></div>
+    </header>
+    <main class="rows" id="rows"></main>
+</div>
 
 <script>
 const NUM_CH = 12;
+const WEB_UI_VERSION = '2.10';
 let ws;
+let pressed = null;
+let armedOutputs = Array(NUM_CH).fill(false);
+let arming = null;
 let state = {
-    inputs:      Array(NUM_CH).fill(false),
-    outputs:     Array(NUM_CH).fill(false),
-    remaining:   Array(NUM_CH).fill(0),
-    names:       Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
-    input_names: Array(NUM_CH).fill('').map((_, i) => 'Eingang ' + (i + 1)),
-    last_input:  Array(NUM_CH).fill(0),
-    last_output: Array(NUM_CH).fill(0),
-    out_modes:   Array(NUM_CH).fill(0),
-    out_order:   Array(NUM_CH).fill(0).map((_,i)=>i),
-    out_enabled: Array(NUM_CH).fill(true)
+    outputs: Array(NUM_CH).fill(false),
+    remaining: Array(NUM_CH).fill(0),
+    names: Array(NUM_CH).fill('').map((_, i) => 'Ausgang ' + (i + 1)),
+    out_modes: Array(NUM_CH).fill(0),
+    out_order: Array(NUM_CH).fill(0).map((_, i) => i),
+    out_enabled: Array(NUM_CH).fill(true),
+    out_protected: Array(NUM_CH).fill(false)
 };
 
-function formatTime(ts) {
-    if (!ts) return '–';
-    const d = new Date(ts * 1000);
-    return d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-}
+function pad(v) { return String(v).padStart(2, '0'); }
 
 function secsToHMS(secs) {
-    if (!secs || secs <= 0) return '';
+    secs = Math.max(0, Number(secs) || 0);
+    if (secs <= 0) return '';
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
     const s = secs % 60;
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
-function initTables() {
-    const itbody = document.getElementById('input-table');
-    const otbody = document.getElementById('output-table');
-    for (let i = 0; i < NUM_CH; i++) {
-        const itr = document.createElement('tr');
-        itr.innerHTML = `
-            <td class="col-nr">E${i+1}</td>
-            <td><span class="led led-off" id="in-led-${i}"></span></td>
-            <td class="col-name" id="in-name-${i}">Eingang ${i+1}</td>
-            <td class="col-time" id="in-time-${i}">–</td>`;
-        itbody.appendChild(itr);
-
+let audioCtx = null;
+function playClick(on) {
+    if (window.HSIOAndroid && typeof window.HSIOAndroid.click === 'function') {
+        window.HSIOAndroid.click(!!on);
+        return;
     }
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    try {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(on ? 1900 : 850, now);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+    } catch(e) { }
 }
 
-function rebuildOutputTable() {
-    const otbody = document.getElementById('output-table');
-    otbody.innerHTML = '';
+function uniqueName(ch, name) {
+    if (!name || name === `Ausgang ${ch + 1}`) return false;
+    for (let i = 0; i < NUM_CH; i++) {
+        if (i !== ch && state.out_enabled[i] && (state.names[i] || '').trim() === name) return false;
+    }
+    return true;
+}
+
+function labelFor(ch) {
+    const name = (state.names[ch] || '').trim() || `Ausgang ${ch + 1}`;
+    return uniqueName(ch, name) ? name : `A${ch + 1}  ${name}`;
+}
+
+function renderRows() {
+    const root = document.getElementById('rows');
+    root.innerHTML = '';
+    let visible = 0;
     for (let pos = 0; pos < NUM_CH; pos++) {
-        const i = state.out_order[pos];
-        if (!state.out_enabled[i]) continue;
-        const otr = document.createElement('tr');
-        otr.innerHTML = `
-            <td class="col-nr">A${i+1}</td>
-            <td><span class="led led-off" id="out-led-${i}"></span></td>
-            <td class="col-name" id="out-name-${i}">${state.names[i]}</td>
-            <td class="col-time" id="out-time-${i}">–</td>
-            <td class="col-rest" id="out-rest-${i}"></td>
-            <td><button class="toggle" id="out-btn-${i}">Toggle</button></td>`;
-        otbody.appendChild(otr);
-        bindButton(i);
+        const ch = state.out_order[pos];
+        if (ch < 0 || ch >= NUM_CH || !state.out_enabled[ch]) continue;
+        visible++;
+        const row = document.createElement('section');
+        row.className = 'row';
+        row.dataset.ch = ch;
+        row.innerHTML = `
+            <div class="led" id="led-${ch}"></div>
+            <div class="text">
+                <div class="name" id="name-${ch}"><span class="marquee"></span></div>
+                <div class="rest" id="rest-${ch}"></div>
+            </div>
+            <label class="arm" id="arm-wrap-${ch}" title="Fernbedienung freigeben">
+                <input type="checkbox" id="arm-${ch}" aria-label="Taster freigeben">
+            </label>
+            <button type="button" id="btn-${ch}">Toggle</button>`;
+        root.appendChild(row);
+        bindButton(ch);
+    }
+    if (visible === 0) {
+        for (let ch = 0; ch < NUM_CH; ch++) state.out_order[ch] = ch;
+        state.out_enabled.fill(true);
+        renderRows();
+        return;
     }
     updateUI();
 }
 
-function tickCountdown() {
-    let changed = false;
-    for (let i = 0; i < NUM_CH; i++) {
-        if (state.outputs[i] && state.remaining[i] > 0) {
-            state.remaining[i] -= 1;
-            changed = true;
+function updateUI() {
+    for (let ch = 0; ch < NUM_CH; ch++) {
+        const led = document.getElementById(`led-${ch}`);
+        const row = document.querySelector(`.row[data-ch="${ch}"]`);
+        const name = document.getElementById(`name-${ch}`);
+        const rest = document.getElementById(`rest-${ch}`);
+        const btn = document.getElementById(`btn-${ch}`);
+        if (led) led.className = state.outputs[ch] ? 'led on' : 'led';
+        if (name) {
+            const marquee = name.querySelector('.marquee');
+            if (marquee) marquee.textContent = labelFor(ch);
+        }
+        if (rest) rest.textContent = state.outputs[ch] && state.remaining[ch] > 0 ? `Restzeit ${secsToHMS(state.remaining[ch])}` : '';
+        if (btn) {
+            const isTaster = state.out_modes[ch] === 1;
+            const locked = !!state.out_protected[ch] && !armedOutputs[ch];
+            if (row) row.classList.toggle('protected', locked);
+            btn.textContent = locked ? 'zum Aktivieren 5 Sek. drücken' : (isTaster ? 'Taster' : 'Toggle');
+            btn.className = locked ? 'locked' : (isTaster ? 'taster' : '');
         }
     }
-    if (changed) updateRemaining();
+    refreshMarquees();
 }
 
-function updateRemaining() {
-    for (let i = 0; i < NUM_CH; i++) {
-        const el = document.getElementById(`out-rest-${i}`);
-        if (el) el.textContent = (state.outputs[i] && state.remaining[i] > 0)
-            ? secsToHMS(state.remaining[i]) : '';
-    }
+let marqueeFrame = 0;
+function refreshMarquees() {
+    cancelAnimationFrame(marqueeFrame);
+    marqueeFrame = requestAnimationFrame(() => {
+        document.querySelectorAll('.name').forEach(name => {
+            const marquee = name.querySelector('.marquee');
+            if (!marquee) return;
+            name.classList.remove('scroll');
+            marquee.style.transform = '';
+            const distance = marquee.scrollWidth - name.clientWidth;
+            if (distance > 4) {
+                name.style.setProperty('--scroll-distance', `${distance}px`);
+                name.style.setProperty('--scroll-duration', `${Math.max(4, Math.min(12, distance / 18 + 3)).toFixed(1)}s`);
+                name.classList.add('scroll');
+            }
+        });
+    });
 }
 
-function updateUI() {
-    for (let i = 0; i < NUM_CH; i++) {
-        document.getElementById(`in-led-${i}`).className =
-            state.inputs[i] ? 'led led-input-on' : 'led led-off';
-        document.getElementById(`in-name-${i}`).textContent = state.input_names[i];
-        document.getElementById(`in-time-${i}`).textContent = formatTime(state.last_input[i]);
-
-        const outLed  = document.getElementById(`out-led-${i}`);
-        const outName = document.getElementById(`out-name-${i}`);
-        const outTime = document.getElementById(`out-time-${i}`);
-        if (outLed)  outLed.className   = state.outputs[i] ? 'led led-on' : 'led led-off';
-        if (outName) outName.textContent = state.names[i];
-        if (outTime) outTime.textContent = formatTime(state.last_output[i]);
-    }
-    updateRemaining();
-}
-
-function bindButton(i) {
-    const btn = document.getElementById(`out-btn-${i}`);
+function bindButton(ch) {
+    const btn = document.getElementById(`btn-${ch}`);
     if (!btn) return;
-    const isTaster = state.out_modes[i] === 1;
-    // Remove old listeners by replacing the node
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.textContent = isTaster ? 'Taster' : 'Toggle';
-    newBtn.className = isTaster ? 'toggle taster' : 'toggle';
-    if (isTaster) {
-        const press   = (e) => { e.preventDefault(); wsSend({cmd:'set', ch:i, val:true}); };
-        const release = (e) => { e.preventDefault(); wsSend({cmd:'set', ch:i, val:false}); };
-        newBtn.addEventListener('mousedown',   press);
-        newBtn.addEventListener('touchstart',  press,   {passive:false});
-        newBtn.addEventListener('mouseup',     release);
-        newBtn.addEventListener('mouseleave',  release);
-        newBtn.addEventListener('touchend',    release, {passive:false});
-        newBtn.addEventListener('touchcancel', release, {passive:false});
-    } else {
-        const LONG_MS = 2000;
-        let pressTimer = null;
-        const onDown = (e) => {
-            if (e.type === 'touchstart') e.preventDefault();
-            newBtn.style.transition = `background-color ${LONG_MS}ms linear`;
-            newBtn.style.backgroundColor = '#dc2626';
-            pressTimer = setTimeout(() => {
-                pressTimer = null;
-                newBtn.style.transition = '';
-                newBtn.style.backgroundColor = '';
-                wsSend({cmd: 'alloff'});
-            }, LONG_MS);
-        };
-        const onUp = (e) => {
-            if (e.type === 'touchend') e.preventDefault();
-            if (pressTimer) {
-                clearTimeout(pressTimer);
-                pressTimer = null;
-                newBtn.style.transition = '';
-                newBtn.style.backgroundColor = '';
-                wsSend({cmd: 'toggle', ch: i});
-            }
-        };
-        const onCancel = () => {
-            if (pressTimer) {
-                clearTimeout(pressTimer);
-                pressTimer = null;
-                newBtn.style.transition = '';
-                newBtn.style.backgroundColor = '';
-            }
-        };
-        newBtn.addEventListener('mousedown',   onDown);
-        newBtn.addEventListener('touchstart',  onDown,   {passive: false});
-        newBtn.addEventListener('mouseup',     onUp);
-        newBtn.addEventListener('touchend',    onUp,     {passive: false});
-        newBtn.addEventListener('mouseleave',  onCancel);
-        newBtn.addEventListener('touchcancel', onCancel);
-    }
+    const down = e => {
+        e.preventDefault();
+        if (pressed !== null) return;
+        if (state.out_protected[ch] && !armedOutputs[ch]) {
+            if (arming) return;
+            btn.classList.add('arming');
+            arming = {
+                ch,
+                timer: setTimeout(() => {
+                    armedOutputs[ch] = true;
+                    arming = null;
+                    playClick(true);
+                    updateUI();
+                }, 5000)
+            };
+            return;
+        }
+        if (state.out_modes[ch] === 1) {
+            pressed = { ch, armed: true };
+            playClick(true);
+            wsSend({cmd:'set', ch, val:true, armed:true});
+        } else {
+            playClick(!state.outputs[ch]);
+            wsSend({cmd:'toggle', ch, armed: !!state.out_protected[ch]});
+        }
+    };
+    const up = e => {
+        if (e) e.preventDefault();
+        if (arming && arming.ch === ch) {
+            clearTimeout(arming.timer);
+            arming = null;
+            btn.classList.remove('arming');
+            updateUI();
+            return;
+        }
+        if (!pressed || pressed.ch !== ch) return;
+        playClick(false);
+        wsSend({cmd:'set', ch, val:false, armed: pressed.armed});
+        pressed = null;
+    };
+    btn.addEventListener('pointerdown', down);
+    btn.addEventListener('pointerup', up);
+    btn.addEventListener('pointercancel', up);
+    btn.addEventListener('lostpointercapture', up);
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+function changed(next, current) {
+    return JSON.stringify(next || null) !== JSON.stringify(current || null);
 }
 
 function applyState(data) {
-    const modesChanged   = data.out_modes   && JSON.stringify(data.out_modes)   !== JSON.stringify(state.out_modes);
-    const orderChanged   = data.out_order   && JSON.stringify(data.out_order)   !== JSON.stringify(state.out_order);
-    const enabledChanged = data.out_enabled && JSON.stringify(data.out_enabled) !== JSON.stringify(state.out_enabled);
-    if (data.inputs)      state.inputs      = data.inputs;
-    if (data.outputs)     state.outputs     = data.outputs;
-    if (data.remaining)   state.remaining   = data.remaining;
-    if (data.names)       state.names       = data.names;
-    if (data.input_names) state.input_names = data.input_names;
-    if (data.last_input)  state.last_input  = data.last_input;
-    if (data.last_output) state.last_output = data.last_output;
-    if (data.out_modes)   state.out_modes   = data.out_modes;
-    if (data.out_order)   state.out_order   = data.out_order;
-    if (data.out_enabled) state.out_enabled = data.out_enabled;
-    if (orderChanged || enabledChanged) rebuildOutputTable();
-    else if (modesChanged) for (let i = 0; i < NUM_CH; i++) bindButton(i);
+    const layoutChanged =
+        (data.out_order && changed(data.out_order, state.out_order)) ||
+        (data.out_enabled && changed(data.out_enabled, state.out_enabled));
+    if (data.outputs) state.outputs = data.outputs;
+    if (data.remaining) state.remaining = data.remaining.map(v => Math.max(0, Number(v) || 0));
+    if (data.names) state.names = data.names;
+    if (data.out_modes) state.out_modes = data.out_modes;
+    if (data.out_order) state.out_order = data.out_order;
+    if (data.out_enabled) state.out_enabled = data.out_enabled.map(v => v === true || v === 1 || v === '1');
+    if (data.out_protected) state.out_protected = data.out_protected.map(v => v === true || v === 1 || v === '1');
+    if (data.version) updateVersionLine(data.version);
+    if (layoutChanged && pressed === null) renderRows();
 }
 
 function wsSend(msg) {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
 }
 
+function setConnected(ok) {
+    const el = document.getElementById('connection-status');
+    el.textContent = ok ? 'Verbunden' : 'Getrennt';
+    el.className = ok ? 'status connected' : 'status';
+    document.body.classList.toggle('offline', !ok);
+}
+
+function appVersion() {
+    if (window.HSIOAndroid && typeof window.HSIOAndroid.appVersion === 'function') {
+        try { return window.HSIOAndroid.appVersion(); } catch(e) { }
+    }
+    return 'Web';
+}
+
+function updateVersionLine(fwVersion) {
+    const el = document.getElementById('version-line');
+    if (!el) return;
+    const fw = fwVersion ? `FW ${fwVersion}` : '';
+    el.textContent = [`App ${appVersion()}`, `Web ${WEB_UI_VERSION}`, fw].filter(Boolean).join('  |  ');
+    el.style.display = 'block';
+}
+
 function connectWS() {
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
     ws = new WebSocket(`${proto}//${location.host}/ws`);
-    ws.onopen = () => {
-        document.getElementById('connection-status').textContent = 'Verbunden';
-        document.getElementById('connection-status').className = 'connected';
-        document.body.classList.remove('offline');
-    };
+    ws.onopen = () => setConnected(true);
     ws.onclose = () => {
-        document.getElementById('connection-status').textContent = 'Verbindung getrennt – Neuverbindung...';
-        document.getElementById('connection-status').className = 'disconnected';
-        document.body.classList.add('offline');
+        setConnected(false);
         setTimeout(connectWS, 2000);
     };
-    ws.onmessage = (evt) => {
-        try { applyState(JSON.parse(evt.data)); updateUI(); } catch(e) { console.warn('WS parse error', e); }
+    ws.onmessage = evt => {
+        try {
+            applyState(JSON.parse(evt.data));
+            updateUI();
+        } catch (e) {
+            console.warn('Statusdaten ungültig', e);
+        }
     };
 }
 
-function toggleRelay(ch) { wsSend({cmd:'toggle', ch}); }
-function allOff() { wsSend({cmd:'alloff'}); }
+function tickCountdown() {
+    let dirty = false;
+    for (let ch = 0; ch < NUM_CH; ch++) {
+        if (state.outputs[ch] && state.remaining[ch] > 0) {
+            state.remaining[ch] -= 1;
+            dirty = true;
+        }
+    }
+    if (dirty) updateUI();
+}
 
-fetch('/api/state').then(r => r.json()).then(data => { applyState(data); updateUI(); })
-    .catch(e => console.warn('fetch /api/state failed', e));
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
-initTables();
-rebuildOutputTable();
-updateUI();
+renderRows();
+fetch('/api/state').then(r => r.json()).then(data => { applyState(data); renderRows(); }).catch(() => {});
 setInterval(tickCountdown, 1000);
 connectWS();
 </script>

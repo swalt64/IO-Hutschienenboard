@@ -157,6 +157,7 @@ uint8_t displayChannel = 0;
 
 uint8_t outDisplayOrder[NUM_CHANNELS] = {0,1,2,3,4,5,6,7,8,9,10,11};
 bool    outChEnabled[NUM_CHANNELS]    = {true,true,true,true,true,true,true,true,true,true,true,true};
+bool    outRemoteProtected[NUM_CHANNELS] = {};
 
 uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
     if (ch >= NUM_CHANNELS) return 0;
@@ -430,6 +431,8 @@ void loadConfig() {
         if (outDisplayOrder[i] >= NUM_CHANNELS) outDisplayOrder[i] = i;
         key = "ena" + String(i);
         outChEnabled[i] = prefs.getUChar(key.c_str(), 1) != 0;
+        key = "prot" + String(i);
+        outRemoteProtected[i] = prefs.getUChar(key.c_str(), 0) != 0;
         key = "name" + String(i);
         String defaultName = "Ausgang " + String(i + 1);
         String name = prefs.getString(key.c_str(), defaultName);
@@ -467,6 +470,8 @@ void saveConfig() {
         prefs.putUChar(key.c_str(), outDisplayOrder[i]);
         key = "ena" + String(i);
         prefs.putUChar(key.c_str(), outChEnabled[i] ? 1 : 0);
+        key = "prot" + String(i);
+        prefs.putUChar(key.c_str(), outRemoteProtected[i] ? 1 : 0);
     }
     prefs.end();
     dbg::debug(CAT_CONFIG, "Konfiguration gespeichert");
@@ -490,6 +495,7 @@ String buildStateJson() {
     JsonArray inModes     = doc["in_modes"].to<JsonArray>();
     JsonArray outOrder    = doc["out_order"].to<JsonArray>();
     JsonArray outEnabledA = doc["out_enabled"].to<JsonArray>();
+    JsonArray outProtectedA = doc["out_protected"].to<JsonArray>();
     JsonArray mcpStatus   = doc["mcp"].to<JsonArray>();
     unsigned long now = millis();
 
@@ -507,6 +513,7 @@ String buildStateJson() {
         inModes.add(inputMode[i]);
         outOrder.add(outDisplayOrder[i]);
         outEnabledA.add(outChEnabled[i]);
+        outProtectedA.add(outRemoteProtected[i]);
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
@@ -523,6 +530,10 @@ String buildStateJson() {
 
 void sendState() {
     ws.textAll(buildStateJson());
+}
+
+static bool isRemoteProtected(uint8_t ch, bool armed) {
+    return ch < NUM_CHANNELS && outRemoteProtected[ch] && !armed;
 }
 
 void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
@@ -549,7 +560,9 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
         if (strcmp(cmd, "toggle") == 0) {
             uint8_t ch = doc["ch"];
             if (ch < NUM_CHANNELS) {
-                if (outputMode[ch] == 0) {
+                if (isRemoteProtected(ch, doc["armed"] | false)) {
+                    dbg::warn(CAT_WEB, "Ausgang A%d geschuetzt: Toggle ignoriert", ch + 1);
+                } else if (outputMode[ch] == 0) {
                     toggleRelay(ch);
                 } else {
                     dbg::warn(CAT_WEB, "Toggle fuer A%d ignoriert (Ausgang im Taster-Modus)", ch + 1);
@@ -558,7 +571,13 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
         } else if (strcmp(cmd, "set") == 0) {
             uint8_t ch = doc["ch"];
             bool val = doc["val"];
-            if (ch < NUM_CHANNELS) setRelay(ch, val, !val);
+            if (ch < NUM_CHANNELS) {
+                if (isRemoteProtected(ch, doc["armed"] | false)) {
+                    dbg::warn(CAT_WEB, "Ausgang A%d geschuetzt: Set ignoriert", ch + 1);
+                } else {
+                    setRelay(ch, val, !val);
+                }
+            }
         } else if (strcmp(cmd, "map") == 0) {
             uint8_t input  = doc["input"];
             uint8_t output = doc["output"];
@@ -661,6 +680,16 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 prefs.end();
                 dbg::info(CAT_CONFIG, "Ausgang A%d: %s", ch + 1, ena ? "aktiv" : "deaktiviert");
             }
+        } else if (strcmp(cmd, "set_out_protected") == 0) {
+            uint8_t ch  = doc["ch"]      | 0;
+            bool    ena = doc["enabled"] | false;
+            if (ch < NUM_CHANNELS) {
+                outRemoteProtected[ch] = ena;
+                prefs.begin("io-config", false);
+                prefs.putUChar(("prot" + String(ch)).c_str(), ena ? 1 : 0);
+                prefs.end();
+                dbg::info(CAT_CONFIG, "Ausgang A%d Fernschutz: %s", ch + 1, ena ? "aktiv" : "aus");
+            }
         } else if (strcmp(cmd, "wifi") == 0) {
             String newSsid = doc["ssid"].as<String>();
             if (newSsid.length() > 0) sta_ssid = newSsid;
@@ -686,6 +715,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             JsonArray jInModes    = doc["in_modes"];
             JsonArray jOutOrder   = doc["out_order"];
             JsonArray jOutEnabled = doc["out_enabled"];
+            JsonArray jOutProtected = doc["out_protected"];
 
             if (jNames.size() < NUM_CHANNELS || jINames.size() < NUM_CHANNELS ||
                 jMappings.size() < NUM_CHANNELS || jTimers.size() < NUM_CHANNELS) {
@@ -739,6 +769,10 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                         outChEnabled[i] = jOutEnabled[i].as<bool>();
                         prefs.putUChar(("ena" + String(i)).c_str(), outChEnabled[i] ? 1 : 0);
                     }
+                    if (jOutProtected.size() == NUM_CHANNELS) {
+                        outRemoteProtected[i] = jOutProtected[i].as<bool>();
+                        prefs.putUChar(("prot" + String(i)).c_str(), outRemoteProtected[i] ? 1 : 0);
+                    }
                 }
                 prefs.end();
                 dbg::info(CAT_CONFIG, "E/A-Konfiguration via load_config geladen");
@@ -756,6 +790,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 tempTimeAdjustMs[i] = 0;
                 outDisplayOrder[i] = i;
                 outChEnabled[i]    = true;
+                outRemoteProtected[i] = false;
                 snprintf(channelNames[i], CH_NAME_MAX_LEN + 1, "Ausgang %d", i + 1);
                 snprintf(inputNames[i],   CH_NAME_MAX_LEN + 1, "Eingang %d", i + 1);
                 prefs.putUShort(("mm"    + String(i)).c_str(), 0);
@@ -764,6 +799,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 prefs.putUChar (("inmode"  + String(i)).c_str(), 0);
                 prefs.putUChar (("ord"   + String(i)).c_str(), i);
                 prefs.putUChar (("ena"   + String(i)).c_str(), 1);
+                prefs.putUChar (("prot"  + String(i)).c_str(), 0);
                 prefs.putString(("name"  + String(i)).c_str(), channelNames[i]);
                 prefs.putString(("iname" + String(i)).c_str(), inputNames[i]);
             }
@@ -1106,6 +1142,7 @@ void setupWebServer() {
         JsonArray inModes     = doc["in_modes"].to<JsonArray>();
         JsonArray outOrderA   = doc["out_order"].to<JsonArray>();
         JsonArray outEnabledA = doc["out_enabled"].to<JsonArray>();
+        JsonArray outProtectedA = doc["out_protected"].to<JsonArray>();
         unsigned long now = millis();
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
@@ -1119,6 +1156,7 @@ void setupWebServer() {
             inModes.add(inputMode[i]);
             outOrderA.add(outDisplayOrder[i]);
             outEnabledA.add(outChEnabled[i]);
+            outProtectedA.add(outRemoteProtected[i]);
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
@@ -1153,7 +1191,10 @@ void setupWebServer() {
                 ok = false;
             } else {
                 uint8_t ch = (uint8_t)req->getParam("ch")->value().toInt();
-                if (ch < NUM_CHANNELS && outputMode[ch] == 0) {
+                bool armed = req->hasParam("armed") && req->getParam("armed")->value().toInt() != 0;
+                if (ch < NUM_CHANNELS && isRemoteProtected(ch, armed)) {
+                    ok = false;
+                } else if (ch < NUM_CHANNELS && outputMode[ch] == 0) {
                     toggleRelay(ch);
                 } else {
                     ok = false;
@@ -1165,7 +1206,8 @@ void setupWebServer() {
             } else {
                 uint8_t ch = (uint8_t)req->getParam("ch")->value().toInt();
                 bool val = req->getParam("val")->value().toInt() != 0;
-                if (ch < NUM_CHANNELS) setRelay(ch, val, !val);
+                bool armed = req->hasParam("armed") && req->getParam("armed")->value().toInt() != 0;
+                if (ch < NUM_CHANNELS && !isRemoteProtected(ch, armed)) setRelay(ch, val, !val);
                 else ok = false;
             }
         } else if (cmd == "alloff") {
@@ -1485,8 +1527,9 @@ void loop() {
             }
         }
 
-        // Langdruck (beide Modi): nach 2s alle Ausgänge AUS
-        if (signalActive && !longPressFired[i] &&
+        // Langdruck nur im Eingangs-Togglemodus: Taster-Eingaenge duerfen
+        // gehalten werden, ohne global alle Ausgaenge auszuschalten.
+        if (inputMode[i] == 0 && signalActive && !longPressFired[i] &&
             (nowIn - pressStartMs[i] >= IN_LONGPRESS_MS)) {
             dbg::info(CAT_INPUT, "Eingang %d: Langdruck → Alle Ausgaenge AUS", i+1);
             for (uint8_t j = 0; j < NUM_CHANNELS; j++) {

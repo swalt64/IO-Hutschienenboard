@@ -53,7 +53,8 @@
     <h1>Konfiguration</h1>
     <div id="connection-status" class="disconnected">Verbindung wird hergestellt...</div>
     <div class="nav">
-        <a href="/">&#8592; Übersicht</a>
+        <a href="/">&#8592; Bedienung</a>
+        <a href="/status.html">Status</a>
         <a href="/mapping.html">&#8660; Zuordnung</a>
     </div>
 
@@ -68,7 +69,7 @@
         <div class="section">
             <h2>Ausgangs-Namen</h2>
             <table>
-                <thead><tr><th style="width:44px"></th><th class="col-nr">Nr.</th><th>Name</th><th style="width:90px">Modus</th><th style="width:46px">Aktiv</th></tr></thead>
+                <thead><tr><th style="width:44px"></th><th class="col-nr">Nr.</th><th>Name</th><th style="width:90px">Modus</th><th style="width:62px">Schutz</th><th style="width:46px">Aktiv</th></tr></thead>
                 <tbody id="name-table"></tbody>
             </table>
         </div>
@@ -156,7 +157,8 @@ let state = {
     out_modes:   Array(NUM_CH).fill(0),
     in_modes:    Array(NUM_CH).fill(0),
     out_order:   Array(NUM_CH).fill(0).map((_,i)=>i),
-    out_enabled: Array(NUM_CH).fill(true)
+    out_enabled: Array(NUM_CH).fill(true),
+    out_protected: Array(NUM_CH).fill(false)
 };
 
 // ---- Modal ----
@@ -231,6 +233,9 @@ function rebuildOutNameTable() {
                 <option value="0">Toggle</option>
                 <option value="1">Taster</option>
             </select></td>
+            <td style="text-align:center"><input type="checkbox" id="prot-${i}" ${state.out_protected[i]?'checked':''}
+                title="Fernbedienung dieses Ausgangs nur nach 5-Sekunden-Freigabe"
+                onchange="setOutProtected(${i}, this.checked)"></td>
             <td style="text-align:center"><input type="checkbox" id="ena-${i}" ${state.out_enabled[i]?'checked':''}
                 onchange="setOutEnabled(${i}, this.checked)"></td>`;
         otbody.appendChild(otr);
@@ -252,6 +257,12 @@ function setOutEnabled(ch, ena) {
     rebuildOutNameTable();
 }
 
+function setOutProtected(ch, ena) {
+    state.out_protected[ch] = ena;
+    wsSend({cmd: 'set_out_protected', ch, enabled: ena});
+    rebuildOutNameTable();
+}
+
 function updateUI() {
     for (let i = 0; i < NUM_CH; i++) {
         const inEl = document.getElementById(`iname-${i}`);
@@ -260,6 +271,8 @@ function updateUI() {
         if (outEl && document.activeElement !== outEl) outEl.value = state.names[i];
         const modeEl = document.getElementById(`outmode-${i}`);
         if (modeEl && document.activeElement !== modeEl) modeEl.value = state.out_modes[i];
+        const protEl = document.getElementById(`prot-${i}`);
+        if (protEl && document.activeElement !== protEl) protEl.checked = !!state.out_protected[i];
         const inModeEl = document.getElementById(`inmode-${i}`);
         if (inModeEl && document.activeElement !== inModeEl) inModeEl.value = state.in_modes[i];
     }
@@ -268,13 +281,15 @@ function updateUI() {
 function applyState(data) {
     const orderChanged   = data.out_order   && JSON.stringify(data.out_order)   !== JSON.stringify(state.out_order);
     const enabledChanged = data.out_enabled && JSON.stringify(data.out_enabled) !== JSON.stringify(state.out_enabled);
+    const protectedChanged = data.out_protected && JSON.stringify(data.out_protected) !== JSON.stringify(state.out_protected);
     if (data.names)       state.names       = data.names;
     if (data.input_names) state.input_names = data.input_names;
     if (data.out_modes)   state.out_modes   = data.out_modes;
     if (data.in_modes)    state.in_modes    = data.in_modes;
     if (data.out_order)   state.out_order   = data.out_order;
     if (data.out_enabled) state.out_enabled = data.out_enabled;
-    if (orderChanged || enabledChanged) rebuildOutNameTable();
+    if (data.out_protected) state.out_protected = data.out_protected;
+    if (orderChanged || enabledChanged || protectedChanged) rebuildOutNameTable();
 }
 
 function wsSend(msg) {
@@ -359,7 +374,8 @@ function exportConfig() {
             out_modes:   data.out_modes,
             in_modes:    data.in_modes,
             out_order:   data.out_order,
-            out_enabled: data.out_enabled
+            out_enabled: data.out_enabled,
+            out_protected: data.out_protected
         };
         saveJsonFile(`hs-io-config_${ts}.json`, JSON.stringify(cfg, null, 2));
     }).catch(() => showAlert('Fehler', 'Konfiguration konnte nicht geladen werden.'));
@@ -401,7 +417,10 @@ function importConfig() {
                     : Array(NUM_CH).fill(0).map((_,i)=>i),
                 out_enabled: (Array.isArray(cfg.out_enabled) && cfg.out_enabled.length >= NUM_CH)
                     ? cfg.out_enabled.slice(0, NUM_CH).map(v => v !== false && Number(v) !== 0)
-                    : Array(NUM_CH).fill(true)
+                    : Array(NUM_CH).fill(true),
+                out_protected: (Array.isArray(cfg.out_protected) && cfg.out_protected.length >= NUM_CH)
+                    ? cfg.out_protected.slice(0, NUM_CH).map(v => v === true || Number(v) === 1)
+                    : Array(NUM_CH).fill(false)
             };
             showConfirm(
                 'Konfiguration laden',
@@ -415,7 +434,7 @@ function importConfig() {
 }
 
 function resetIO() {
-    const msg = 'Alle Ausgaenge werden ausgeschaltet. Eingangs-/Ausgangs-Namen, Zuordnungen und Auto-Aus-Timer werden auf Werkseinstellung zurueckgesetzt. WiFi und Zugangsdaten bleiben erhalten.';
+    const msg = 'Alle Ausgänge werden ausgeschaltet. Eingangs-/Ausgangs-Namen, Zuordnungen und Auto-Aus-Timer werden auf Werkseinstellung zurückgesetzt. WiFi und Zugangsdaten bleiben erhalten.';
     showConfirm(
         'Werkseinstellung E/A',
         msg,

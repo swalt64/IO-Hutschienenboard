@@ -41,14 +41,25 @@
         }
         .status.connected { color: #22c55e; }
         .nav {
-            grid-area: nav; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-area: nav; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 8px; align-items: center;
         }
-        .nav a {
+        .nav a, .nav .lock-btn {
             min-height: 30px; display: inline-flex; align-items: center; justify-content: center;
             padding: 0 9px; border: 1px solid #334155; border-radius: 6px;
             color: #bfdbfe; background: #1e293b; font-size: 0.74rem; text-decoration: none;
             white-space: nowrap;
+        }
+        .nav .lock-btn {
+            width: 100%; cursor: pointer; touch-action: manipulation;
+            font: inherit; font-size: 0.74rem;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .nav .lock-btn.unlocked {
+            border-color: #16a34a; color: #86efac; background: #14532d;
+        }
+        .nav .lock-btn.holding {
+            border-color: #f59e0b; color: #fde68a; background: #451a03;
         }
         .rows {
             flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
@@ -94,7 +105,7 @@
             font-size: 0.76rem; line-height: 1.05; font-variant-numeric: tabular-nums;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        button {
+        button.out-btn {
             grid-column: 3; justify-self: end; width: 88px; min-width: 88px; height: 54px; min-height: 54px;
             border: 0; border-radius: 9px;
             padding: 0 4px; background: #0ea5e9; color: #fff;
@@ -102,58 +113,37 @@
             box-shadow: inset 0 1px rgba(255,255,255,0.35), 0 2px 0 rgba(0,0,0,0.35);
             touch-action: manipulation; position: relative; z-index: 2;
         }
-        button.taster { background: #dc2626; }
-        button.locked {
-            background: #475569; color: #dbeafe; font-size: 0.64rem; line-height: 1.05;
-            white-space: normal; padding: 0 6px;
-        }
-        button.locked.arming { background: #64748b; }
-        button:active { transform: scale(0.94); filter: brightness(0.82); }
-        body.offline button { opacity: 0.45; pointer-events: none; }
-        .arm { display: none; }
-        .arm input { width: 22px; height: 22px; accent-color: #f59e0b; }
+        button.out-btn.taster { background: #dc2626; }
+        button.out-btn:active { transform: scale(0.94); filter: brightness(0.82); }
+        body.offline button.out-btn,
+        body.locked  button.out-btn { opacity: 0.45; pointer-events: none; }
         .versions {
             grid-area: version; display: none; justify-self: start;
             color: #64748b; font-size: 0.63rem; line-height: 1; white-space: nowrap;
         }
         @media (orientation: landscape) {
             header { grid-template-columns: auto 1fr auto; grid-template-areas: "brand nav status" "brand nav version"; }
-            .nav { justify-self: center; width: min(420px, 100%); }
-            .rows { display: grid; grid-template-columns: repeat(6, minmax(112px, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
-            .row {
-                min-height: 0; grid-template-columns: 22px minmax(0, 1fr);
-                grid-template-rows: minmax(0, 1fr) 48px; align-content: center;
-            }
-            .text { grid-column: 2; grid-row: 1; }
-            .arm { grid-column: 1; grid-row: 2; }
-            button { grid-column: 2; grid-row: 2; width: 100%; min-width: 0; height: 46px; min-height: 46px; }
-            .name { font-size: 0.78rem; }
-            .rest { font-size: 0.66rem; }
+            .nav { justify-self: center; width: min(560px, 100%); }
+            .rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
+            .row { min-height: 58px; grid-template-columns: 22px minmax(0, 1fr) 78px; }
+            button.out-btn { width: 78px; min-width: 78px; height: 44px; min-height: 44px; font-size: 0.78rem; }
+            .name { font-size: 0.82rem; }
+            .rest { font-size: 0.68rem; }
         }
         @media (max-width: 420px) {
             header { gap: 6px 10px; }
             .versions { justify-self: start; }
-            .nav a { padding: 0 6px; font-size: 0.72rem; }
+            .nav a, .nav .lock-btn { padding: 0 5px; font-size: 0.68rem; }
             .row { grid-template-columns: 26px minmax(0, 1fr) 82px; min-height: 66px; column-gap: 10px; row-gap: 5px; }
-            button { width: 82px; min-width: 82px; height: 50px; min-height: 50px; font-size: 0.82rem; }
-            button.locked { font-size: 0.61rem; }
+            button.out-btn { width: 82px; min-width: 82px; height: 50px; min-height: 50px; font-size: 0.82rem; }
         }
         @media (max-width: 320px) {
-            .nav {
-                grid-template-columns: 1fr;
-                justify-items: start;
-                gap: 7px;
-            }
-            .nav a {
-                width: 112px;
-                min-height: 30px;
-                justify-content: flex-start;
-                padding: 0 9px;
-            }
+            .nav { grid-template-columns: 1fr 1fr; }
+            .nav a, .nav .lock-btn { justify-content: center; width: 100%; }
         }
     </style>
 </head>
-<body class="offline">
+<body class="offline locked">
 <div class="app">
     <header>
         <h1>HS-IO</h1>
@@ -161,6 +151,7 @@
             <a href="/status.html">Status</a>
             <a href="/mapping.html">Zuordnung</a>
             <a href="/config.html">Konfig</a>
+            <button class="lock-btn" id="lock-btn" type="button">🔒 Sperre</button>
         </nav>
         <div id="connection-status" class="status">Verbinde...</div>
         <div id="version-line" class="versions"></div>
@@ -170,11 +161,9 @@
 
 <script>
 const NUM_CH = 12;
-const WEB_UI_VERSION = '2.12';
+const WEB_UI_VERSION = '2.13';
 let ws;
 let pressed = null;
-let armedOutputs = Array(NUM_CH).fill(false);
-let arming = null;
 let state = {
     outputs: Array(NUM_CH).fill(false),
     remaining: Array(NUM_CH).fill(0),
@@ -182,8 +171,84 @@ let state = {
     out_modes: Array(NUM_CH).fill(0),
     out_order: Array(NUM_CH).fill(0).map((_, i) => i),
     out_enabled: Array(NUM_CH).fill(true),
-    out_protected: Array(NUM_CH).fill(false)
+    rssi: null
 };
+
+// ---- Tastensperre -------------------------------------------------------
+const LOCK_HOLD_MS    = 1000;          // Haltezeit zum Entsperren
+const LOCK_TIMEOUT_MS = 5 * 60 * 1000; // 5 Minuten Auto-Sperre
+
+let keyLock                  = true;
+let keyLockExpiry            = 0;
+let lockHoldTimer            = null;
+let lockDownWhileUnlocked    = false; // true wenn pointerdown auf entsperrten Button
+let connCheckCounter         = 0;
+
+function updateLockBtn() {
+    const btn = document.getElementById('lock-btn');
+    if (!btn) return;
+    document.body.classList.toggle('locked', keyLock);
+    if (keyLock) {
+        btn.textContent = '🔒 Sperre';
+        btn.classList.remove('unlocked', 'holding');
+    } else {
+        const secsLeft = Math.max(0, Math.round((keyLockExpiry - Date.now()) / 1000));
+        const m = Math.floor(secsLeft / 60);
+        const s = secsLeft % 60;
+        btn.textContent = `🔓 ${pad(m)}:${pad(s)}`;
+        btn.classList.add('unlocked');
+        btn.classList.remove('holding');
+    }
+}
+
+function bindLockButton() {
+    const btn = document.getElementById('lock-btn');
+    if (!btn) return;
+
+    const down = e => {
+        e.preventDefault();
+        if (!keyLock) {
+            // Bereits entsperrt: beim Loslassen sperren
+            lockDownWhileUnlocked = true;
+            return;
+        }
+        lockDownWhileUnlocked = false;
+        btn.classList.add('holding');
+        lockHoldTimer = setTimeout(() => {
+            lockHoldTimer = null;
+            keyLock = false;
+            keyLockExpiry = Date.now() + LOCK_TIMEOUT_MS;
+            playClick(true);
+            updateLockBtn();
+            // Finger noch gedrückt – beim Loslassen NICHT sperren
+            lockDownWhileUnlocked = false;
+        }, LOCK_HOLD_MS);
+    };
+
+    const up = e => {
+        if (e) e.preventDefault();
+        if (lockDownWhileUnlocked) {
+            lockDownWhileUnlocked = false;
+            keyLock = true;
+            keyLockExpiry = 0;
+            playClick(false);
+            updateLockBtn();
+            return;
+        }
+        if (lockHoldTimer) {
+            clearTimeout(lockHoldTimer);
+            lockHoldTimer = null;
+            btn.classList.remove('holding');
+        }
+    };
+
+    btn.addEventListener('pointerdown', down);
+    btn.addEventListener('pointerup',   up);
+    btn.addEventListener('pointercancel', up);
+    btn.addEventListener('lostpointercapture', up);
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+}
+// -------------------------------------------------------------------------
 
 function pad(v) { return String(v).padStart(2, '0'); }
 
@@ -250,10 +315,7 @@ function renderRows() {
                 <div class="name" id="name-${ch}"><span class="marquee"></span></div>
                 <div class="rest" id="rest-${ch}"></div>
             </div>
-            <label class="arm" id="arm-wrap-${ch}" title="Fernbedienung freigeben">
-                <input type="checkbox" id="arm-${ch}" aria-label="Taster freigeben">
-            </label>
-            <button type="button" id="btn-${ch}">Toggle</button>`;
+            <button type="button" class="out-btn" id="btn-${ch}">Toggle</button>`;
         root.appendChild(row);
         bindButton(ch);
     }
@@ -268,11 +330,10 @@ function renderRows() {
 
 function updateUI() {
     for (let ch = 0; ch < NUM_CH; ch++) {
-        const led = document.getElementById(`led-${ch}`);
-        const row = document.querySelector(`.row[data-ch="${ch}"]`);
+        const led  = document.getElementById(`led-${ch}`);
         const name = document.getElementById(`name-${ch}`);
         const rest = document.getElementById(`rest-${ch}`);
-        const btn = document.getElementById(`btn-${ch}`);
+        const btn  = document.getElementById(`btn-${ch}`);
         if (led) led.className = state.outputs[ch] ? 'led on' : 'led';
         if (name) {
             const marquee = name.querySelector('.marquee');
@@ -281,10 +342,8 @@ function updateUI() {
         if (rest) rest.textContent = state.outputs[ch] && state.remaining[ch] > 0 ? `Restzeit ${secsToHMS(state.remaining[ch])}` : '';
         if (btn) {
             const isTaster = state.out_modes[ch] === 1;
-            const locked = !!state.out_protected[ch] && !armedOutputs[ch];
-            if (row) row.classList.toggle('protected', locked);
-            btn.textContent = locked ? 'zum Aktivieren 5 Sek. drücken' : (isTaster ? 'Taster' : 'Toggle');
-            btn.className = locked ? 'locked' : (isTaster ? 'taster' : '');
+            btn.textContent = isTaster ? 'Taster' : 'Toggle';
+            btn.className = 'out-btn' + (isTaster ? ' taster' : '');
         }
     }
     refreshMarquees();
@@ -321,45 +380,24 @@ function bindButton(ch) {
     const down = e => {
         e.preventDefault();
         if (pressed !== null) return;
-        if (state.out_protected[ch] && !armedOutputs[ch]) {
-            if (arming) return;
-            btn.classList.add('arming');
-            arming = {
-                ch,
-                timer: setTimeout(() => {
-                    armedOutputs[ch] = true;
-                    arming = null;
-                    playClick(true);
-                    updateUI();
-                }, 5000)
-            };
-            return;
-        }
         if (state.out_modes[ch] === 1) {
-            pressed = { ch, armed: true };
+            pressed = { ch };
             playClick(true);
             wsSend({cmd:'set', ch, val:true, armed:true});
         } else {
             playClick(!state.outputs[ch]);
-            wsSend({cmd:'toggle', ch, armed: !!state.out_protected[ch]});
+            wsSend({cmd:'toggle', ch, armed:true});
         }
     };
     const up = e => {
         if (e) e.preventDefault();
-        if (arming && arming.ch === ch) {
-            clearTimeout(arming.timer);
-            arming = null;
-            btn.classList.remove('arming');
-            updateUI();
-            return;
-        }
         if (!pressed || pressed.ch !== ch) return;
         playClick(false);
-        wsSend({cmd:'set', ch, val:false, armed: pressed.armed});
+        wsSend({cmd:'set', ch, val:false, armed:true});
         pressed = null;
     };
     btn.addEventListener('pointerdown', down);
-    btn.addEventListener('pointerup', up);
+    btn.addEventListener('pointerup',   up);
     btn.addEventListener('pointercancel', up);
     btn.addEventListener('lostpointercapture', up);
     btn.addEventListener('contextmenu', e => e.preventDefault());
@@ -371,16 +409,16 @@ function changed(next, current) {
 
 function applyState(data) {
     const layoutChanged =
-        (data.out_order && changed(data.out_order, state.out_order)) ||
+        (data.out_order   && changed(data.out_order,   state.out_order)) ||
         (data.out_enabled && changed(data.out_enabled, state.out_enabled));
-    if (data.outputs) state.outputs = data.outputs;
-    if (data.remaining) state.remaining = data.remaining.map(v => Math.max(0, Number(v) || 0));
-    if (data.names) state.names = data.names;
-    if (data.out_modes) state.out_modes = data.out_modes;
-    if (data.out_order) state.out_order = data.out_order;
+    if (data.outputs)     state.outputs     = data.outputs;
+    if (data.remaining)   state.remaining   = data.remaining.map(v => Math.max(0, Number(v) || 0));
+    if (data.names)       state.names       = data.names;
+    if (data.out_modes)   state.out_modes   = data.out_modes;
+    if (data.out_order)   state.out_order   = data.out_order;
     if (data.out_enabled) state.out_enabled = data.out_enabled.map(v => v === true || v === 1 || v === '1');
-    if (data.out_protected) state.out_protected = data.out_protected.map(v => v === true || v === 1 || v === '1');
-    if (data.version) updateVersionLine(data.version);
+    if (data.version)     updateVersionLine(data.version);
+    if (data.wifi_rssi !== undefined) { state.rssi = data.wifi_rssi; updateConnStatus(); }
     if (layoutChanged && pressed === null) renderRows();
 }
 
@@ -388,11 +426,24 @@ function wsSend(msg) {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
 }
 
-function setConnected(ok) {
+function rssiToPct(rssi) {
+    if (rssi === null || rssi === undefined) return null;
+    return Math.min(100, Math.max(0, 2 * (rssi + 100)));
+}
+
+function updateConnStatus() {
     const el = document.getElementById('connection-status');
-    el.textContent = ok ? 'Verbunden' : 'Getrennt';
-    el.className = ok ? 'status connected' : 'status';
+    if (!el) return;
+    const online = !document.body.classList.contains('offline');
+    if (!online) { el.textContent = 'Getrennt'; el.className = 'status'; return; }
+    const pct = rssiToPct(state.rssi);
+    el.textContent = pct !== null ? `Verbunden ${pct}%` : 'Verbunden';
+    el.className = 'status connected';
+}
+
+function setConnected(ok) {
     document.body.classList.toggle('offline', !ok);
+    updateConnStatus();
 }
 
 function appVersion() {
@@ -428,7 +479,8 @@ function connectWS() {
     };
 }
 
-function tickCountdown() {
+function tickSecond() {
+    // Countdown
     let dirty = false;
     for (let ch = 0; ch < NUM_CH; ch++) {
         if (state.outputs[ch] && state.remaining[ch] > 0) {
@@ -437,15 +489,31 @@ function tickCountdown() {
         }
     }
     if (dirty) updateUI();
+
+    // Auto-Relock + Countdown-Anzeige im Lock-Button
+    if (!keyLock) {
+        if (Date.now() >= keyLockExpiry) {
+            keyLock = true;
+            keyLockExpiry = 0;
+        }
+        updateLockBtn();
+    }
+
+    // Verbindungs-Watchdog: alle 10 s prüfen
+    if (++connCheckCounter >= 10) {
+        connCheckCounter = 0;
+        if (!ws || ws.readyState !== WebSocket.OPEN) setConnected(false);
+    }
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 window.addEventListener('resize', () => refreshMarquees(80));
-window.addEventListener('load', () => refreshMarquees(250));
+window.addEventListener('load',   () => refreshMarquees(250));
 
+bindLockButton();
 renderRows();
 fetch('/api/state').then(r => r.json()).then(data => { applyState(data); renderRows(); refreshMarquees(250); }).catch(() => {});
-setInterval(tickCountdown, 1000);
+setInterval(tickSecond, 1000);
 connectWS();
 </script>
 </body>

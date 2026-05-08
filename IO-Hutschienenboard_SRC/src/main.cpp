@@ -212,9 +212,19 @@ void updateTopLeds() {
     }
     bool systemReady = (mcpReady[0] && mcpReady[1]);
 
-    // aktiv-low: LOW = LED an, HIGH = LED aus
-    bool wlanActive = staConnected || (WiFi.getMode() & WIFI_AP);
-    mcpTop.digitalWrite(LED_WLAN_PIN,   wlanActive ? LOW : HIGH);
+    // WLAN-LED: Puls/Pause-Verhältnis zeigt Signalqualität
+    // kein STA → aus; ≥80% → Dauerlicht; <80% → 2s-Periode, Einschaltdauer ∝ Qualität
+    bool wlanOn = false;
+    if (staConnected) {
+        int pct = min(100, max(0, 2 * (WiFi.RSSI() + 100)));
+        if (pct >= 80) {
+            wlanOn = true;
+        } else {
+            uint32_t onMs  = max(100u, (uint32_t)(2000u * pct / 80));
+            wlanOn = (millis() % 2000) < onMs;
+        }
+    }
+    mcpTop.digitalWrite(LED_WLAN_PIN, wlanOn ? LOW : HIGH);
     mcpTop.digitalWrite(LED_OUTPUT_PIN, anyRelayOn ? LOW : HIGH);
     // RUN-LED: 2s-Blinker (1s an, 1s aus) wenn System bereit
     if (systemReady) {
@@ -519,6 +529,7 @@ String buildStateJson() {
     mcpStatus.add(mcpReady[1]);
     doc["time"] = dbg::getTimestamp();
     doc["ntp"] = dbg::isTimeSynced();
+    if (WiFi.status() == WL_CONNECTED) doc["wifi_rssi"] = (int8_t)WiFi.RSSI();
 #if SIMULATE_HW
     doc["sim"] = true;
 #endif
@@ -1658,6 +1669,13 @@ void loop() {
     }
 
     if (stateChanged) {
+        sendState();
+    }
+
+    // Periodischer State-Push (alle 30 s) für RSSI-Aktualisierung
+    static unsigned long lastPeriodicPush = 0;
+    if (now - lastPeriodicPush >= 30000) {
+        lastPeriodicPush = now;
         sendState();
     }
 

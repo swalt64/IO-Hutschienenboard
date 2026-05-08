@@ -29,9 +29,6 @@
         button.toggle.taster { background: #dc2626; }
         button.toggle.taster:hover { background: #b91c1c; }
         button.toggle.taster:active { background: #991b1b; }
-        button.toggle.locked { background: #475569; color: #dbeafe; font-size: 0.62rem; line-height: 1.05; white-space: normal; padding: 3px 5px; }
-        button.toggle.locked:hover { background: #475569; }
-        button.toggle.locked.arming { background: #64748b; }
         button.alloff { background: #dc2626; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 0.9rem; }
         button.alloff:hover { background: #b91c1c; }
         #connection-status { text-align: center; padding: 4px; font-size: 0.8rem; margin-bottom: 8px; }
@@ -85,8 +82,6 @@
 <script>
 const NUM_CH = 12;
 let ws;
-let armedOutputs = Array(NUM_CH).fill(false);
-let arming = null;
 let state = {
     inputs:      Array(NUM_CH).fill(false),
     outputs:     Array(NUM_CH).fill(false),
@@ -97,8 +92,7 @@ let state = {
     last_output: Array(NUM_CH).fill(0),
     out_modes:   Array(NUM_CH).fill(0),
     out_order:   Array(NUM_CH).fill(0).map((_,i)=>i),
-    out_enabled: Array(NUM_CH).fill(true),
-    out_protected: Array(NUM_CH).fill(false)
+    out_enabled: Array(NUM_CH).fill(true)
 };
 
 function formatTime(ts) {
@@ -214,61 +208,22 @@ function bindButton(i) {
     const btn = document.getElementById(`out-btn-${i}`);
     if (!btn) return;
     const isTaster = state.out_modes[i] === 1;
-    const locked = !!state.out_protected[i] && !armedOutputs[i];
-    // Remove old listeners by replacing the node
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.textContent = locked ? 'zum Aktivieren 5 Sek. drücken' : (isTaster ? 'Taster' : 'Toggle');
-    newBtn.className = locked ? 'toggle locked' : (isTaster ? 'toggle taster' : 'toggle');
-    const startArming = () => {
-        if (arming) return;
-        newBtn.classList.add('arming');
-        arming = {
-            ch: i,
-            timer: setTimeout(() => {
-                armedOutputs[i] = true;
-                arming = null;
-                playClick(true);
-                bindButton(i);
-            }, 5000)
-        };
-    };
-    const cancelArming = () => {
-        if (!arming || arming.ch !== i) return false;
-        clearTimeout(arming.timer);
-        arming = null;
-        newBtn.classList.remove('arming');
-        bindButton(i);
-        return true;
-    };
-    if (locked) {
-        const press = (e) => { e.preventDefault(); startArming(); };
-        const release = (e) => { e.preventDefault(); cancelArming(); };
-        newBtn.addEventListener('mousedown', press);
-        newBtn.addEventListener('touchstart', press, {passive:false});
-        newBtn.addEventListener('mouseup', release);
-        newBtn.addEventListener('mouseleave', release);
-        newBtn.addEventListener('touchend', release, {passive:false});
-        newBtn.addEventListener('touchcancel', release, {passive:false});
-        return;
-    }
+    newBtn.textContent = isTaster ? 'Taster' : 'Toggle';
+    newBtn.className = isTaster ? 'toggle taster' : 'toggle';
     if (isTaster) {
-        let armedPress = false;
-        const press   = (e) => {
+        let pressed = false;
+        const press = (e) => {
             e.preventDefault();
-            armedPress = true;
-            if (armedPress) {
-                playClick(true);
-                wsSend({cmd:'set', ch:i, val:true, armed:true});
-            }
+            pressed = true;
+            playClick(true);
+            wsSend({cmd:'set', ch:i, val:true, armed:true});
         };
         const release = (e) => {
             e.preventDefault();
-            if (armedPress) {
-                playClick(false);
-                wsSend({cmd:'set', ch:i, val:false, armed:true});
-            }
-            armedPress = false;
+            if (pressed) { playClick(false); wsSend({cmd:'set', ch:i, val:false, armed:true}); }
+            pressed = false;
         };
         newBtn.addEventListener('mousedown',   press);
         newBtn.addEventListener('touchstart',  press,   {passive:false});
@@ -288,7 +243,7 @@ function bindButton(i) {
                 newBtn.style.transition = '';
                 newBtn.style.backgroundColor = '';
                 playClick(false);
-                wsSend({cmd: 'alloff'});
+                wsSend({cmd:'alloff'});
             }, LONG_MS);
         };
         const onUp = (e) => {
@@ -299,7 +254,7 @@ function bindButton(i) {
                 newBtn.style.transition = '';
                 newBtn.style.backgroundColor = '';
                 playClick(!state.outputs[i]);
-                wsSend({cmd: 'toggle', ch: i, armed: !!state.out_protected[i]});
+                wsSend({cmd:'toggle', ch:i, armed:true});
             }
         };
         const onCancel = () => {
@@ -311,9 +266,9 @@ function bindButton(i) {
             }
         };
         newBtn.addEventListener('mousedown',   onDown);
-        newBtn.addEventListener('touchstart',  onDown,   {passive: false});
+        newBtn.addEventListener('touchstart',  onDown,   {passive:false});
         newBtn.addEventListener('mouseup',     onUp);
-        newBtn.addEventListener('touchend',    onUp,     {passive: false});
+        newBtn.addEventListener('touchend',    onUp,     {passive:false});
         newBtn.addEventListener('mouseleave',  onCancel);
         newBtn.addEventListener('touchcancel', onCancel);
     }
@@ -323,7 +278,6 @@ function applyState(data) {
     const modesChanged   = data.out_modes   && JSON.stringify(data.out_modes)   !== JSON.stringify(state.out_modes);
     const orderChanged   = data.out_order   && JSON.stringify(data.out_order)   !== JSON.stringify(state.out_order);
     const enabledChanged = data.out_enabled && JSON.stringify(data.out_enabled) !== JSON.stringify(state.out_enabled);
-    const protectedChanged = data.out_protected && JSON.stringify(data.out_protected) !== JSON.stringify(state.out_protected);
     if (data.inputs)      state.inputs      = data.inputs;
     if (data.outputs)     state.outputs     = data.outputs;
     if (data.remaining)   state.remaining   = data.remaining;
@@ -334,9 +288,8 @@ function applyState(data) {
     if (data.out_modes)   state.out_modes   = data.out_modes;
     if (data.out_order)   state.out_order   = data.out_order;
     if (data.out_enabled) state.out_enabled = data.out_enabled;
-    if (data.out_protected) state.out_protected = data.out_protected;
     if (orderChanged || enabledChanged) rebuildOutputTable();
-    else if (modesChanged || protectedChanged) for (let i = 0; i < NUM_CH; i++) bindButton(i);
+    else if (modesChanged) for (let i = 0; i < NUM_CH; i++) bindButton(i);
 }
 
 function wsSend(msg) {

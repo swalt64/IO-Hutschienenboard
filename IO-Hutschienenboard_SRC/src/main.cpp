@@ -212,13 +212,16 @@ void updateTopLeds() {
     }
     bool systemReady = (mcpReady[0] && mcpReady[1]);
 
-    // WLAN-LED: Dauerlicht wenn STA verbunden + gültige IP (DHCP);
-    // 10/90-Blinken (200ms/1800ms, 2s-Periode) wenn verbunden aber noch keine IP;
-    // aus wenn kein STA
+    // WLAN-LED (2s-Periode):
+    //   kein STA          → aus
+    //   STA, keine IP     → 10/90 (200ms an, 1800ms aus)
+    //   IP, RSSI < 50%    → 80/20 (1600ms an,  400ms aus)
+    //   IP, RSSI >= 50%   → Dauerlicht
     bool hasIP = staConnected && (WiFi.localIP() != IPAddress(0, 0, 0, 0));
     bool wlanOn = false;
     if (hasIP) {
-        wlanOn = true;
+        int pct = min(100, max(0, 2 * (WiFi.RSSI() + 100)));
+        wlanOn = (pct >= 50) ? true : ((millis() % 2000) < 1600);
     } else if (staConnected) {
         wlanOn = (millis() % 2000) < 200;
     }

@@ -212,17 +212,15 @@ void updateTopLeds() {
     }
     bool systemReady = (mcpReady[0] && mcpReady[1]);
 
-    // WLAN-LED: Puls/Pause-Verhältnis zeigt Signalqualität
-    // kein STA → aus; ≥80% → Dauerlicht; <80% → 2s-Periode, Einschaltdauer ∝ Qualität
+    // WLAN-LED: Dauerlicht wenn STA verbunden + gültige IP (DHCP);
+    // 10/90-Blinken (200ms/1800ms, 2s-Periode) wenn verbunden aber noch keine IP;
+    // aus wenn kein STA
+    bool hasIP = staConnected && (WiFi.localIP() != IPAddress(0, 0, 0, 0));
     bool wlanOn = false;
-    if (staConnected) {
-        int pct = min(100, max(0, 2 * (WiFi.RSSI() + 100)));
-        if (pct >= 80) {
-            wlanOn = true;
-        } else {
-            uint32_t onMs  = max(100u, (uint32_t)(2000u * pct / 80));
-            wlanOn = (millis() % 2000) < onMs;
-        }
+    if (hasIP) {
+        wlanOn = true;
+    } else if (staConnected) {
+        wlanOn = (millis() % 2000) < 200;
     }
     mcpTop.digitalWrite(LED_WLAN_PIN, wlanOn ? LOW : HIGH);
     mcpTop.digitalWrite(LED_OUTPUT_PIN, anyRelayOn ? LOW : HIGH);

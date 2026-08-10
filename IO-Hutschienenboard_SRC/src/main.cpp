@@ -158,6 +158,9 @@ uint8_t displayChannel = 0;
 uint8_t outDisplayOrder[NUM_CHANNELS] = {0,1,2,3,4,5,6,7,8,9,10,11};
 bool    outChEnabled[NUM_CHANNELS]    = {true,true,true,true,true,true,true,true,true,true,true,true};
 bool    outRemoteProtected[NUM_CHANNELS] = {};
+// true = Ausgang wird bei "Alle Ausgaenge AUS" mit ausgeschaltet (Eingangs-Langdruck,
+// Web-UI, App). false = Ausgang bleibt unberuehrt, z.B. Klimaanlage.
+bool    outAllOffEnabled[NUM_CHANNELS] = {true,true,true,true,true,true,true,true,true,true,true,true};
 
 uint32_t getRemainingAutoOffSeconds(uint8_t ch, unsigned long nowMs) {
     if (ch >= NUM_CHANNELS) return 0;
@@ -417,6 +420,18 @@ void toggleRelay(uint8_t ch) {
     setRelay(ch, !relayState[ch], relayState[ch]);  // speichert nur beim Ausschalten
 }
 
+// Schaltet alle Ausgaenge aus, die fuer "Alles aus" freigegeben sind.
+// Ausgaenge mit outAllOffEnabled[i] == false bleiben unberuehrt (z.B. Klimaanlage).
+void allOutputsOff(const char* reason) {
+    uint8_t skipped = 0;
+    for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+        if (!relayState[i]) continue;
+        if (!outAllOffEnabled[i]) { skipped++; continue; }
+        setRelay(i, false, true);
+    }
+    dbg::info(CAT_RELAY, "%s: alle Ausgaenge AUS (%u ausgenommen)", reason, skipped);
+}
+
 // ============================================================
 // Configuration persistence (NVS)
 // ============================================================
@@ -444,6 +459,8 @@ void loadConfig() {
         outChEnabled[i] = prefs.getUChar(key.c_str(), 1) != 0;
         key = "prot" + String(i);
         outRemoteProtected[i] = prefs.getUChar(key.c_str(), 0) != 0;
+        key = "aoff" + String(i);
+        outAllOffEnabled[i] = prefs.getUChar(key.c_str(), 1) != 0;  // Default: mit ausschalten
         key = "name" + String(i);
         String defaultName = "Ausgang " + String(i + 1);
         String name = prefs.getString(key.c_str(), defaultName);
@@ -483,6 +500,8 @@ void saveConfig() {
         prefs.putUChar(key.c_str(), outChEnabled[i] ? 1 : 0);
         key = "prot" + String(i);
         prefs.putUChar(key.c_str(), outRemoteProtected[i] ? 1 : 0);
+        key = "aoff" + String(i);
+        prefs.putUChar(key.c_str(), outAllOffEnabled[i] ? 1 : 0);
     }
     prefs.end();
     dbg::debug(CAT_CONFIG, "Konfiguration gespeichert");
@@ -507,6 +526,7 @@ String buildStateJson() {
     JsonArray outOrder    = doc["out_order"].to<JsonArray>();
     JsonArray outEnabledA = doc["out_enabled"].to<JsonArray>();
     JsonArray outProtectedA = doc["out_protected"].to<JsonArray>();
+    JsonArray outAllOffA  = doc["out_alloff"].to<JsonArray>();
     JsonArray mcpStatus   = doc["mcp"].to<JsonArray>();
     unsigned long now = millis();
 
@@ -525,12 +545,17 @@ String buildStateJson() {
         outOrder.add(outDisplayOrder[i]);
         outEnabledA.add(outChEnabled[i]);
         outProtectedA.add(outRemoteProtected[i]);
+        outAllOffA.add(outAllOffEnabled[i]);
     }
     mcpStatus.add(mcpReady[0]);
     mcpStatus.add(mcpReady[1]);
     doc["time"] = dbg::getTimestamp();
     doc["ntp"] = dbg::isTimeSynced();
-    if (WiFi.status() == WL_CONNECTED) doc["wifi_rssi"] = (int8_t)WiFi.RSSI();
+    if (WiFi.status() == WL_CONNECTED) {
+        doc["wifi_rssi"]    = (int8_t)WiFi.RSSI();
+        doc["wifi_bssid"]   = WiFi.BSSIDstr();
+        doc["wifi_channel"] = WiFi.channel();
+    }
 #if SIMULATE_HW
     doc["sim"] = true;
 #endif
@@ -702,6 +727,17 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 prefs.end();
                 dbg::info(CAT_CONFIG, "Ausgang A%d Fernschutz: %s", ch + 1, ena ? "aktiv" : "aus");
             }
+        } else if (strcmp(cmd, "set_out_alloff") == 0) {
+            uint8_t ch  = doc["ch"]      | 0;
+            bool    ena = doc["enabled"] | false;
+            if (ch < NUM_CHANNELS) {
+                outAllOffEnabled[ch] = ena;
+                prefs.begin("io-config", false);
+                prefs.putUChar(("aoff" + String(ch)).c_str(), ena ? 1 : 0);
+                prefs.end();
+                dbg::info(CAT_CONFIG, "Ausgang A%d bei 'Alles aus': %s",
+                          ch + 1, ena ? "ausschalten" : "ausgenommen");
+            }
         } else if (strcmp(cmd, "wifi") == 0) {
             String newSsid = doc["ssid"].as<String>();
             if (newSsid.length() > 0) sta_ssid = newSsid;
@@ -728,6 +764,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
             JsonArray jOutOrder   = doc["out_order"];
             JsonArray jOutEnabled = doc["out_enabled"];
             JsonArray jOutProtected = doc["out_protected"];
+            JsonArray jOutAllOff    = doc["out_alloff"];
 
             if (jNames.size() < NUM_CHANNELS || jINames.size() < NUM_CHANNELS ||
                 jMappings.size() < NUM_CHANNELS || jTimers.size() < NUM_CHANNELS) {
@@ -785,6 +822,10 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                         outRemoteProtected[i] = jOutProtected[i].as<bool>();
                         prefs.putUChar(("prot" + String(i)).c_str(), outRemoteProtected[i] ? 1 : 0);
                     }
+                    if (jOutAllOff.size() == NUM_CHANNELS) {
+                        outAllOffEnabled[i] = jOutAllOff[i].as<bool>();
+                        prefs.putUChar(("aoff" + String(i)).c_str(), outAllOffEnabled[i] ? 1 : 0);
+                    }
                 }
                 prefs.end();
                 dbg::info(CAT_CONFIG, "E/A-Konfiguration via load_config geladen");
@@ -803,6 +844,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 outDisplayOrder[i] = i;
                 outChEnabled[i]    = true;
                 outRemoteProtected[i] = false;
+                outAllOffEnabled[i]   = true;
                 snprintf(channelNames[i], CH_NAME_MAX_LEN + 1, "Ausgang %d", i + 1);
                 snprintf(inputNames[i],   CH_NAME_MAX_LEN + 1, "Eingang %d", i + 1);
                 prefs.putUShort(("mm"    + String(i)).c_str(), 0);
@@ -812,6 +854,7 @@ void onWebSocketEvent(AsyncWebSocket* srv, AsyncWebSocketClient* client,
                 prefs.putUChar (("ord"   + String(i)).c_str(), i);
                 prefs.putUChar (("ena"   + String(i)).c_str(), 1);
                 prefs.putUChar (("prot"  + String(i)).c_str(), 0);
+                prefs.putUChar (("aoff"  + String(i)).c_str(), 1);
                 prefs.putString(("name"  + String(i)).c_str(), channelNames[i]);
                 prefs.putString(("iname" + String(i)).c_str(), inputNames[i]);
             }
@@ -1106,6 +1149,14 @@ void setupWiFi() {
         statusled::update();
 
         WiFi.setHostname("HS-IO");
+
+        // Ohne diese beiden Zeilen nutzt der ESP32 WIFI_FAST_SCAN und verbindet sich
+        // mit dem ERSTEN gefundenen AP dieser SSID, nicht mit dem staerksten. Bei
+        // mehreren APs (Repeater/Mesh) landet das Board sonst nach jedem Neustart
+        // zufaellig auf einem weit entfernten AP. Kostet ~1-2s zusaetzliche Bootzeit.
+        WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
+        WiFi.setSortMethod(WIFI_CONNECT_AP_BY_SIGNAL);
+
         WiFi.begin(sta_ssid.c_str(), sta_pass.c_str());
         dbg::info(CAT_WIFI, "Verbinde mit '%s'...", sta_ssid.c_str());
 
@@ -1116,7 +1167,10 @@ void setupWiFi() {
         }
 
         if (WiFi.status() == WL_CONNECTED) {
-            dbg::info(CAT_WIFI, "WiFi verbunden! IP: %s", WiFi.localIP().toString().c_str());
+            dbg::info(CAT_WIFI, "WiFi verbunden! IP: %s, AP: %s, Kanal %d, RSSI %d dBm (%d%%)",
+                      WiFi.localIP().toString().c_str(), WiFi.BSSIDstr().c_str(),
+                      WiFi.channel(), WiFi.RSSI(),
+                      min(100, max(0, 2 * (WiFi.RSSI() + 100))));
             // NTP-Sync erfolgt im GOT_IP-Event-Handler (vermeidet Doppelaufruf)
             statusled::setState(statusled::ST_WIFI_NO_NTP);
         } else {
@@ -1155,6 +1209,7 @@ void setupWebServer() {
         JsonArray outOrderA   = doc["out_order"].to<JsonArray>();
         JsonArray outEnabledA = doc["out_enabled"].to<JsonArray>();
         JsonArray outProtectedA = doc["out_protected"].to<JsonArray>();
+        JsonArray outAllOffA  = doc["out_alloff"].to<JsonArray>();
         unsigned long now = millis();
         for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
             inputs.add(inputState[i]);
@@ -1169,12 +1224,18 @@ void setupWebServer() {
             outOrderA.add(outDisplayOrder[i]);
             outEnabledA.add(outChEnabled[i]);
             outProtectedA.add(outRemoteProtected[i]);
+            outAllOffA.add(outAllOffEnabled[i]);
         }
         doc["ap_ip"] = WiFi.softAPIP().toString();
         doc["sta_ip"] = WiFi.localIP().toString();
         doc["sta_ssid"] = sta_ssid;
         doc["sta_pass"] = sta_pass;
         doc["version"] = FW_VERSION;
+        if (WiFi.status() == WL_CONNECTED) {
+            doc["wifi_rssi"]    = (int8_t)WiFi.RSSI();
+            doc["wifi_bssid"]   = WiFi.BSSIDstr();
+            doc["wifi_channel"] = WiFi.channel();
+        }
         doc["mcp1"] = mcpReady[0];
         doc["mcp2"] = mcpReady[1];
         doc["time"] = dbg::getTimestamp();
@@ -1433,10 +1494,7 @@ void loop() {
 
     if (pendingAllOff) {
         pendingAllOff = false;
-        dbg::info(CAT_RELAY, "Alle Relais AUS");
-        for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-            if (relayState[i]) setRelay(i, false, true);
-        }
+        allOutputsOff("Alles-Aus-Kommando");
         sendState();
     }
 
@@ -1543,10 +1601,9 @@ void loop() {
         // gehalten werden, ohne global alle Ausgaenge auszuschalten.
         if (inputMode[i] == 0 && signalActive && !longPressFired[i] &&
             (nowIn - pressStartMs[i] >= IN_LONGPRESS_MS)) {
-            dbg::info(CAT_INPUT, "Eingang %d: Langdruck → Alle Ausgaenge AUS", i+1);
-            for (uint8_t j = 0; j < NUM_CHANNELS; j++) {
-                if (relayState[j]) setRelay(j, false, true);
-            }
+            char reason[32];
+            snprintf(reason, sizeof(reason), "Eingang %d Langdruck", i + 1);
+            allOutputsOff(reason);
             longPressFired[i] = true;
             stateChanged = true;
         }
